@@ -1,0 +1,29 @@
+
+body{
+    color: #d0d0d0;
+    background-color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0%;
+    padding-left: 100px;
+}
+.top_spanner{
+    text-align: center;
+    font-size: 35px;
+    font-weight: bolder;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+.wrapper{
+    background-color: #181818;
+    width:100vh;
+    margin: auto;
+}
+.separator{
+    background-color: #182040;
+    text-align: center;
+    font-size: 25px;
+}
+.mid_block{
+    width: 100vh;
+    margin: auto;
+}
