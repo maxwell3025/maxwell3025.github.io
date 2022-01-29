@@ -3,5 +3,5 @@
 }
 .planet{
     fill:white;
-    stroke: blue;
+    stroke-width: 0;
 }

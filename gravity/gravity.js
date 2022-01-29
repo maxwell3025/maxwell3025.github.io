@@ -1,7 +1,7 @@
 let width = 800;
 let height = 600;
 const dt = 0.004;
-const G = 10000;
+const G = 1000;
 class Planet{
     xPos;
     yPos;
@@ -23,8 +23,11 @@ class Planet{
 
 //iniitalize simulation
 let planets = [
-    new Planet(0,    0, 0, -1,  1000),
-    new Planet(1000, 0, 0, 100, 10)
+    new Planet(0,    0, 0, -0.556,  10000),
+    new Planet(1000, 0, 0, 100, 10),
+    new Planet(750,  0, 0, 115,  10),
+    new Planet(500,  0, 0, 141,  10),
+    new Planet(250,  0, 0, 200,  10)
 ]
 
 function updateSim(){
