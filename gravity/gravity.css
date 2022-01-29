@@ -1,3 +1,6 @@
+#simulation{
+    background-color: #101020;
+}
 .planet{
     fill:white;
     stroke: blue;

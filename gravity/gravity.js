@@ -23,7 +23,7 @@ class Planet{
 
 //iniitalize simulation
 let planets = [
-    new Planet(0,    0, 0, 0,   1000),
+    new Planet(0,    0, 0, -1,  1000),
     new Planet(1000, 0, 0, 100, 10)
 ]
 
@@ -46,9 +46,8 @@ function updateSim(){
 
 window.onload = ()=>{
     //add circles and svg
-    svg = d3.select('#window').append('svg').
-    lower().
-    attr('viewBox', [-1000, -1000, 2000, 2000]);
+    svg = d3.select('#simulation')
+    .lower()
     planets.forEach(element => {
         svg.append('circle').
         attr('cx', element.xPos).
