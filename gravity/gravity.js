@@ -46,11 +46,17 @@ function updateSim(){
         planet.update();
     });
 }
+let svg;
+
+function stretchSim(){
+    minDim = Math.min(window.innerWidth,window.innerHeight);
+    svg.attr("viewBox", `-${window.innerWidth*1000/minDim} -${window.innerHeight*1000/minDim} ${window.innerWidth*2000/minDim} ${window.innerHeight*2000/minDim}`);
+}
 
 window.onload = ()=>{
     //add circles and svg
-    svg = d3.select('#simulation')
-    .lower()
+    svg = d3.select('#simulation');
+    stretchSim();
     planets.forEach(element => {
         svg.append('circle').
         attr('cx', element.xPos).
@@ -60,13 +66,13 @@ window.onload = ()=>{
     });
 
     planetElems = d3.selectAll('.planet');
-    counter = d3.select('#counter')
+    counter = d3.select('#counter');
     let t = 0;
     setInterval(()=>{
         //update simulation
         updateSim();
         //bind data
-        planetElems.data(planets)
+        planetElems.data(planets);
         planetElems
         .attr('cx', planet=>planet.xPos)
         .attr('cy', planet=>planet.yPos)
@@ -78,4 +84,8 @@ window.onload = ()=>{
         }
     }
     , 4);//4ms is min delay
+}
+
+window.onresize = ()=>{
+    stretchSim();
 }
