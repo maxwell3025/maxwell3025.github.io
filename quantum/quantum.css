@@ -1,0 +1,15 @@
+#back{
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow-y: hidden;
+}
+#front{
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    width: 100vw;
+}
