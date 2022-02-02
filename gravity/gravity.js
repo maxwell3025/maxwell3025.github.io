@@ -56,27 +56,44 @@ function stretchSim(){
 window.onload = ()=>{
     //add circles and svg
     svg = d3.select('#simulation');
-    stretchSim();
-    planets.forEach(element => {
-        svg.append('circle').
-        attr('cx', element.xPos).
-        attr('cy', element.yPos).
-        attr('r', Math.sqrt(element.mass)).
-        attr('class', 'planet');
+
+    var downX;
+    var downY;
+    svg.on("mousedown", event=>{
+        [downX, downY] = d3.pointer(event,svg.node());
     });
 
-    planetElems = d3.selectAll('.planet');
+    svg.on("mouseup", event=>{
+        console.log("click");
+        let [upX, upY] = d3.pointer(event,svg.node());
+        planets.push(new Planet(downX, downY, downX-upX, downY-upY, 100));
+        planetElems = svg.selectAll('circle')
+        .data(planets)
+        .enter()
+        .append("circle")
+        .attr('class', 'planet')
+        .merge(planetElems);
+        console.log(planetElems);
+    });
+    stretchSim();
+
+    //bind data
+    var planetElems = svg.selectAll('circle')
+    .data(planets)
+    .enter()
+    .append("circle")
+    .attr('class', 'planet');
+
     counter = d3.select('#counter');
     let t = 0;
     setInterval(()=>{
         //update simulation
         updateSim();
-        //bind data
-        planetElems.data(planets);
         planetElems
         .attr('cx', planet=>planet.xPos)
         .attr('cy', planet=>planet.yPos)
-        .attr('r', planet=>Math.sqrt(planet.mass))
+        .attr('r', planet=>Math.sqrt(planet.mass));
+        //update counter
         t+=4;
         if(t%1000==0){
             console.log(planets);
