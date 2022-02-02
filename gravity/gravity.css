@@ -10,6 +10,7 @@
     overflow-y: hidden;
 }
 #front{
+    pointer-events: none;
     position: absolute;
     left: 0;
     right: 0;
@@ -19,9 +20,12 @@
 #counter{
     position: absolute;
     bottom: 0px;
-    font-size: 1vh;
+    font-size: 1vmin;
 }
 .planet{
     fill:white;
     stroke-width: 0;
+}
+.interactive{
+    pointer-events: auto;
 }
