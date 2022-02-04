@@ -58,11 +58,10 @@ function stretchSim() {
     minDim = Math.min(window.innerWidth, window.innerHeight);
     svg.attr("viewBox", `-${window.innerWidth * 1000 / minDim} -${window.innerHeight * 1000 / minDim} ${window.innerWidth * 2000 / minDim} ${window.innerHeight * 2000 / minDim}`);
 }
-
+var state = ProgramState.Default;
 window.onload = () => {
     //add circles and svg
     svg = d3.select('#simulation');
-    var state = ProgramState.Default;
     var downX;
     var downY;
     var running = true;
@@ -155,7 +154,7 @@ function bindData() {
 }
 
 function planetClicked(event, data) {
-    if (state = ProgramState.Deleting) {
+    if (state == ProgramState.Deleting) {
         planets = planets.filter(planet=>planet!=data);
         planetElems.data(planets).exit().remove();
     }
