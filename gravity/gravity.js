@@ -67,7 +67,8 @@ window.onload = ()=>{
     var downY;
     var running = true;
     d3.select("body").on("keydown", event=>{
-        if(event.keyCode == 32){
+        //State machine to 
+        if(event.code == 'Space'){
             if(running){
                 running = false;
                 d3.select("#run_indicator").attr("src", "../resources/run.png");
@@ -76,7 +77,7 @@ window.onload = ()=>{
                 d3.select("#run_indicator").attr("src", "../resources/pause.png");
             }
         }
-        if(event.keyCode == 17){
+        if(event.code == 'ControlLeft'|event.code == 'ControlRight'){
             if (state==ProgramState.Default) {
                 state = ProgramState.Deleting;
             }
@@ -84,7 +85,7 @@ window.onload = ()=>{
     });
     
     d3.select("body").on("keyup", event=>{
-        if(event.keyCode == 17){
+        if(event.code == 'ControlLeft'|event.code == 'ControlRight'){
             if (state==ProgramState.Deleting) {
                 state = ProgramState.Default;
             }
@@ -100,7 +101,6 @@ window.onload = ()=>{
     svg.on("mouseup", event => {
         if (state == ProgramState.Creating) {
             state = ProgramState.Default;
-            console.log("click");
             let [upX, upY] = d3.pointer(event, svg.node());
             planets.push(new Planet(downX, downY, downX - upX, downY - upY, 100));
             planetElems = svg.selectAll('circle')
