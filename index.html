@@ -4,6 +4,7 @@
         <meta charset="utf-8"/>
         <title>maxwell3025's website</title>
         <link rel="stylesheet" href="style.css"/>
+        <link rel="stylesheet" href="main.css"/>
     </head>
     <body>
         <div class = "wrapper">
@@ -19,11 +20,33 @@
             </div>
         </div>
         <div class = "mid_block">
-            <svg>
-                <a href="./quantum">
-                    <circle style="fill: #69b3a2" stroke="black" cx=100 cy=100 r=40></circle>
-                    <text text-anchor="middle" x="100" y="105" fill="white">Unfinished</text>
-                </a>
+            <svg id = "project_menu" viewBox = "0 0 100 100">
+                <defs>
+                    <path id = "gravity-shape" d="
+                    M 80 0
+                    L 100 72
+                    L 82 100
+                    L 14 84
+                    L 0 17
+                    Z
+                    "/>
+                    <clipPath id = "gravity-clip">
+                        <use href = "#gravity-shape"/>
+                    </clipPath>
+                </defs>
+
+                <g transform = "
+                translate(10, 10)
+                scale(0.25, 0.25)
+                "><a href = "./gravity">
+                    <image
+                        width = "100"
+                        height = "100"
+                        href="./resources/thumbnail-gravity-sim.png"
+                        clip-path = "url(#gravity-clip)"
+                    />
+                    <use href = "#gravity-shape" x = "0" y = "0" stroke = "#808080" stroke-width = "1" fill = "none"/>
+                </a></g>
             </svg>
         </div>
     </body>
