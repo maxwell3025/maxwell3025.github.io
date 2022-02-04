@@ -52,8 +52,8 @@ function updateSim() {
         planet.update();
     });
 }
-let svg;
-
+var svg;
+var planetElems;
 function stretchSim() {
     minDim = Math.min(window.innerWidth, window.innerHeight);
     svg.attr("viewBox", `-${window.innerWidth * 1000 / minDim} -${window.innerHeight * 1000 / minDim} ${window.innerWidth * 2000 / minDim} ${window.innerHeight * 2000 / minDim}`);
@@ -68,6 +68,7 @@ window.onload = () => {
     var running = true;
     d3.select("body").on("keydown", event => {
         if (event.code == 'Space') {
+            //toggle running
             if (running) {
                 running = false;
                 d3.select("#run_indicator").attr("src", "../resources/run.png");
@@ -109,6 +110,7 @@ window.onload = () => {
                 .enter()
                 .append("circle")
                 .attr('class', 'planet')
+                .on('mousedown', planetClicked)
                 .merge(planetElems);
             console.log(planetElems);
         }
@@ -116,11 +118,12 @@ window.onload = () => {
     stretchSim();
 
     //bind data
-    var planetElems = svg.selectAll('circle')
+    planetElems = svg.selectAll('circle')
         .data(planets)
         .enter()
         .append("circle")
-        .attr('class', 'planet');
+        .attr('class', 'planet')
+        .on('mousedown', planetClicked);
 
     counter = d3.select('#counter');
     let t = 0;
@@ -140,6 +143,22 @@ window.onload = () => {
         }
     }
         , 4);//4ms is min delay
+}
+function bindData() {
+    planetElems = svg.selectAll('circle')
+        .data(planets)
+        .enter()
+        .append("circle")
+        .attr('class', 'planet')
+        .on('mousedown', planetClicked)
+        .merge(planetElems);
+}
+
+function planetClicked(event, data) {
+    if (state = ProgramState.Deleting) {
+        planets = planets.filter(planet=>planet!=data);
+        planetElems.data(planets).exit().remove();
+    }
 }
 
 window.onresize = () => {
