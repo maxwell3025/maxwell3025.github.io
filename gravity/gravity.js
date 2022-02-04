@@ -21,6 +21,12 @@ class Planet{
     }
 }
 
+const ProgramState = {
+    Default: "Default",
+    Deleting: "Deleting",
+    Creating: "Creating",
+}
+
 //iniitalize simulation
 let planets = [
     new Planet(0,    0, 0, -0.556,  10000),
@@ -56,7 +62,7 @@ function stretchSim(){
 window.onload = ()=>{
     //add circles and svg
     svg = d3.select('#simulation');
-
+    var state = ProgramState.Default;
     var downX;
     var downY;
     var running = true;
@@ -70,22 +76,41 @@ window.onload = ()=>{
                 d3.select("#run_indicator").attr("src", "../resources/pause.png");
             }
         }
+        if(event.keyCode == 17){
+            if (state==ProgramState.Default) {
+                state = ProgramState.Deleting;
+            }
+        }
+    });
+    
+    d3.select("body").on("keyup", event=>{
+        if(event.keyCode == 17){
+            if (state==ProgramState.Deleting) {
+                state = ProgramState.Default;
+            }
+        }
     });
     svg.on("mousedown", event=>{
-        [downX, downY] = d3.pointer(event,svg.node());
+        if (state==ProgramState.Default) {
+            state = ProgramState.Creating;
+            [downX, downY] = d3.pointer(event,svg.node());
+        }
     });
 
-    svg.on("mouseup", event=>{
-        console.log("click");
-        let [upX, upY] = d3.pointer(event,svg.node());
-        planets.push(new Planet(downX, downY, downX-upX, downY-upY, 100));
-        planetElems = svg.selectAll('circle')
-        .data(planets)
-        .enter()
-        .append("circle")
-        .attr('class', 'planet')
-        .merge(planetElems);
-        console.log(planetElems);
+    svg.on("mouseup", event => {
+        if (state == ProgramState.Creating) {
+            state = ProgramState.Default;
+            console.log("click");
+            let [upX, upY] = d3.pointer(event, svg.node());
+            planets.push(new Planet(downX, downY, downX - upX, downY - upY, 100));
+            planetElems = svg.selectAll('circle')
+                .data(planets)
+                .enter()
+                .append("circle")
+                .attr('class', 'planet')
+                .merge(planetElems);
+            console.log(planetElems);
+        }
     });
     stretchSim();
 
@@ -109,6 +134,7 @@ window.onload = ()=>{
         t+=4;
         if(t%1000==0){
             console.log(planets);
+            console.log(`state: ${state}`);
             counter.text(`simulation is ${d3.now()-t}ms behind real-time`);
         }
     }
