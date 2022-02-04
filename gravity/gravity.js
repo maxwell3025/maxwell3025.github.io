@@ -59,6 +59,18 @@ window.onload = ()=>{
 
     var downX;
     var downY;
+    var running = true;
+    d3.select("body").on("keydown", event=>{
+        if(event.keyCode == 32){
+            if(running){
+                running = false;
+                d3.select("#run_indicator").attr("src", "../resources/run.png");
+            }else{
+                running = true;
+                d3.select("#run_indicator").attr("src", "../resources/pause.png");
+            }
+        }
+    });
     svg.on("mousedown", event=>{
         [downX, downY] = d3.pointer(event,svg.node());
     });
@@ -88,7 +100,7 @@ window.onload = ()=>{
     let t = 0;
     setInterval(()=>{
         //update simulation
-        updateSim();
+        if(running) updateSim();
         planetElems
         .attr('cx', planet=>planet.xPos)
         .attr('cy', planet=>planet.yPos)
