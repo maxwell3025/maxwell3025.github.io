@@ -31,6 +31,8 @@ var width = 800;
 var height = 600;
 var svg;
 var planetElems;
+var marker;
+var velocityLine;
 var downX;
 var downY;
 var running = true;
@@ -67,7 +69,7 @@ function stretchSim() {
 }
 
 function bindData() {
-    planetElems = svg.selectAll('circle')
+    planetElems = svg.selectAll('.planet')
         .data(planets)
         .enter()
         .append("circle")
@@ -90,7 +92,14 @@ window.onresize = () => {
 window.onload = () => {
     //add circles and svg
     svg = d3.select('#simulation');
-    planetElems = svg.selectAll('circle');
+    planetElems = svg.selectAll('.planet');
+    marker = svg.append('circle')
+    .style('visibility', 'hidden')
+    .style('fill', '#ff0000');
+    velocityLine = svg.append('line')
+    .style('visibility', 'hidden')
+    .style('stroke', '#ff0000');
+
     d3.select("body").on("keydown", event => {
         if (event.code == 'Space') {
             //toggle running
@@ -121,6 +130,26 @@ window.onload = () => {
             state = ProgramState.Creating;
             //store creation point
             [downX, downY] = d3.pointer(event, svg.node());
+            marker = marker
+            .attr('cx', downX)
+            .attr('cy', downY)
+            .attr('r', '10')
+            .style('visibility', 'visible');
+            velocityLine = velocityLine
+            .attr('x1', downX)
+            .attr('y1', downY)
+            .attr('x2', downX)
+            .attr('y2', downY)
+            .style('visibility', 'visible');
+        }
+    });
+
+    svg.on("mousemove", event => {
+        if (state == ProgramState.Creating) {
+            let [mouseX, mouseY] = d3.pointer(event, svg.node());
+            velocityLine = velocityLine
+            .attr('x2', mouseX)
+            .attr('y2', mouseY);
         }
     });
 
@@ -129,6 +158,10 @@ window.onload = () => {
             state = ProgramState.Default;
             //create and render new planet
             let [upX, upY] = d3.pointer(event, svg.node());
+            marker = marker
+            .style('visibility', 'hidden');
+            velocityLine = velocityLine
+            .style('visibility', 'hidden');
             planets.push(new Planet(downX, downY, downX - upX, downY - upY, 100));
             bindData();
             console.log(planetElems);
@@ -156,6 +189,6 @@ window.onload = () => {
             counter.text(`simulation is ${d3.now() - t}ms behind real-time`);
         }
     }
-        , 4);//4ms is min delay
+    , 4);//4ms is min delay
 }
 
