@@ -1,22 +1,3 @@
-let width = 800;
-let height = 600;
-const dt = 0.004;
-const G = 1000;
-
-//iniitalize variables
-var svg;
-var planetElems;
-var downX;
-var downY;
-var running = true;
-var state = ProgramState.Default;
-var planets = [
-    new Planet(0,    0, 0, -0.556, 10000),
-    new Planet(1000, 0, 0, 100,    10),
-    new Planet(750,  0, 0, 115,    10),
-    new Planet(500,  0, 0, 141,    10),
-    new Planet(250,  0, 0, 200,    10)
-]
 //data types
 class Planet {
     xPos;
@@ -42,6 +23,26 @@ const ProgramState = {
     Deleting: "Deleting",
     Creating: "Creating",
 }
+
+//iniitalize variables
+const dt = 0.004;
+const G = 1000;
+var width = 800;
+var height = 600;
+var svg;
+var planetElems;
+var downX;
+var downY;
+var running = true;
+var state = ProgramState.Default;
+var planets = [
+    new Planet(0,    0, 0, -0.556, 10000),
+    new Planet(1000, 0, 0, 100,    10),
+    new Planet(750,  0, 0, 115,    10),
+    new Planet(500,  0, 0, 141,    10),
+    new Planet(250,  0, 0, 200,    10)
+]
+
 //functions
 function updateSim() {
     planets.forEach((a, indexA) => {
@@ -118,7 +119,7 @@ window.onload = () => {
     svg.on("mousedown", event => {
         if (state == ProgramState.Default) {
             state = ProgramState.Creating;
-            //store creation
+            //store creation point
             [downX, downY] = d3.pointer(event, svg.node());
         }
     });
