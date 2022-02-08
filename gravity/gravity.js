@@ -46,10 +46,10 @@ var running = true;
 var state = ProgramState.Default;
 var planets = [
     new Planet(0,    0, 0, -0.556, 10000, 100),
-    new Planet(1000, 0, 0, 100,    10,    3.16),
-    new Planet(750,  0, 0, 115,    10,    3.16),
-    new Planet(500,  0, 0, 141,    10,    3.16),
-    new Planet(250,  0, 0, 200,    10,    3.16)
+    new Planet(1000, 0, 0, 100,    10,    10),
+    new Planet(750,  0, 0, 115,    10,    10),
+    new Planet(500,  0, 0, 141,    10,    10),
+    new Planet(250,  0, 0, 200,    10,    10)
 ]
 
 //functions
