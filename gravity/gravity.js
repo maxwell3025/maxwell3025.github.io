@@ -5,12 +5,14 @@ class Planet {
     xVel;
     yVel;
     mass;
-    constructor(xPos, yPos, xVel, yVel, mass) {
+    radius;
+    constructor(xPos, yPos, xVel, yVel, mass, radius) {
         this.xPos = xPos
         this.yPos = yPos
         this.xVel = xVel
         this.yVel = yVel
         this.mass = mass;
+        this.radius = radius;
     }
     update() {
         this.xPos += this.xVel * dt;
@@ -31,6 +33,12 @@ var width = 800;
 var height = 600;
 var svg;
 var planetElems;
+var massSlider;
+var massLabel;
+var radSlider;
+var radLabel;
+var currentMass = 100;
+var currentRadius = 10;
 var marker;
 var velocityLine;
 var downX;
@@ -38,11 +46,11 @@ var downY;
 var running = true;
 var state = ProgramState.Default;
 var planets = [
-    new Planet(0,    0, 0, -0.556, 10000),
-    new Planet(1000, 0, 0, 100,    10),
-    new Planet(750,  0, 0, 115,    10),
-    new Planet(500,  0, 0, 141,    10),
-    new Planet(250,  0, 0, 200,    10)
+    new Planet(0,    0, 0, -0.556, 10000, 100),
+    new Planet(1000, 0, 0, 100,    10,    3.16),
+    new Planet(750,  0, 0, 115,    10,    3.16),
+    new Planet(500,  0, 0, 141,    10,    3.16),
+    new Planet(250,  0, 0, 200,    10,    3.16)
 ]
 
 //functions
@@ -93,12 +101,27 @@ window.onload = () => {
     //add circles and svg
     svg = d3.select('#simulation');
     planetElems = svg.selectAll('.planet');
+    massSlider = d3.select('#massSlider');
+    massLabel = d3.select('#massLabel');
+    radSlider = d3.select('#radSlider');
+    radLabel = d3.select('#radLabel');
     marker = svg.append('circle')
     .style('visibility', 'hidden')
     .style('fill', '#ff0000');
     velocityLine = svg.append('line')
     .style('visibility', 'hidden')
     .style('stroke', '#ff0000');
+
+    massLabel.text(currentMass);
+    massSlider.on("input", () => {
+        currentMass = Math.exp(massSlider.property("value"))*100;
+        massLabel.text(currentMass.toFixed(3));
+    });
+    radLabel.text(currentRadius);
+    radSlider.on("input", () => {
+        currentRadius = Math.exp(radSlider.property("value"))*100;
+        radLabel.text(currentRadius.toFixed(3));
+    });
 
     d3.select("body").on("keydown", event => {
         if (event.code == 'Space') {
@@ -133,7 +156,7 @@ window.onload = () => {
             marker = marker
             .attr('cx', downX)
             .attr('cy', downY)
-            .attr('r', '10')
+            .attr('r', currentRadius)
             .style('visibility', 'visible');
             velocityLine = velocityLine
             .attr('x1', downX)
@@ -162,7 +185,7 @@ window.onload = () => {
             .style('visibility', 'hidden');
             velocityLine = velocityLine
             .style('visibility', 'hidden');
-            planets.push(new Planet(downX, downY, downX - upX, downY - upY, 100));
+            planets.push(new Planet(downX, downY, downX - upX, downY - upY, currentMass, currentRadius));
             bindData();
             console.log(planetElems);
         }
@@ -180,7 +203,7 @@ window.onload = () => {
         planetElems
             .attr('cx', planet => planet.xPos)
             .attr('cy', planet => planet.yPos)
-            .attr('r', planet => Math.sqrt(planet.mass));
+            .attr('r', planet => planet.radius);
         //update counter
         t += 4;
         if (t % 1000 == 0) {
