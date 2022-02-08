@@ -33,12 +33,11 @@ var width = 800;
 var height = 600;
 var svg;
 var planetElems;
-var massSlider;
-var massLabel;
-var radSlider;
-var radLabel;
-var currentMass = 100;
-var currentRadius = 10;
+var gui;
+var params = {
+    currentMass: 100,
+    currentRadius: 10
+}
 var marker;
 var velocityLine;
 var downX;
@@ -101,10 +100,6 @@ window.onload = () => {
     //add circles and svg
     svg = d3.select('#simulation');
     planetElems = svg.selectAll('.planet');
-    massSlider = d3.select('#massSlider');
-    massLabel = d3.select('#massLabel');
-    radSlider = d3.select('#radSlider');
-    radLabel = d3.select('#radLabel');
     marker = svg.append('circle')
     .style('visibility', 'hidden')
     .style('fill', '#ff0000');
@@ -112,16 +107,11 @@ window.onload = () => {
     .style('visibility', 'hidden')
     .style('stroke', '#ff0000');
 
-    massLabel.text(currentMass);
-    massSlider.on("input", () => {
-        currentMass = Math.exp(massSlider.property("value"))*100;
-        massLabel.text(currentMass.toFixed(3));
-    });
-    radLabel.text(currentRadius);
-    radSlider.on("input", () => {
-        currentRadius = Math.exp(radSlider.property("value"))*100;
-        radLabel.text(currentRadius.toFixed(3));
-    });
+    var gui = new dat.GUI({ autoPlace: false });
+    gui.add(params, 'currentMass', 0, 100).name('mass');
+    gui.add(params, 'currentRadius', 0, 100).name('radius');
+    gui.domElement.id = 'gui';
+    d3.select('body').node().appendChild(gui.domElement);
 
     d3.select("body").on("keydown", event => {
         if (event.code == 'Space') {
@@ -156,7 +146,7 @@ window.onload = () => {
             marker = marker
             .attr('cx', downX)
             .attr('cy', downY)
-            .attr('r', currentRadius)
+            .attr('r', params.currentRadius)
             .style('visibility', 'visible');
             velocityLine = velocityLine
             .attr('x1', downX)
@@ -185,7 +175,7 @@ window.onload = () => {
             .style('visibility', 'hidden');
             velocityLine = velocityLine
             .style('visibility', 'hidden');
-            planets.push(new Planet(downX, downY, downX - upX, downY - upY, currentMass, currentRadius));
+            planets.push(new Planet(downX, downY, downX - upX, downY - upY, params.currentMass, params.currentRadius));
             bindData();
             console.log(planetElems);
         }

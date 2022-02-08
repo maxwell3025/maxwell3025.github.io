@@ -22,17 +22,11 @@
     bottom: 0px;
     font-size: 1vmin;
 }
-#massLabel{
-    width: 10vw;
-    overflow: hidden;
-    text-overflow: clip;
-    float: right;
-}
-#radLabel{
-    width: 10vw;
-    overflow: hidden;
-    text-overflow: clip;
-    float: right;
+
+#gui {
+    position: absolute;
+    top: 70px;
+    right: 2px
 }
 .planet{
     fill:white;
