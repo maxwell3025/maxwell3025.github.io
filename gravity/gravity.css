@@ -22,10 +22,26 @@
     bottom: 0px;
     font-size: 1vmin;
 }
+#massLabel{
+    width: 10vw;
+    overflow: hidden;
+    text-overflow: clip;
+    float: right;
+}
+#radLabel{
+    width: 10vw;
+    overflow: hidden;
+    text-overflow: clip;
+    float: right;
+}
 .planet{
     fill:white;
     stroke-width: 0;
 }
 .interactive{
     pointer-events: auto;
+}
+.menu{
+    background-color: #88888880;
+    float: right;
 }
