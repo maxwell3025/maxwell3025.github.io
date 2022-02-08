@@ -109,7 +109,7 @@ window.onload = () => {
 
     var gui = new dat.GUI({ autoPlace: false });
     gui.add(params, 'currentMass', 0, 100).name('mass');
-    gui.add(params, 'currentRadius', 0, 100).name('radius');
+    gui.add(params, 'currentRadius', 10, 100).name('radius');
     gui.domElement.id = 'gui';
     d3.select('body').node().appendChild(gui.domElement);
 
