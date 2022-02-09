@@ -27,29 +27,32 @@ const ProgramState = {
 }
 
 //iniitalize variables
-const dt = 0.004;
-const G = 1000;
-var width = 800;
-var height = 600;
+//DOM vars
 var svg;
-var planetElems;
+var planetShapes;
+var newPlanetShape;
+var velocityLine;
+var coordLabel;
 var gui;
 var params = {
     currentMass: 100,
     currentRadius: 10
 }
-var marker;
-var velocityLine;
+//simulation vars
+const dt = 0.004;
+const G = 1000;
+var width = 800;
+var height = 600;
 var downX;
 var downY;
 var running = true;
 var state = ProgramState.Default;
 var planets = [
-    new Planet(0,    0, 0, 0, 10000, 100),
-    new Planet(1000, 0, 0, 100,    0,    10),
-    new Planet(750,  0, 0, 115,    0,    10),
-    new Planet(500,  0, 0, 141,    0,    10),
-    new Planet(250,  0, 0, 200,    0,    10)
+    new Planet(0,    0, 0, 0,   10000, 100),
+    new Planet(1000, 0, 0, 100, 0,     10),
+    new Planet(750,  0, 0, 115, 0,     10),
+    new Planet(500,  0, 0, 141, 0,     10),
+    new Planet(250,  0, 0, 200, 0,     10)
 ]
 
 //functions
@@ -76,19 +79,19 @@ function stretchSim() {
 }
 
 function bindData() {
-    planetElems = svg.selectAll('.planet')
+    planetShapes = svg.selectAll('.planet')
         .data(planets)
         .enter()
         .append("circle")
         .attr('class', 'planet')
         .on('mousedown', planetClicked)
-        .merge(planetElems);
+        .merge(planetShapes);
 }
 
 function planetClicked(event, data) {
     if (state == ProgramState.Deleting) {
         planets = planets.filter(planet=>planet!=data);
-        planetElems.data(planets).exit().remove();
+        planetShapes.data(planets).exit().remove();
     }
 }
 //actions
@@ -97,22 +100,40 @@ window.onresize = () => {
 }
 
 window.onload = () => {
-    //add circles and svg
+    //add d3 elements
     svg = d3.select('#simulation');
-    planetElems = svg.selectAll('.planet');
-    marker = svg.append('circle')
+
+    planetShapes = svg.selectAll('.planet');
+
+    newPlanetShape = svg.append('circle')
     .style('visibility', 'hidden')
     .style('fill', '#ff0000');
+
     velocityLine = svg.append('line')
     .style('visibility', 'hidden')
     .style('stroke', '#ff0000');
 
+    coordLabel = svg.append('text')
+    .style('text-anchor', 'middle')
+    .style('dominant-baseline', 'central')
+    .style('fill', '#ffffff')
+    .style('pointer-events', 'none')
+    .style('user-select', 'none')
+
+
+    //generate gui
     var gui = new dat.GUI({ autoPlace: false });
-    gui.add(params, 'currentMass', 0, 100).name('mass');
-    gui.add(params, 'currentRadius', 10, 100).name('radius');
+    var settings = gui.addFolder('Planet Settings');
+        settings.add(params, 'currentMass', 0, 100).name('mass');
+        settings.add(params, 'currentRadius', 10, 100).name('radius');
+    var controls = gui.addFolder('Controls');
+        controls.add({_:"Delete Planet"}, '_').name('ctrl+click');
+        controls.add({_:"Create Planet With Velocity"}, '_').name('click+drag');
+        controls.add({_:"Pause/Unpause"}, '_').name('space');
+
     gui.domElement.id = 'gui';
     d3.select('body').node().appendChild(gui.domElement);
-
+    //events
     d3.select("body").on("keydown", event => {
         if (event.code == 'Space') {
             //toggle running
@@ -143,7 +164,7 @@ window.onload = () => {
             state = ProgramState.Creating;
             //store creation point
             [downX, downY] = d3.pointer(event, svg.node());
-            marker = marker
+            newPlanetShape = newPlanetShape
             .attr('cx', downX)
             .attr('cy', downY)
             .attr('r', params.currentRadius)
@@ -158,8 +179,22 @@ window.onload = () => {
     });
 
     svg.on("mousemove", event => {
+        let [mouseX, mouseY] = d3.pointer(event, svg.node());
+        //update label
+        coordLabel = coordLabel
+        .attr('x', mouseX)
+        .attr('y', mouseY-20)
         if (state == ProgramState.Creating) {
-            let [mouseX, mouseY] = d3.pointer(event, svg.node());
+            //show velocity when creating
+            coordLabel = coordLabel
+            .text(`(${(downX-mouseX).toFixed(2)}, ${(downY-mouseY).toFixed(2)})`);
+        }else{
+            coordLabel = coordLabel
+            .text(`(${mouseX.toFixed(2)}, ${mouseY.toFixed(2)})`);
+        }
+        
+        //update line
+        if (state == ProgramState.Creating) {
             velocityLine = velocityLine
             .attr('x2', mouseX)
             .attr('y2', mouseY);
@@ -167,17 +202,18 @@ window.onload = () => {
     });
 
     svg.on("mouseup", event => {
+        //create and render new planet
         if (state == ProgramState.Creating) {
             state = ProgramState.Default;
-            //create and render new planet
             let [upX, upY] = d3.pointer(event, svg.node());
-            marker = marker
+            planets.push(new Planet(downX, downY, downX - upX, downY - upY, params.currentMass, params.currentRadius));
+            bindData();
+            console.log(planetShapes);
+            //remove old shapes
+            newPlanetShape = newPlanetShape
             .style('visibility', 'hidden');
             velocityLine = velocityLine
             .style('visibility', 'hidden');
-            planets.push(new Planet(downX, downY, downX - upX, downY - upY, params.currentMass, params.currentRadius));
-            bindData();
-            console.log(planetElems);
         }
     });
     stretchSim();
@@ -190,7 +226,7 @@ window.onload = () => {
     setInterval(() => {
         //update simulation
         if (running) updateSim();
-        planetElems
+        planetShapes
             .attr('cx', planet => planet.xPos)
             .attr('cy', planet => planet.yPos)
             .attr('r', planet => planet.radius);
