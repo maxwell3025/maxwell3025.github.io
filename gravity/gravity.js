@@ -36,11 +36,11 @@ var coordLabel;
 var gui;
 var params = {
     currentMass: 100,
-    currentRadius: 10
+    currentRadius: 10,
+    G: 1000
 }
 //simulation vars
 const dt = 0.004;
-const G = 1000;
 var width = 800;
 var height = 600;
 var downX;
@@ -63,8 +63,8 @@ function updateSim() {
                 dx = (b.xPos - a.xPos);
                 dy = (b.yPos - a.yPos);
                 dist = Math.sqrt(dx * dx + dy * dy);
-                a.xVel += dt * G * b.mass * dx / (dist * dist * dist)
-                a.yVel += dt * G * b.mass * dy / (dist * dist * dist)
+                a.xVel += dt * params.G * b.mass * dx / (dist * dist * dist)
+                a.yVel += dt * params.G * b.mass * dy / (dist * dist * dist)
             }
         });
     });
@@ -126,6 +126,7 @@ window.onload = () => {
     var settings = gui.addFolder('Planet Settings');
         settings.add(params, 'currentMass', 0, 100).name('mass');
         settings.add(params, 'currentRadius', 10, 100).name('radius');
+        settings.add(params, 'G').name('G');
     var controls = gui.addFolder('Controls');
         controls.add({_:"Delete Planet"}, '_').name('ctrl+click');
         controls.add({_:"Create Planet With Velocity"}, '_').name('click+drag');
