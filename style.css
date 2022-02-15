@@ -1,4 +1,3 @@
-
 body{
     color: #d0d0d0;
     background-color: #000;
@@ -34,4 +33,30 @@ a{
 .mid_block{
     width: 100vh;
     margin: auto;
+}
+
+.interactive{
+    pointer-events: auto;
+}
+
+.center-text{
+    text-align: center;
+    vertical-align: middle;
+}
+
+.back-content{
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    width: 100vw;
+    overflow-y: hidden;
+}
+.front-content{
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 100vh;
+    width: 100vw;
 }

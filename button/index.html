@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>maxwell3025's website</title>
+        <link rel="stylesheet" href="../style.css"/>
+        <link rel="stylesheet" href="../button-css/simple.css"/>
+        <link rel="stylesheet" href="./button.css"/>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script type="module" src="button.js"></script>
+    </head>
+    <body>
+        <div class = "back-content">
+            <svg id="simulation"></svg>
+        </div>
+        <div class = "front-content">
+            <a href = ".." class = "interactive"><div class = "top_spanner">
+                Maxwell3025's Website
+            </div></a>
+            <div class = "center-text">
+                <div>Click the buttons to change the number!</div><br/>
+                <button class="bttn-simple bttn-md bttn-danger interactive" id = "decrease-button">-1</button>
+                <span id = "counter" class = "button-counter">no wifi</span>
+                <button class="bttn-simple bttn-md bttn-primary interactive" id = "increase-button">+1</button>
+            </div>
+        </div>
+    </body>
+</html>
