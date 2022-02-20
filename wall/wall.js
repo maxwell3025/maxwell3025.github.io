@@ -23,6 +23,17 @@ var wallData;
 var messageElems;
 
 var wallDiv;
+//render message data
+function bindData(){
+    messageElems = wallDiv.selectAll(".msg")
+    .data(wallData.messages)
+    .enter()
+    .append("div")
+    .attr("class", "msg")
+    .text(message=>message)
+    .merge(messageElems);
+}
+//begin process of fetching data from server
 function refresh(){
     wallData = get(wallDatabase).then(snapshot => {
         wallData = snapshot.val();
@@ -34,18 +45,7 @@ function refresh(){
     });
 }
 function loop(){
-    bindData();
     console.log(wallData);
-}
-
-function bindData(){
-    messageElems = wallDiv.selectAll(".msg")
-    .data(wallData.messages)
-    .enter()
-    .append("div")
-    .attr("class", "msg")
-    .text(message=>message)
-    .merge(messageElems);
 }
 
 window.onload = ()=>{
