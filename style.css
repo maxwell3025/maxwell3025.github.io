@@ -4,7 +4,6 @@ body{
     background-color: #000;
     font-family: Arial, Helvetica, sans-serif;
     margin: 0%;
-    overflow: hidden;
 }
 
 a{
@@ -12,44 +11,27 @@ a{
     color: inherit;
 }
 
-h1{
+.top_spanner{
     text-align: center;
-    font-size: 3vmin;
+    font-size: 35px;
     font-weight: bolder;
-    padding-top: 1vmin;
-    padding-bottom: 1vmin;
-    line-height: 1em;
-    margin: 0;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
-.interactive{
-    pointer-events: auto;
+.wrapper{
+    background-color: #181818;
+    width:100vh;
+    margin: auto;
 }
 
-.center-text{
+.separator{
+    background-color: #182040;
     text-align: center;
-    vertical-align: middle;
+    font-size: 25px;
 }
 
-.center-self{
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.back-content{
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 100vh;
-    width: 100vw;
-    overflow-y: hidden;
-}
-
-.front-content{
-    pointer-events: none;
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 100vh;
-    width: 100vw;
+.mid_block{
+    width: 100vh;
+    margin: auto;
 }
