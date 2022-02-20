@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js";
-import { Database,getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-database.js";
+import { getDatabase, ref, get, runTransaction, onValue, child, set } from "https://www.gstatic.com/firebasejs/9.6.6/firebase-database.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBTdt5AHj_bWQeyZ4wif_dQB2vrWMQxmgU",
@@ -23,6 +23,8 @@ var wallData;
 var messageElems;
 
 var wallDiv;
+
+var msgCount;
 //render message data
 function bindData(){
     messageElems = wallDiv.selectAll(".msg")
@@ -44,9 +46,17 @@ function refresh(){
         console.error(error);
     });
 }
-function loop(){
-    console.log(wallData);
+
+function postMessage(msgText){
+    set(child(wallDatabase, `messages/${msgCount}`), msgText);
+    runTransaction(child(wallDatabase, "messageCount"), count=>count+1);
 }
+
+
+function loop(){
+}
+
+onValue(child(wallDatabase, "messageCount"), count=>{msgCount = count.val()});
 
 window.onload = ()=>{
     wallDiv = d3.select("#wall");
