@@ -31,8 +31,10 @@ function bindData(){
     .data(wallData.messages)
     .enter()
     .append("div")
-    .attr("class", "msg")
-    .text(message=>message)
+    .classed("msg", true)
+    .style("left", message=>`calc(var(--scale) * ${message.x/100})`)
+    .style("top", message=>`calc(var(--scale) * ${message.y/100})`)
+    .text(message=>message.text)
     .merge(messageElems);
 }
 //begin process of fetching data from server
@@ -47,8 +49,12 @@ function refresh(){
     });
 }
 
-function postMessage(msgText){
-    set(child(wallDatabase, `messages/${msgCount}`), msgText);
+function postMessage(msgText, x, y){
+    set(child(wallDatabase, `messages/${msgCount}`), {
+        text: msgText,
+        x: x,
+        y: y
+    });
     runTransaction(child(wallDatabase, "messageCount"), count=>count+1);
 }
 

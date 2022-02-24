@@ -1,8 +1,18 @@
 #wall{
+    position: relative;
     --scale: min(calc(100vh - 5vmin), 50vw);
     width: calc(2*var(--scale));
     height: var(--scale);
-    background-color: slategray;
     margin-left: auto;
     margin-right: auto;
+}
+
+.msg{
+    position: absolute;
+    width: calc(var(--scale) * 0.2);
+    height: calc(var(--scale) * 0.2);
+    font-size: calc(var(--scale) * 0.02);
+    text-align: center;
+    color: #000;
+    background-color: #ffa;
 }
