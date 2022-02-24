@@ -52,8 +52,8 @@ function refresh(){
 function postMessage(msgText, x, y){
     set(child(wallDatabase, `messages/${msgCount}`), {
         text: msgText,
-        x: x,
-        y: y
+        x: x - 10,
+        y: y - 10
     });
     runTransaction(child(wallDatabase, "messageCount"), count=>count+1);
     refresh();
