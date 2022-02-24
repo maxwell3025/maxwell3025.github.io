@@ -56,6 +56,7 @@ function postMessage(msgText, x, y){
         y: y
     });
     runTransaction(child(wallDatabase, "messageCount"), count=>count+1);
+    refresh();
 }
 
 

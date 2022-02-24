@@ -20,4 +20,6 @@ textarea{
     height: var(--scale);
     margin-left: auto;
     margin-right: auto;
+    overflow: hidden;
+    z-index: 1;
 }
