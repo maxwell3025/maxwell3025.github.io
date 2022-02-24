@@ -45,6 +45,7 @@ h1{
 }
 
 .front-content{
+    user-select: none;
     pointer-events: none;
     position: absolute;
     left: 0;
