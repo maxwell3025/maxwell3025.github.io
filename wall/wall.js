@@ -64,11 +64,22 @@ function loop(){
 
 onValue(child(wallDatabase, "messageCount"), count=>{msgCount = count.val()});
 
+var winDimensions;
+var pointer;
+
 window.onload = ()=>{
     wallDiv = d3.select("#wall");
 
+    winDimensions = wallDiv.node().getBoundingClientRect();
     messageElems = wallDiv.selectAll(".msg");
-
+    wallDiv.on("mousedown", event => {
+        let rawPointer = d3.pointer(event, wallDiv.node());
+        pointer = {
+            x: rawPointer[0]/winDimensions.height*100,
+            y: rawPointer[1]/winDimensions.height*100
+        }
+        postMessage("hello", pointer.x, pointer.y);
+    })
     refresh();
     setInterval(loop, 500);
 }
