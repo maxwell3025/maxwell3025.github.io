@@ -1,5 +1,5 @@
 #wall{
-    --scale: min(calc(100vh - 55px), 50vw);
+    --scale: min(calc(100vh - 5vmin), 50vw);
     width: calc(2*var(--scale));
     height: var(--scale);
     background-color: slategray;
