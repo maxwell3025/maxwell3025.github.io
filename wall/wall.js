@@ -78,7 +78,10 @@ function postMessage(msgText, x, y){
 function post(){
     templateNote
     .style('display', 'none');
-    postMessage(templateNote.property('value'), tempPosition.x, tempPosition.y);
+    let noteText = templateNote.property('value');
+    if(noteText.trim() != ""){
+        postMessage(noteText, tempPosition.x, tempPosition.y);
+    }
     templateNote.property('value', "")
 }
 
