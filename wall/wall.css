@@ -13,6 +13,7 @@ textarea{
     text-align: center;
     color: #000;
     background-color: #ffa;
+    box-shadow: 0px 0px 10px#fff;
 }
 
 #wall{
@@ -24,4 +25,5 @@ textarea{
     margin-right: auto;
     overflow: hidden;
     z-index: 1;
+    background-color: slategray;
 }
