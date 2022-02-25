@@ -1,9 +1,11 @@
 textarea{
+    resize: none;
     border: none;
     outline: none;
+    font-family: inherit;
 }
 
-.msg{
+.note{
     position: absolute;
     width: calc(var(--scale) * 0.2);
     height: calc(var(--scale) * 0.2);

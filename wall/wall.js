@@ -16,6 +16,13 @@ const app = initializeApp(firebaseConfig);
 
 const database = getDatabase(app);
 
+const ProgramState = {
+    Default: "Default",
+    Creating: "Creating"
+}
+
+var state = ProgramState.Default;
+
 var wallDatabase = ref(database, "/wall/");
 
 var wallData;
@@ -25,6 +32,14 @@ var messageElems;
 var wallDiv;
 
 var msgCount;
+
+var pointer;
+
+var templateNote;
+
+var tempPosition;
+
+var scale;
 //render message data
 function bindData(){
     messageElems = wallDiv.selectAll(".msg")
@@ -32,6 +47,7 @@ function bindData(){
     .enter()
     .append("div")
     .classed("msg", true)
+    .classed("note", true)
     .style("left", message=>`calc(var(--scale) * ${message.x/100})`)
     .style("top", message=>`calc(var(--scale) * ${message.y/100})`)
     .text(message=>message.text)
@@ -59,28 +75,73 @@ function postMessage(msgText, x, y){
     refresh();
 }
 
+function post(){
+    templateNote
+    .style('display', 'none');
+    postMessage(templateNote.property('value'), tempPosition.x, tempPosition.y);
+    templateNote.property('value', "")
+}
 
 function loop(){
 }
 
-onValue(child(wallDatabase, "messageCount"), count=>{msgCount = count.val()});
+function updatePointer(event){
+    let rawPointer = d3.pointer(event, wallDiv.node());
+    pointer = {
+        x: rawPointer[0]/scale*100,
+        y: rawPointer[1]/scale*100
+    }
+}
 
-var winDimensions;
-var pointer;
+onValue(child(wallDatabase, "messageCount"), count=>{msgCount = count.val()});
 
 window.onload = ()=>{
     wallDiv = d3.select("#wall");
-
-    winDimensions = wallDiv.node().getBoundingClientRect();
+    scale = wallDiv.node().getBoundingClientRect().height;
     messageElems = wallDiv.selectAll(".msg");
-    wallDiv.on("mousedown", event => {
-        let rawPointer = d3.pointer(event, wallDiv.node());
-        pointer = {
-            x: rawPointer[0]/winDimensions.height*100,
-            y: rawPointer[1]/winDimensions.height*100
+
+    templateNote = wallDiv.append("textarea")
+    .style('display', 'none')
+    wallDiv.on("keydown", event=>{
+        if(event.code == 'Enter'){
+            if(state == ProgramState.Creating){
+                state = ProgramState.Default;
+                post();
+            }
         }
-        postMessage("hello", pointer.x, pointer.y);
     })
+
+    wallDiv.on("mousedown", event => {
+        updatePointer(event);
+        if(state == ProgramState.Default){
+            state = ProgramState.Creating;
+            tempPosition = pointer;
+            templateNote = templateNote
+            .classed("note", true)
+            .style("left", `calc(var(--scale) * ${(pointer.x-10)/100})`)
+            .style("top", `calc(var(--scale) * ${(pointer.y-10)/100})`)
+            .attr("maxlength", 200)
+            .attr("rows", 8)
+            .style('display', 'block')
+
+            setTimeout(()=>{
+                templateNote.node().focus();
+            },0)
+            // postMessage("hello", pointer.x, pointer.y);
+        }
+    });
+
+    wallDiv.on("mousemove", event=>{
+        updatePointer(event);
+        if(event.buttons&1 == 1){
+            tempPosition.x += event.movementX/scale*100;
+            tempPosition.y += event.movementY/scale*100;
+            templateNote
+            .style("left", `calc(var(--scale) * ${(tempPosition.x-10)/100})`)
+            .style("top", `calc(var(--scale) * ${(tempPosition.y-10)/100})`)
+        }
+    })
+
     refresh();
     setInterval(loop, 500);
 }
