@@ -1,10 +1,39 @@
+.window{
+    margin: 1vmin;
+    border-radius: 0.25vmin;
+    overflow: hidden;
+    background-color:#111;
+    border-color: #223;
+    border-style: solid;
+    border-width: 1px;
+}
+
+.window > h2{
+    margin: 0;
+    font-size: 1.5vmin;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: lighter;
+    height: 3vmin;
+    text-align: center;
+    line-height: 3vmin; 
+    background: rgb(34,34,51);
+    background: -moz-linear-gradient(180deg, rgba(34,34,51,1) 0%, rgba(34,34,51,1) 75%, rgba(51,51,68,1) 100%);
+    background: -webkit-linear-gradient(180deg, rgba(34,34,51,1) 0%, rgba(34,34,51,1) 75%, rgba(51,51,68,1) 100%);
+    background: linear-gradient(180deg, rgba(34,34,51,1) 0%, rgba(34,34,51,1) 75%, rgba(51,51,68,1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#222233",endColorstr="#333344",GradientType=1);
+}
+
+.window > p{
+    margin: 0;
+}
+
 .thumb{
-    stroke-width: 1;
+    filter: drop-shadow(1px 1px 1px white) drop-shadow(-1px 1px 1px white) drop-shadow(1px -1px 1px white) drop-shadow(-1px -1px 1px white);
     --hover-time: 0;
     transition: 0.5s;
 }
 .thumb:hover{
-    stroke-width: 5;
+    filter: drop-shadow(2px 2px 1px white) drop-shadow(-2px 2px 1px white) drop-shadow(2px -2px 1px white) drop-shadow(-2px -2px 1px white);
     --hover-time: 1;
 }
 .appearOnHover{
@@ -19,24 +48,9 @@
     font-size: 8px;
 }
 
-.separator{
-    background-color: #182040;
-    text-align: center;
-    font-size: 25px;
-}
-
-.wrapper{
-    background-color: #181818;
-    width: 100vh;
-    margin: auto;
-}
-
-.mid_block{
-    width: 100vh;
-    margin: auto;
-}
-
 #project_menu{
-    width: 100%;
     height: 100%;
+    width: 100%;
+    object-fit: scale-down;
+    clear: none;
 }

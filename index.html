@@ -10,48 +10,48 @@
         <h1>
             Maxwell3025's Website
         </h1>
-        <div class = "wrapper">
-            <h3>About Me<br></h3>
-            <p>
-                Hi, I'm a High School Senior.
-            </p>
-            <div class = "separator">
-                Check out my projects!
-            </div>
-        </div>
-        <div class = "mid_block">
-            <svg id = "project_menu" viewBox = "0 0 100 100">
-                <defs>
-                    <path id = "gravity-shape" d="
-                    M 80 0
-                    L 100 72
-                    L 82 100
-                    L 14 84
-                    L 0 17
-                    Z
-                    "/>
-                    <clipPath id = "gravity-clip">
-                        <use href = "#gravity-shape"/>
-                    </clipPath>
-                </defs>
 
-                <g transform = "
-                translate(10, 10)
-                scale(0.25, 0.25)
-                " class = "thumb"><a href = "./gravity">
-                    <image
-                        width = "100"
-                        height = "100"
-                        href="./resources/thumbnail-gravity-sim.png"
-                        clip-path = "url(#gravity-clip)"
-                    />
-                    <use href = "#gravity-shape" x = "0" y = "0" stroke = "#808080" fill = "none"/>
-                    <rect x = "0" y = "46" width = "100" height = "8" clip-path = "url(#gravity-clip)" class = "appearOnHover"/>
-                    <text x = "50" y = "50" class = "label appearOnHover">
-                        Gravity Simulation
-                    </text>
-                </a></g>
-            </svg>
+        <div class = "window align-left" style = "width: 50vmin; height: 10vmin;">
+            <h2>about me</h2>
+            <p>Hi, my name is Maxwell Tang, and I'm a High School Senior.
+            <br>On this website I'll proobaly post random programming projects I want to share.   
+            </p>
         </div>
+
+        <div class = "window align-right" style = "width: 40vmin; height: 12vmin;">
+            <h2>what is this for?</h2>
+            <p>To flex 😎😎</p>
+        </div>
+        <svg id = "project_menu" viewBox = "0 0 100 100">
+            <defs>
+                <path id = "gravity-shape" d="
+                M 80 0
+                L 100 72
+                L 82 100
+                L 14 84
+                L 0 17
+                Z
+                "/>
+                <clipPath id = "gravity-clip">
+                    <use href = "#gravity-shape"/>
+                </clipPath>
+            </defs>
+
+            <g transform = "
+            translate(10, 10)
+            scale(0.25, 0.25)
+            " class = "thumb"><a href = "./gravity">
+                <image
+                    width = "100"
+                    height = "100"
+                    href="./resources/thumbnail-gravity-sim.png"
+                    clip-path = "url(#gravity-clip)"
+                />
+                <rect x = "0" y = "46" width = "100" height = "8" clip-path = "url(#gravity-clip)" class = "appearOnHover"/>
+                <text x = "50" y = "50" class = "label appearOnHover">
+                    Gravity Simulation
+                </text>
+            </a></g>
+        </svg>
     </body>
 </html>
