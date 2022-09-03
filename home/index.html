@@ -21,35 +21,14 @@
                 Check out my projects!
             </div>
         </div>
-        <div class = "mid_block">
-            <svg id = "project_menu" viewBox = "0 0 100 100">
-                <defs>
-                    <path id = "circle-shape" d="M-50,0a50,50 0 1,0 100,0a50,50 0 1,0 -100,0"/>
-                    <clipPath id = "circle-clip">
-                        <use href = "#circle-shape"/>
-                    </clipPath>
-                </defs>
-
-                <g visibility = "hidden" transform = "
-                translate(50, 50)
-                scale(0.25, 0.25)
-                rotate(0, 0, 0)
-                " class = "thumb"><a href = "../gravity">
-                    <image
-                        x = "-50"
-                        y = "-50"
-                        width = "100"
-                        height = "100"
-                        href="/resources/thumbnail-gravity-sim.png"
-                        clip-path = "url(#circle-clip)"
-                    />
-                    <rect x = "-50" y = "-4" width = "100" height = "8" clip-path = "url(#circle-clip)" class = "appearOnHover"/>
-                    <text x = "0" y = "0" class = "label appearOnHover">
-                        Gravity Simulation
-                    </text>
-                    <use href = "#circle-shape" x = "0" y = "0" stroke = "#808080" fill = "none"/>
-                </a></g>
-            </svg>
-        </div>
+        <!--project menu-->
+        <svg id = "project_menu">
+            <defs>
+                <path id = "circle-shape" d="M-50,0a50,50 0 1,0 100,0a50,50 0 1,0 -100,0"/>
+                <clipPath id = "circle-clip">
+                    <use href = "#circle-shape"/>
+                </clipPath>
+            </defs>
+        </svg>
     </body>
 </html>

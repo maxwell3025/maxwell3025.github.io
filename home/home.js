@@ -46,7 +46,7 @@ const sub = (a, b) => {
 }
 
 const g = 1;
-const stepPhysics = (ballList, dt) => {
+const stepPhysics = (ballList, dt, aspectRatio) => {
     ballList.forEach(ball => {
         //direct integration
             ball.vx += 0;
@@ -55,16 +55,16 @@ const stepPhysics = (ballList, dt) => {
             ball.y += dt * ball.vy;
             ball.a += dt * ball.va;
         //wall collisions
-            if(ball.y - ball.r < 0){
+            if(ball.y - ball.r * 0.5 < 0){
                 ball.vy = Math.abs(ball.vy)
             }
-            if(ball.y + ball.r > 1){
+            if(ball.y + ball.r * 0.5 > 1){
                 ball.vy = -Math.abs(ball.vy)
             }
-            if(ball.x - ball.r < 0){
+            if(ball.x - ball.r * 0.5 < 0){
                 ball.vx = Math.abs(ball.vx)
             }
-            if(ball.x + ball.r > 1){
+            if(ball.x + ball.r * 0.5 > aspectRatio){
                 ball.vx = -Math.abs(ball.vx)
             }
         //other ball collisions
@@ -96,9 +96,11 @@ window.onload = () => {
     let projectMenu = d3.select("#project_menu");
     let ballList = [];
 
-    ballList.push(new PhysicsBall("/resources/thumbnail-gravity-sim.png", "../gravity", "Gravity Simulation"))
+    ballList.push(new PhysicsBall("/resources/thumbnail-gravity.png", "../gravity", "Gravity Simulation"))
+    ballList.push(new PhysicsBall("/resources/thumbnail-wall.png", "../wall", "Chat Wall"))
+    ballList.push(new PhysicsBall("/resources/thumbnail-button.png", "../button", "Voting Button"))
     ballList.push(new PhysicsBall("/resources/nerd_face.png", "", ""))
-
+    
     let renderedBalls = projectMenu.selectAll(".ball")
         .data(ballList)
         .enter()
@@ -139,9 +141,13 @@ window.onload = () => {
     });
 
     setInterval(() => {
+        let svgDimensions = projectMenu.node().getBoundingClientRect()
+        let aspectRatio = svgDimensions.width/svgDimensions.height
+        projectMenu.attr("viewBox", `0 0 ${aspectRatio * 100} 100`);
+
         renderedBalls
             .attr("transform", function(data){return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r}, ${data.r}) rotate(${data.a * 180 / Math.PI}, 0, 0)`});
 
-        stepPhysics(ballList, 0.004);
+        stepPhysics(ballList, 0.004, aspectRatio);
     }, 4)
 }
