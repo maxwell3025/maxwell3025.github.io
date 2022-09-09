@@ -85,17 +85,13 @@
             this.link = link;
             this.title = title;
             this.physics = new RigidBody;
-            this.physics.x = 0.5;
-            this.physics.y = 0.5;
+            this.physics.x = 0;
+            this.physics.y = 0;
             this.physics.a = Math.random() * Math.PI * 2;
-            this.r = 0.0625;
-            //this.x = 0.5;
-            //this.y = 0.5;
-            //this.a = 0;
-            //this.r = 0.25;
+            this.r = 0.25;
             let angle = Math.random() * Math.PI * 2;
-            this.physics.vx = Math.cos(angle);
-            this.physics.vy = Math.sin(angle);
+            this.physics.vx = Math.cos(angle) * 2;
+            this.physics.vy = Math.sin(angle) * 2;
             this.physics.va = 0;
         }
         get pos() {
@@ -171,16 +167,16 @@
             ball.physics.step(dt);
             //wall collisions
             ball.corners().forEach(corner => {
-                if (corner[1] < 0 && ball.physics.vel(corner)[1] < 0) {
+                if (corner[1] < -1 && ball.physics.vel(corner)[1] < 0) {
                     ball.physics.collide(corner, [0, 1]);
                 }
                 if (corner[1] > 1 && ball.physics.vel(corner)[1] > 0) {
                     ball.physics.collide(corner, [0, 1]);
                 }
-                if (corner[0] < 0 && ball.physics.vel(corner)[0] < 0) {
+                if (corner[0] < -aspectRatio && ball.physics.vel(corner)[0] < 0) {
                     ball.physics.collide(corner, [1, 0]);
                 }
-                if (corner[0] > 1 && ball.physics.vel(corner)[0] > 0) {
+                if (corner[0] > aspectRatio && ball.physics.vel(corner)[0] > 0) {
                     ball.physics.collide(corner, [1, 0]);
                 }
             });
@@ -206,8 +202,11 @@
         ballList.push(new Card("/resources/thumbnail-wall.png", "../wall", "Chat Wall"));
         ballList.push(new Card("/resources/thumbnail-button.png", "../button", "Voting Button"));
         ballList.push(new Card("/resources/nerd_face.png", "", ""));
-        ballList.forEach((card, index) => {
-            card.physics.x = 0.25 * index + 0.125;
+        let svgNode = projectMenu.node();
+        let svgDimensions = svgNode.getBoundingClientRect();
+        let aspectRatio = svgDimensions.width / svgDimensions.height;
+        ballList.forEach((card, index, list) => {
+            card.physics.x = aspectRatio * (2. / list.length * index - 1 + 1. / list.length);
         });
         let renderedBalls = projectMenu.selectAll(".ball")
             .data(ballList)
@@ -246,8 +245,8 @@
             let svgNode = projectMenu.node();
             let svgDimensions = svgNode.getBoundingClientRect();
             let aspectRatio = svgDimensions.width / svgDimensions.height;
-            projectMenu.attr("viewBox", `0 0 ${aspectRatio * 100} 100`);
-            stepPhysics(ballList, 0.004);
+            projectMenu.attr("viewBox", `${-aspectRatio * 100} -100 ${aspectRatio * 200} 200`);
+            stepPhysics(ballList, 0.004, aspectRatio);
             renderedBalls
                 .attr("transform", function (data) { return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r * 2}, ${data.r * 2}) rotate(${data.a * 180 / Math.PI}, 0, 0)`; });
         }, 4);
