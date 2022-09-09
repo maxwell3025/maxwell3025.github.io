@@ -22,28 +22,132 @@
     var d3__namespace = /*#__PURE__*/_interopNamespace(d3);
 
     const g = 1;
-    class PhysicsBall {
-        constructor(image, link, title) {
-            this.image = image;
-            this.link = link;
-            this.title = title;
-            this.x = Math.random();
-            this.y = Math.random();
-            this.a = Math.random() * Math.PI * 2;
-            this.r = Math.random() * 0.125 + 0.125;
-            //this.x = 0.5;
-            //this.y = 0.5;
-            //this.a = 0;
-            //this.r = 0.25;
+    class RigidBody {
+        constructor() {
+            this.x = 0;
+            this.y = 0;
+            this.a = 0;
             this.vx = 0;
             this.vy = 0;
             this.va = 0;
+            this.m = 1;
+            this.i = 1;
         }
         get pos() {
             return [this.x, this.y];
         }
+        get energy() {
+            return (0.5 * this.i * this.va * this.va +
+                0.5 * this.m * this.vx * this.vx +
+                0.5 * this.m * this.vy * this.vy -
+                this.y * g);
+        }
+        vel(pos = this.pos) {
+            let diff = sub(pos, this.pos);
+            return [this.vx - this.va * diff[1], this.vy + this.va * diff[0]];
+        }
+        step(dt) {
+            this.x += this.vx * dt;
+            this.y += this.vy * dt + dt * dt * 0.5 * g;
+            this.a += this.va * dt;
+            this.vy += g * dt;
+        }
+        applyImpulse(pos, imp) {
+            let dist = sub(pos, this.pos);
+            this.va += imp[1] * dist[0] - imp[0] * dist[1];
+            this.vx += imp[0];
+            this.vy += imp[1];
+        }
+        effectiveMass(pos, axis) {
+            let diff = sub(pos, this.pos);
+            return 1.0 / (1. / this.m + (dot(diff, diff) - dot(axis, diff) * dot(axis, diff) / dot(axis, axis)) / this.i);
+        }
+        collide(pos, norm, other) {
+            if (other) {
+                let collisionVel = proj(sub(other.vel(pos), this.vel(pos)), norm);
+                let selfMass = this.effectiveMass(pos, norm);
+                let otherMass = other.effectiveMass(pos, norm);
+                let impulse = scale(collisionVel, 2 * selfMass * otherMass / (selfMass + otherMass));
+                this.applyImpulse(pos, impulse);
+                other.applyImpulse(pos, scale(impulse, -1));
+            }
+            else {
+                let collisionVel = proj(scale(this.vel(pos), -1), norm);
+                let selfMass = this.effectiveMass(pos, norm);
+                let impulse = scale(collisionVel, 2 * selfMass);
+                this.applyImpulse(pos, impulse);
+            }
+        }
+    }
+    class Card {
+        constructor(image, link, title) {
+            this.image = image;
+            this.link = link;
+            this.title = title;
+            this.physics = new RigidBody;
+            this.physics.x = 0.5;
+            this.physics.y = 0.5;
+            this.physics.a = Math.random() * Math.PI * 2;
+            this.r = 0.0625;
+            //this.x = 0.5;
+            //this.y = 0.5;
+            //this.a = 0;
+            //this.r = 0.25;
+            let angle = Math.random() * Math.PI * 2;
+            this.physics.vx = Math.cos(angle);
+            this.physics.vy = Math.sin(angle);
+            this.physics.va = 0;
+        }
+        get pos() {
+            return [this.physics.x, this.physics.y];
+        }
         get vel() {
-            return [this.vx, this.vy];
+            return [this.physics.vx, this.physics.vy];
+        }
+        get x() {
+            return this.physics.x;
+        }
+        get y() {
+            return this.physics.y;
+        }
+        get a() {
+            return this.physics.a;
+        }
+        corners() {
+            let axisA = [Math.cos(this.physics.a) * this.r, Math.sin(this.physics.a) * this.r];
+            let axisB = [-Math.sin(this.physics.a) * this.r, Math.cos(this.physics.a) * this.r];
+            return [
+                add(add(this.physics.pos, axisA), axisB),
+                sub(add(this.physics.pos, axisA), axisB),
+                add(sub(this.physics.pos, axisA), axisB),
+                sub(sub(this.physics.pos, axisA), axisB)
+            ];
+        }
+        norm(point) {
+            let diff = sub(point, this.pos);
+            let relativeCoords = [
+                diff[0] * Math.cos(this.physics.a) + diff[1] * Math.sin(this.physics.a),
+                diff[1] * Math.cos(this.physics.a) - diff[0] * Math.sin(this.physics.a)
+            ];
+            if (Math.abs(relativeCoords[0]) > this.r || Math.abs(relativeCoords[1]) > this.r) {
+                return null;
+            }
+            if (relativeCoords[0] + relativeCoords[1] > 0) {
+                if (relativeCoords[0] > relativeCoords[1]) {
+                    return [Math.cos(this.physics.a), Math.sin(this.physics.a)];
+                }
+                else {
+                    return [-Math.sin(this.physics.a), Math.cos(this.physics.a)];
+                }
+            }
+            else {
+                if (relativeCoords[0] > relativeCoords[1]) {
+                    return [Math.sin(this.physics.a), -Math.cos(this.physics.a)];
+                }
+                else {
+                    return [-Math.cos(this.physics.a), -Math.sin(this.physics.a)];
+                }
+            }
         }
     }
     const dot = (a, b) => {
@@ -55,66 +159,61 @@
     const proj = (a, b) => {
         return scale(b, dot(a, b) / dot(b, b));
     };
+    const add = (a, b) => {
+        return [a[0] + b[0], a[1] + b[1]];
+    };
     const sub = (a, b) => {
         return [a[0] - b[0], a[1] - b[1]];
     };
     const stepPhysics = (ballList, dt, aspectRatio) => {
         ballList.forEach(ball => {
             //direct integration
-            ball.x += dt * ball.vx;
-            ball.y += dt * ball.vy + 0.5 * dt * dt * g;
-            ball.vx += 0;
-            ball.vy += dt * g;
-            ball.a += dt * ball.va;
+            ball.physics.step(dt);
             //wall collisions
-            if (ball.y - ball.r * 0.5 < 0) {
-                ball.vy = Math.abs(ball.vy);
-            }
-            if (ball.y + ball.r * 0.5 > 1) {
-                ball.vy = -Math.abs(ball.vy);
-            }
-            if (ball.x - ball.r * 0.5 < 0) {
-                ball.vx = Math.abs(ball.vx);
-            }
-            if (ball.x + ball.r * 0.5 > aspectRatio) {
-                ball.vx = -Math.abs(ball.vx);
-            }
+            ball.corners().forEach(corner => {
+                if (corner[1] < 0 && ball.physics.vel(corner)[1] < 0) {
+                    ball.physics.collide(corner, [0, 1]);
+                }
+                if (corner[1] > 1 && ball.physics.vel(corner)[1] > 0) {
+                    ball.physics.collide(corner, [0, 1]);
+                }
+                if (corner[0] < 0 && ball.physics.vel(corner)[0] < 0) {
+                    ball.physics.collide(corner, [1, 0]);
+                }
+                if (corner[0] > 1 && ball.physics.vel(corner)[0] > 0) {
+                    ball.physics.collide(corner, [1, 0]);
+                }
+            });
             //other ball collisions
             ballList.forEach(other => {
                 if (ball != other) {
-                    let dx = ball.x - other.x;
-                    let dy = ball.y - other.y;
-                    let rTotal = ball.r * 0.5 + other.r * 0.5;
-                    if (dx * dx + dy * dy <= rTotal * rTotal && dot(sub(ball.vel, other.vel), sub(ball.pos, other.pos)) <= 0) {
-                        //head-on collision math
-                        let velocityProjA = proj(ball.vel, [dx, dy]);
-                        let velocityProjB = proj(other.vel, [dx, dy]);
-                        let ma = ball.r * ball.r;
-                        let mb = other.r * other.r;
-                        let changeVA = scale(sub(velocityProjB, velocityProjA), 2 * mb / (ma + mb));
-                        let changeVB = scale(sub(velocityProjA, velocityProjB), 2 * ma / (ma + mb));
-                        //update velocities
-                        ball.vx += changeVA[0];
-                        ball.vy += changeVA[1];
-                        other.vx += changeVB[0];
-                        other.vy += changeVB[1];
-                    }
+                    other.corners().forEach(corner => {
+                        let norm = ball.norm(corner);
+                        if (norm) {
+                            if (dot(norm, sub(ball.physics.vel(corner), other.physics.vel(corner))) > 0)
+                                ball.physics.collide(corner, norm, other.physics);
+                        }
+                    });
                 }
             });
         });
+        console.log(ballList.map(ball => ball.physics.energy).reduce((a, b) => a + b));
     };
     window.onload = () => {
         let projectMenu = d3__namespace.select("#project_menu");
         let ballList = [];
-        ballList.push(new PhysicsBall("/resources/thumbnail-gravity.png", "../gravity", "Gravity Simulation"));
-        ballList.push(new PhysicsBall("/resources/thumbnail-wall.png", "../wall", "Chat Wall"));
-        ballList.push(new PhysicsBall("/resources/thumbnail-button.png", "../button", "Voting Button"));
-        ballList.push(new PhysicsBall("/resources/nerd_face.png", "", ""));
+        ballList.push(new Card("/resources/thumbnail-gravity.png", "../gravity", "Gravity Simulation"));
+        ballList.push(new Card("/resources/thumbnail-wall.png", "../wall", "Chat Wall"));
+        ballList.push(new Card("/resources/thumbnail-button.png", "../button", "Voting Button"));
+        ballList.push(new Card("/resources/nerd_face.png", "", ""));
+        ballList.forEach((card, index) => {
+            card.physics.x = 0.25 * index + 0.125;
+        });
         let renderedBalls = projectMenu.selectAll(".ball")
             .data(ballList)
             .enter()
             .append("g")
-            .attr("transform", function (data) { return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r}, ${data.r}) rotate(${data.a * 180 / Math.PI}, 0, 0)`; });
+            .attr("transform", function (data) { return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r * 2}, ${data.r * 2}) rotate(${data.a * 180 / Math.PI}, 0, 0)`; });
         renderedBalls.each(function (data, index) {
             let currentBall = d3__namespace.select(this)
                 .classed("thumb", true)
@@ -148,9 +247,9 @@
             let svgDimensions = svgNode.getBoundingClientRect();
             let aspectRatio = svgDimensions.width / svgDimensions.height;
             projectMenu.attr("viewBox", `0 0 ${aspectRatio * 100} 100`);
+            stepPhysics(ballList, 0.004);
             renderedBalls
-                .attr("transform", function (data) { return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r}, ${data.r}) rotate(${data.a * 180 / Math.PI}, 0, 0)`; });
-            stepPhysics(ballList, 0.004, aspectRatio);
+                .attr("transform", function (data) { return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r * 2}, ${data.r * 2}) rotate(${data.a * 180 / Math.PI}, 0, 0)`; });
         }, 4);
     };
 
