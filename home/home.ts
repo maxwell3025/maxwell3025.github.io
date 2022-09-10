@@ -33,7 +33,7 @@ class RigidBody{
             0.5 * this.i * this.va * this.va +
             0.5 * this.m * this.vx * this.vx +
             0.5 * this.m * this.vy * this.vy -
-            this.y * g
+            this.y * g * this.m
         )
     }
     
