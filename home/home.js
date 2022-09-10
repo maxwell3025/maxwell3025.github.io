@@ -54,9 +54,9 @@
         }
         applyImpulse(pos, imp) {
             let dist = sub(pos, this.pos);
-            this.va += imp[1] * dist[0] - imp[0] * dist[1];
-            this.vx += imp[0];
-            this.vy += imp[1];
+            this.va += (imp[1] * dist[0] - imp[0] * dist[1]) / this.i;
+            this.vx += imp[0] / this.m;
+            this.vy += imp[1] / this.m;
         }
         effectiveMass(pos, axis) {
             let diff = sub(pos, this.pos);
@@ -89,6 +89,8 @@
             this.physics.y = 0;
             this.physics.a = Math.random() * Math.PI * 2;
             this.r = 0.25;
+            this.physics.m = this.r * this.r * 4;
+            this.physics.i = 1. / 12. * this.physics.m * (this.r * this.r * 8);
             let angle = Math.random() * Math.PI * 2;
             this.physics.vx = Math.cos(angle) * 2;
             this.physics.vy = Math.sin(angle) * 2;
@@ -195,6 +197,7 @@
         });
         console.log(ballList.map(ball => ball.physics.energy).reduce((a, b) => a + b));
     };
+    const frameDelay = 42; //24 fps
     window.onload = () => {
         let projectMenu = d3__namespace.select("#project_menu");
         let ballList = [];
@@ -246,10 +249,13 @@
             let svgDimensions = svgNode.getBoundingClientRect();
             let aspectRatio = svgDimensions.width / svgDimensions.height;
             projectMenu.attr("viewBox", `${-aspectRatio * 100} -100 ${aspectRatio * 200} 200`);
-            stepPhysics(ballList, 0.004, aspectRatio);
+            stepPhysics(ballList, frameDelay * 0.001, aspectRatio);
             renderedBalls
+                .transition()
+                .duration(frameDelay)
+                .ease(d3__namespace.easeLinear)
                 .attr("transform", function (data) { return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r * 2}, ${data.r * 2}) rotate(${data.a * 180 / Math.PI}, 0, 0)`; });
-        }, 4);
+        }, frameDelay);
     };
 
 })(d3);
