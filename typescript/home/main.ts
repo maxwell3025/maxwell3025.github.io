@@ -1,4 +1,5 @@
-const d3 = require('d3/dist/d3')
+(function(){
+let d3 = require('d3/dist/d3')
 
 const g = 1;
 
@@ -221,6 +222,7 @@ window.onload = () => {
     ballList.push(new Card("/resources/thumbnail-gravity.png", "../gravity", "Gravity Simulation"))
     ballList.push(new Card("/resources/thumbnail-wall.png", "../wall", "Chat Wall"))
     ballList.push(new Card("/resources/thumbnail-button.png", "../button", "Voting Button"))
+    ballList.push(new Card("/resources/thumbnail-handwriting.png", "../handwriting", "Number Classifier"))
     ballList.push(new Card("/resources/nerd_face.png", "", ""))
     let svgNode: Element = projectMenu.node()! as Element;
     let svgDimensions = svgNode.getBoundingClientRect()
@@ -283,3 +285,4 @@ window.onload = () => {
             .attr("transform", function(data){return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r * 2}, ${data.r * 2}) rotate(${data.a * 180 / Math.PI}, 0, 0)`});
     }, frameDelay)
 }
+})()

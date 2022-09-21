@@ -1,4 +1,7 @@
+(function(){
 const fs = require('fs')
+const d3 = require('d3/dist/d3')
+
 const canvas = document.getElementById("draw-canvas") as HTMLCanvasElement
 const context = canvas.getContext("2d")!
 canvas.addEventListener("contextmenu", function (e) {
@@ -43,7 +46,7 @@ const line = function(x1: number, y1: number, x2: number, y2: number, callback: 
 const draw = function(x: number, y: number){
     for(let dx = -1; dx < 2; dx++){
         for(let dy = -1; dy < 2; dy++){
-            if(0 < x + dx && x + dx < 28 && 0 < y + dy && y + dy < 28){
+            if(0 <= x + dx && x + dx < 28 && 0 <= y + dy && y + dy < 28){
                 let shade = canvasData[(y + dy) * 28 + (x + dx)]
                 canvasData[(y + dy) * 28 + (x + dx)] = 1 - (1 - shade) * 0.8
             }
@@ -55,7 +58,7 @@ const draw = function(x: number, y: number){
 const erase = function(x: number, y: number){
     for(let dx = -1; dx < 2; dx++){
         for(let dy = -1; dy < 2; dy++){
-            if(0 < x + dx && x + dx < 28 && 0 < y + dy && y + dy < 28){
+            if(0 <= x + dx && x + dx < 28 && 0 <= y + dy && y + dy < 28){
                 canvasData[(y + dy) * 28 + (x + dx)] *= 0.8
             }
         }
@@ -66,7 +69,7 @@ const erase = function(x: number, y: number){
 const refresh = function(x: number, y: number){
     for(let dx = -1; dx < 2; dx++){
         for(let dy = -1; dy < 2; dy++){
-            if(0 < x + dx && x + dx < 28 && 0 < y + dy && y + dy < 28){
+            if(0 <= x + dx && x + dx < 28 && 0 <= y + dy && y + dy < 28){
                 let shade = canvasData[(y + dy) * 28 + (x + dx)]
                 context.fillStyle = `hsl(0, 0%, ${100 - shade * 100}%)`
                 context.fillRect(x + dx, y + dy, 1, 1)
@@ -184,4 +187,5 @@ function predict(): number|null {
     return null
 }
 
-setInterval(() => console.log(predict()),1000)
+setInterval(() => d3.select('#prediction').text(`Predicted Number: ${predict()}`),1000)
+})()

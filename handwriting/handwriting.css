@@ -1,0 +1,13 @@
+body{
+    display: flex;
+    flex-flow: column;
+}
+
+#draw-canvas{
+    align-self: center;
+    justify-self: center;
+}
+
+#prediction{
+    font-size: x-large;
+}
