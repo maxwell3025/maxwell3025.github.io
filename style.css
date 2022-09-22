@@ -1,11 +1,10 @@
 body{
+    display: flex;
+    flex-flow: column;
     color: #d0d0d0;
     background-color: #000;
     font-family: Arial, Helvetica, sans-serif;
     margin: 0%;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
 }
 
 a{
@@ -15,29 +14,36 @@ a{
 
 h1{
     text-align: center;
-    font-size: 3vmin;
     font-weight: bolder;
+    font-size: 3vmin;
     padding-top: 1vmin;
     padding-bottom: 1vmin;
     line-height: 1em;
     margin: 0;
 }
 
-.interactive{
-    pointer-events: auto;
+.flex-row{
+    display: flex;
+    flex-flow: row;
 }
 
-.center-text{
+.flex-column{
+    display: flex;
+    flex-flow: column;
+}
+
+.center-content{
+    align-content: center;
+    justify-content: center;
     text-align: center;
-    vertical-align: middle;
 }
 
 .center-self{
-    margin-left: auto;
-    margin-right: auto;
+    align-self: center;
+    justify-self: center;
 }
 
-.back-content{
+.screen-layer{
     position: absolute;
     left: 0;
     right: 0;
@@ -46,12 +52,7 @@ h1{
     overflow-y: hidden;
 }
 
-.front-content{
+.inert{
     user-select: none;
     pointer-events: none;
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 100vh;
-    width: 100vw;
 }

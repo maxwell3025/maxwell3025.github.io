@@ -1,6 +1,7 @@
 #simulation{
     background-color: #101020;
 }
+
 #counter{
     position: absolute;
     bottom: 0px;
@@ -9,13 +10,15 @@
 
 #gui {
     position: absolute;
-    top: 70px;
+    top: 2px;
     right: 2px
 }
+
 .planet{
     fill:white;
     stroke-width: 0;
 }
+
 .menu{
     background-color: #88888880;
     float: right;

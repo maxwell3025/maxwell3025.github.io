@@ -10,15 +10,17 @@
         <script src="gravity.js"></script>
     </head>
     <body>
-        <div class = "back-content">
+        <div class = "screen-layer">
             <svg id="simulation"></svg>
         </div>
-        <div class = "front-content">
-            <a href = ".." class = "interactive"><h1>
-                Maxwell3025's Website
-            </h1></a>
+        <div class = "screen-layer inert">
             <img src = "../resources/pause.png" id = "run_indicator"/>
             <div id = "counter" class = "dataLabel"></div>
+        </div>
+        <div class = "screen-layer">
+            <a href = ".."><h1>
+                Maxwell3025's Website
+            </h1></a>
         </div>
     </body>
 </html>
