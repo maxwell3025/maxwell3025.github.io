@@ -1,6 +1,5 @@
-(function(){
-const fs = require('fs')
-const d3 = require('d3/dist/d3')
+import * as d3 from 'd3'
+import * as fs from 'fs'
 
 const canvas = document.getElementById("draw-canvas") as HTMLCanvasElement
 const context = canvas.getContext("2d")!
@@ -188,4 +187,3 @@ function predict(): number|null {
 }
 
 setInterval(() => d3.select('#prediction').text(`Predicted Number: ${predict()}`),1000)
-})()
