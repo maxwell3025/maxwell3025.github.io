@@ -1,5 +1,4 @@
-(function(){
-let d3 = require('d3/dist/d3')
+import * as d3 from 'd3'
 
 const g = 1;
 
@@ -285,4 +284,3 @@ window.onload = () => {
             .attr("transform", function(data){return `translate(${data.x * 100}, ${data.y * 100}) scale(${data.r * 2}, ${data.r * 2}) rotate(${data.a * 180 / Math.PI}, 0, 0)`});
     }, frameDelay)
 }
-})()

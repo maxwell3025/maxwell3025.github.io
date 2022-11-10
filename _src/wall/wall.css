@@ -1,0 +1,29 @@
+textarea{
+    resize: none;
+    border: none;
+    outline: none;
+    font-family: inherit;
+}
+
+.note{
+    position: absolute;
+    width: calc(var(--scale) * 0.2);
+    height: calc(var(--scale) * 0.2);
+    font-size: calc(var(--scale) * 0.02);
+    text-align: center;
+    color: #000;
+    background-color: #ffa;
+    box-shadow: 0px 0px 10px#fff;
+}
+
+#wall{
+    position: relative;
+    --scale: min(calc(100vh - 5vmin), 50vw);
+    width: calc(2*var(--scale));
+    height: var(--scale);
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden;
+    z-index: 1;
+    background-color: slategray;
+}

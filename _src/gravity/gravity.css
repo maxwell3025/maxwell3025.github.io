@@ -1,0 +1,25 @@
+#simulation{
+    background-color: #101020;
+}
+
+#counter{
+    position: absolute;
+    bottom: 0px;
+    font-size: 1vmin;
+}
+
+#gui {
+    position: absolute;
+    top: 2px;
+    right: 2px
+}
+
+.planet{
+    fill:white;
+    stroke-width: 0;
+}
+
+.menu{
+    background-color: #88888880;
+    float: right;
+}
