@@ -4,9 +4,15 @@ const webpackConfig = require('./webpack.config');
 const postcssConfig = require('./postcss.config');
 const fs = require('node:fs');
 
-sources = ['home/main', 'handwriting/main'];
+htmls = ['button/index', 'gravity/index', 'handwriting/index', 'wall/index', 'home/index']
 
-styles = ['home/home'];
+sources = ['home/main', 'handwriting/main', 'gravity/gravity', 'wall/wall', 'button/button'];
+
+styles = ['home/home', 'gravity/gravity', 'wall/wall', 'button/button'];
+
+htmls.forEach(element => {
+  fs.writeFileSync(element + '.html', fs.readFileSync('_src/' + element + '.html'))
+})
 
 sources.forEach(element => {
   webpack(webpackConfig(element), (err, stats) => {
