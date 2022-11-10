@@ -4,9 +4,9 @@ const webpackConfig = require('./webpack.config');
 const postcssConfig = require('./postcss.config');
 const fs = require('node:fs');
 
-htmls = ['button/index', 'gravity/index', 'handwriting/index', 'wall/index', 'home/index']
+htmls = ['button/index', 'gravity/index', 'handwriting/index', 'wall/index', 'home/index', 'manifolds/index']
 
-sources = ['home/main', 'handwriting/main', 'gravity/gravity', 'wall/wall', 'button/button'];
+sources = ['home/main', 'handwriting/main', 'gravity/gravity', 'wall/wall', 'button/button', 'manifolds/manifolds'];
 
 styles = ['home/home', 'gravity/gravity', 'wall/wall', 'button/button'];
 
