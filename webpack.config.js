@@ -8,6 +8,9 @@ module.exports = file => {
       path: __dirname,
       filename: file +'.js',
     },
+    resolve: {
+      extensions: ['.ts', '.js', '.json']
+    },
     module: {
       rules: [
         {
