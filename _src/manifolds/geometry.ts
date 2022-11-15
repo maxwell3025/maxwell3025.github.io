@@ -23,6 +23,9 @@ export class Vec2 {
   clone(): Vec2{
     return new Vec2(this.x, this.y)
   }
+  norm(): Vec2{
+    return this.mul(1.0/this.r)
+  }
 }
 
 export class Vec3 {
@@ -51,5 +54,8 @@ export class Vec3 {
   }
   clone(): Vec3{
     return new Vec3(this.x, this.y, this.z)
+  }
+  norm(): Vec3{
+    return this.mul(1.0/this.r)
   }
 }
