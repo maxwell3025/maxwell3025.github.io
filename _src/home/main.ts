@@ -222,6 +222,7 @@ window.onload = () => {
     ballList.push(new Card("/resources/thumbnail-wall.png", "../wall", "Chat Wall"))
     ballList.push(new Card("/resources/thumbnail-button.png", "../button", "Voting Button"))
     ballList.push(new Card("/resources/thumbnail-handwriting.png", "../handwriting", "Number Classifier"))
+    ballList.push(new Card("/resources/thumbnail-manifolds.png", "../manifolds", "Topology Thing"))
     ballList.push(new Card("/resources/nerd_face.png", "", ""))
     let svgNode: Element = projectMenu.node()! as Element;
     let svgDimensions = svgNode.getBoundingClientRect()
