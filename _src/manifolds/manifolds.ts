@@ -21,15 +21,24 @@ function fromGeoMesh(geoMesh: GeoMesh): THREE.BufferGeometry {
 }
 
 //row-major order
+const metricInput = {
+  'metric function': '//use x and y for inputs\n//output is the metric tensor in row-major order\noutput[3] = x'
+}
+
 function metric(coords: Vec2): [number, number, number, number] {
-  return [1, 0, 0, 4];
+  let x = coords.x;
+  let y = coords.y;
+  let output: [number, number, number, number] = [1, 0, 0, 1]
+  eval(metricInput['metric function'])
+  console.log(output)
+  return output;
 }
 
 const meshSettings = {
-  minX: -1,
+  minX: 0,
   maxX: 1,
-  minY: -1,
-  maxY: 1,
+  minY: -Math.PI,
+  maxY: Math.PI,
   resolution: 16,
   initialNoise: 0.1,
 };
@@ -143,11 +152,13 @@ document.getElementById('display').appendChild(renderer.domElement);
 const annealSettings = {
   'scale likelihood': 0.01,
   'scale rate': 2,
-  'flatten rate': 0.01,
+  'flatten rate': 0,
   stretch: () => (myGeoMesh = myGeoMesh.stretch(2)),
 };
 let stepSize = 1;
 const gui = new dat.GUI();
+const metricFolder = gui.addFolder('Metric Settings');
+metricFolder.add(metricInput, 'metric function');
 const initFolder = gui.addFolder('Init Settings');
 initFolder.add(meshSettings, 'minX');
 initFolder.add(meshSettings, 'minY');
@@ -158,6 +169,7 @@ initFolder.add(meshSettings, 'initialNoise');
 initFolder.add(
   {
     initialize: () => {
+      stepSize = 1
       myGeoMesh = initialize();
     },
   },
