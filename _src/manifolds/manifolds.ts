@@ -32,24 +32,20 @@ const meshSettings = {
   maxY: 1,
   resolution: 16,
   initialNoise: 0.1,
-  cellWidth: 1.0 / 16,
 };
 
 function initialize(): GeoMesh {
   let outputMesh = new GeoMesh();
 
+  let cellWidth = 1.0 / meshSettings.resolution;
   for (let y = 0; y <= meshSettings.resolution; y++) {
     for (let x = 0; x <= meshSettings.resolution; x++) {
       outputMesh.points.push(
         new Vec3(
           meshSettings.minX +
-            x *
-              meshSettings.cellWidth *
-              (meshSettings.maxX - meshSettings.minX),
+            x * cellWidth * (meshSettings.maxX - meshSettings.minX),
           meshSettings.minY +
-            y *
-              meshSettings.cellWidth *
-              (meshSettings.maxY - meshSettings.minY),
+            y * cellWidth * (meshSettings.maxY - meshSettings.minY),
           meshSettings.initialNoise * (Math.random() - 0.5)
         )
       );
@@ -119,12 +115,11 @@ function initialize(): GeoMesh {
       );
     }
   }
+  outputMesh = outputMesh.applyMetric(metric);
   return outputMesh;
 }
 
-let myGeoMesh = initialize()
-myGeoMesh = myGeoMesh.applyMetric(metric);
-
+let myGeoMesh = initialize();
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(
@@ -146,22 +141,35 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.getElementById('display').appendChild(renderer.domElement);
 
 const annealSettings = {
-
   'scale likelihood': 0.01,
   'scale rate': 2,
   'flatten rate': 0.01,
-  'stretch': ()=> myGeoMesh = myGeoMesh.stretch(2)
-}
+  stretch: () => (myGeoMesh = myGeoMesh.stretch(2)),
+};
 let stepSize = 1;
 const gui = new dat.GUI();
-const initFolder = gui.addFolder('Init Settings')
-const annealFolder = gui.addFolder('Anneal Controls')
-annealFolder.add(annealSettings, 'scale likelihood', 0, 1)
-annealFolder.add(annealSettings, 'scale rate', 1, 4)
-annealFolder.add(annealSettings, 'flatten rate', 0, 0.1)
-annealFolder.add(annealSettings, 'stretch')
+const initFolder = gui.addFolder('Init Settings');
+initFolder.add(meshSettings, 'minX');
+initFolder.add(meshSettings, 'minY');
+initFolder.add(meshSettings, 'maxX');
+initFolder.add(meshSettings, 'maxY');
+initFolder.add(meshSettings, 'resolution');
+initFolder.add(meshSettings, 'initialNoise');
+initFolder.add(
+  {
+    initialize: () => {
+      myGeoMesh = initialize();
+    },
+  },
+  'initialize'
+);
 
-annealFolder.open();
+const annealFolder = gui.addFolder('Anneal Controls');
+annealFolder.add(annealSettings, 'scale likelihood', 0, 1);
+annealFolder.add(annealSettings, 'scale rate', 1, 4);
+annealFolder.add(annealSettings, 'flatten rate', 0, 0.1);
+annealFolder.add(annealSettings, 'stretch');
+
 gui.open();
 function animate() {
   console.log(myGeoMesh.loss());
