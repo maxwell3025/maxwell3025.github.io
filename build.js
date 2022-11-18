@@ -6,34 +6,39 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const pages = [
+  // {
+  //   html: 'button/index',
+  //   source: 'button/button',
+  //   style: 'button/button',
+  // },
+  // {
+  //   html: 'gravity/index',
+  //   source: 'gravity/gravity',
+  //   style: 'gravity/gravity',
+  // },
+  // {
+  //   html: 'handwriting/index',
+  //   source: 'handwriting/main',
+  //   style: '',
+  // },
+  // {
+  //   html: 'wall/index',
+  //   source: 'wall/wall',
+  //   style: 'wall/wall',
+  // },
+  // {
+  //   html: 'home/index',
+  //   source: 'home/main',
+  //   style: 'home/home',
+  // },
+  // {
+  //   html: 'manifolds/index',
+  //   source: 'manifolds/manifolds',
+  //   style: '',
+  // },
   {
-    html: 'button/index',
-    source: 'button/button',
-    style: 'button/button',
-  },
-  {
-    html: 'gravity/index',
-    source: 'gravity/gravity',
-    style: 'gravity/gravity',
-  },
-  {
-    html: 'handwriting/index',
-    source: 'handwriting/main',
-    style: '',
-  },
-  {
-    html: 'wall/index',
-    source: 'wall/wall',
-    style: 'wall/wall',
-  },
-  {
-    html: 'home/index',
-    source: 'home/main',
-    style: 'home/home',
-  },
-  {
-    html: 'manifolds/index',
-    source: 'manifolds/manifolds',
+    html: 'quantumcomputer/index',
+    source: 'quantumcomputer/quantumcomputer',
     style: '',
   },
 ];
