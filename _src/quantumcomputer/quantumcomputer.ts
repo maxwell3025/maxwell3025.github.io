@@ -1,6 +1,6 @@
-import { QuantumState } from "./quantum";
+import * as React from 'react'
+import * as ReactDOM from 'react-dom/client'
+import CircuitEditor from "./CircuitEditor";
 
-let myQuantumState = new QuantumState(3, 1)
-console.log(`${myQuantumState}`);
-myQuantumState = myQuantumState.swap(0);
-console.log(`${myQuantumState}`);
+const root = ReactDOM.createRoot(document.getElementById('root'))
+root.render(React.createElement(CircuitEditor))

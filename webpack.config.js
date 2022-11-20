@@ -6,10 +6,10 @@ module.exports = file => {
     entry: './_src/' + file + '.ts',
     output: {
       path: __dirname,
-      filename: file +'.js',
+      filename: file + '.js',
     },
     resolve: {
-      extensions: ['.ts', '.js', '.json']
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
     },
     module: {
       rules: [
@@ -18,7 +18,27 @@ module.exports = file => {
           loader: 'html-loader',
         },
         {
-          test: /\.ts$/,
+          test: /\.(ts|tsx|js|jsx)/,
+          use: [
+            {
+              loader: 'babel-loader',
+              options: {
+                presets: [
+                  [
+                    '@babel/preset-env',
+                    {
+                      targets: 'defaults',
+                    },
+                  ],
+                  '@babel/preset-typescript',
+                  '@babel/preset-react',
+                ],
+              },
+            },
+          ],
+        },
+        {
+          test: /\.tsx?$/,
           loader: 'ts-loader',
           exclude: /node_modules/,
         },

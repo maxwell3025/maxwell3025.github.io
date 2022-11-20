@@ -39,7 +39,7 @@ const pages = [
   {
     html: 'quantumcomputer/index',
     source: 'quantumcomputer/quantumcomputer',
-    style: '',
+    style: 'quantumcomputer/quantumcomputer',
   },
 ];
 
