@@ -43,10 +43,32 @@ function ennumerateStates(bitCount: number): ClassicalState[] {
   }
   return output;
 }
+
+export class QuantumGate {
+  coefficients: complex[];
+  bitCount: number;
+  targets: number[];
+  constructor(bitCount: number) {
+    this.bitCount = bitCount;
+    let matrixWidth = Math.pow(2, bitCount);
+    this.targets = [];
+    for (let i = 0; i < bitCount; i++) {
+      this.targets.push(i);
+    }
+    this.coefficients = [];
+    for (let i = 0; i < matrixWidth * matrixWidth; i++) {
+      this.coefficients.push(new complex(0, 0));
+    }
+    for (let i = 0; i < matrixWidth; i++) {
+      this.coefficients[i + i * matrixWidth] = new complex(1, 0);
+    }
+  }
+}
 export class QuantumState {
   amplitudes: complex[];
   bitCount: number;
-  constructor(bitCount: number, value = 0) {
+  name: string | null;
+  constructor(bitCount: number, value = 0, name: string | null = null) {
     let stateCount = Math.pow(2, bitCount);
     this.bitCount = bitCount;
     this.amplitudes = [];
