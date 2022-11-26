@@ -1,8 +1,12 @@
 import * as React from 'react';
-import GateIcon from './GateIcon';
 import { QuantumGate } from './quantum';
+import Hadamard from './icons/Hadamard';
+import Swap from './icons/Swap';
 
-export default function CircuitViewer(properties: { initialWidth: number, gateList: QuantumGate[]}) {
+export default function CircuitViewer(properties: {
+  initialWidth: number;
+  gateList: QuantumGate[];
+}) {
   const [bitCount, setBitCount] = React.useState<number>(
     properties.initialWidth
   );
@@ -23,9 +27,10 @@ export default function CircuitViewer(properties: { initialWidth: number, gateLi
       ></line>
     );
   }
+  let gateIcons = [];
   properties.gateList.forEach((gate, column) => {
-    let min = gate.targets.reduce((a, b) => Math.min(a, b))
-    let max = gate.targets.reduce((a, b) => Math.max(a, b))
+    let min = gate.targets.reduce((a, b) => Math.min(a, b));
+    let max = gate.targets.reduce((a, b) => Math.max(a, b));
     wireIcons.push(
       <line
         key={`column ${column}, rows ${min}-${max}`}
@@ -38,6 +43,31 @@ export default function CircuitViewer(properties: { initialWidth: number, gateLi
         y2={max * 100 + 50}
       ></line>
     );
+    switch (gate.name) {
+      case 'hadamard':
+        gateIcons.push(
+          <Hadamard
+            key={`${gate.targets[0]}, ${column}`}
+            row={gate.targets[0]}
+            column={column}
+          ></Hadamard>
+        );
+        break;
+      case 'swap':
+        gateIcons.push(
+          <Swap
+            key={`${gate.targets[0]}, ${column}`}
+            row={gate.targets[0]}
+            column={column}
+          ></Swap>,
+          <Swap
+            key={`${gate.targets[1]}, ${column}`}
+            row={gate.targets[1]}
+            column={column}
+          ></Swap>
+        );
+        break;
+    }
   });
 
   return (
@@ -52,9 +82,11 @@ export default function CircuitViewer(properties: { initialWidth: number, gateLi
       <div
         className="col absolute inset-0 grid h-full w-full"
         style={{
-          grid: `repeat(${numColumns}, minmax(0, 1fr)) / repeat(${numRows}, minmax(0, 1fr))`,
+          grid: `repeat(${numRows}, minmax(0, 1fr)) / repeat(${numColumns}, minmax(0, 1fr))`,
         }}
-      ></div>
+      >
+        {gateIcons}
+      </div>
     </div>
   );
 }

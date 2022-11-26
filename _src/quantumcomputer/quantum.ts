@@ -48,7 +48,9 @@ export class QuantumGate {
   coefficients: complex[];
   bitCount: number;
   targets: number[];
-  constructor(bitCount: number) {
+  name: string | null;
+  constructor(bitCount: number, name: string | null = null) {
+    this.name = name;
     this.bitCount = bitCount;
     let matrixWidth = Math.pow(2, bitCount);
     this.targets = [];
@@ -67,8 +69,7 @@ export class QuantumGate {
 export class QuantumState {
   amplitudes: complex[];
   bitCount: number;
-  name: string | null;
-  constructor(bitCount: number, value = 0, name: string | null = null) {
+  constructor(bitCount: number, value = 0) {
     let stateCount = Math.pow(2, bitCount);
     this.bitCount = bitCount;
     this.amplitudes = [];

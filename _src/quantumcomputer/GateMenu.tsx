@@ -12,7 +12,7 @@ function handleSubmit(
     let newGate: QuantumGate;
     switch (tokens[0]) {
       case 'H':
-        newGate = new QuantumGate(1);
+        newGate = new QuantumGate(1, 'hadamard');
         newGate.targets[0] = parseInt(tokens[1]);
         newGate.coefficients = [
           new complex(Math.SQRT1_2, 0),
@@ -23,7 +23,7 @@ function handleSubmit(
         gateList.push(newGate);
         break;
       case 'SWAP':
-        newGate = new QuantumGate(1);
+        newGate = new QuantumGate(1, 'swap');
         newGate.targets[0] = parseInt(tokens[1]);
         newGate.targets[1] = parseInt(tokens[2]);
         newGate.coefficients = [
@@ -56,7 +56,7 @@ export default function GateMenu(properties: {setGateList: (gateList: QuantumGat
   const textAreaRef = React.useRef<HTMLTextAreaElement>(null);
   return (
     <div>
-      <textarea ref={textAreaRef}></textarea>
+      <textarea className = "border-2 resize-none bg-inherit border-white"ref={textAreaRef}></textarea>
       <button
         onClick={() => {
           handleSubmit(textAreaRef.current.value, properties.setGateList)
