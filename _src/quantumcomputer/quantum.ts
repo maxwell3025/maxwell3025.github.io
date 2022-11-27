@@ -81,19 +81,6 @@ export class QuantumState {
       this.amplitudes.push(new complex(0, 0));
     }
   }
-  swap(bitA, bitB = bitA + 1): QuantumState {
-    let output = new QuantumState(this.bitCount);
-    ennumerateStates(this.bitCount).forEach(outputClassicalState => {
-      let inputClassicalState = outputClassicalState.clone();
-      //swap indices in input
-      let temp = inputClassicalState.bits[bitA];
-      inputClassicalState.bits[bitA] = inputClassicalState.bits[bitB];
-      inputClassicalState.bits[bitB] = temp;
-      output.amplitudes[outputClassicalState.value] =
-        this.amplitudes[inputClassicalState.value];
-    });
-    return output;
-  }
   genericGate(bits: number[], coefficients: complex[]): QuantumState {
     let output = new QuantumState(this.bitCount);
     let matrixSize = Math.pow(2, bits.length);
@@ -116,72 +103,6 @@ export class QuantumState {
     });
     return output;
   }
-  cnot(bitA, bitB = bitA + 1): QuantumState {
-    let output = new QuantumState(this.bitCount);
-    ennumerateStates(this.bitCount).forEach(outputClassicalState => {
-      let inputState = outputClassicalState.clone();
-      if (inputState.bits[bitA]) inputState.bits[bitB] = !inputState.bits[bitB];
-      output.amplitudes[outputClassicalState.value] =
-        this.amplitudes[inputState.value];
-    });
-    return output;
-  }
-  deutsch(
-    bitA,
-    bitB = bitA + 1,
-    bitC = bitA + 2,
-    theta = Math.PI / 2
-  ): QuantumState {
-    let output = new QuantumState(this.bitCount);
-    ennumerateStates(this.bitCount).forEach(outputClassicalState => {
-      let a = outputClassicalState.bits[bitA];
-      let b = outputClassicalState.bits[bitB];
-      let c = outputClassicalState.bits[bitC];
-      if (a == true && b == true) {
-        let stateAB_C = outputClassicalState.clone();
-        stateAB_C.bits[bitC] = !stateAB_C.bits[bitC];
-        let amplitudeABC = this.amplitudes[outputClassicalState.value];
-        let amplitudeAB_C = this.amplitudes[stateAB_C.value];
-        let outputAmplitude = amplitudeABC
-          .mult(new complex(0, Math.cos(theta)))
-          .add(amplitudeAB_C.scalarMult(Math.sin(theta)));
-        output.amplitudes[outputClassicalState.value] = outputAmplitude;
-      } else {
-        output.amplitudes[outputClassicalState.value] =
-          this.amplitudes[outputClassicalState.value];
-      }
-    });
-    return output;
-  }
-  hadamard(bit): QuantumState {
-    let output = new QuantumState(this.bitCount);
-    ennumerateStates(this.bitCount).forEach(outputClassicalState => {
-      let inputBit = outputClassicalState.bits[bit];
-      let inputState0 = outputClassicalState.clone();
-      let inputState1 = outputClassicalState.clone();
-      inputState0.bits[bit] = false;
-      inputState1.bits[bit] = true;
-      let outputAmplitude = new complex(0, 0);
-      if (inputBit) {
-        outputAmplitude = outputAmplitude.add(
-          this.amplitudes[inputState0.value]
-        );
-        outputAmplitude = outputAmplitude.sub(
-          this.amplitudes[inputState1.value]
-        );
-      } else {
-        outputAmplitude = outputAmplitude.add(
-          this.amplitudes[inputState0.value]
-        );
-        outputAmplitude = outputAmplitude.add(
-          this.amplitudes[inputState1.value]
-        );
-      }
-      outputAmplitude = outputAmplitude.scalarMult(Math.SQRT1_2);
-      output.amplitudes[outputClassicalState.value] = outputAmplitude;
-    });
-    return output;
-  }
   toString(): string {
     let output = '';
     const formatNumber = (n: number) => {
@@ -199,6 +120,11 @@ export class QuantumState {
         amplitudes.real
       )}\t ${formatNumber(amplitudes.img)}i\n`;
     });
+    return output;
+  }
+  clone(): QuantumState{
+    let output: QuantumState = new QuantumState(this.bitCount);
+    output.amplitudes = this.amplitudes.map(a => new complex(a.real, a.img))
     return output;
   }
 }

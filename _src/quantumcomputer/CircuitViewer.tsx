@@ -3,9 +3,23 @@ import { QuantumGate } from './quantum';
 import Hadamard from './icons/Hadamard';
 import Swap from './icons/Swap';
 
+function handleClick(
+  event: React.MouseEvent<HTMLDivElement, MouseEvent>,
+  numRows: number,
+  numColumns: number,
+  setProbePosition: (probePosition: number) => void
+) {
+  let boundingRect = event.currentTarget.getBoundingClientRect();
+  let x = ((event.pageX - boundingRect.x) / boundingRect.width) * numColumns;
+  let y = ((event.pageY - boundingRect.y) / boundingRect.height) * numRows;
+  setProbePosition(Math.round(x));
+}
+
 export default function CircuitViewer(properties: {
   initialWidth: number;
   gateList: QuantumGate[];
+  probePosition: number;
+  setProbePosition: (probePosition: number) => void;
 }) {
   const [bitCount, setBitCount] = React.useState<number>(
     properties.initialWidth
@@ -27,6 +41,18 @@ export default function CircuitViewer(properties: {
       ></line>
     );
   }
+  wireIcons.push(
+    <line
+      key="probe marker"
+      className="stroke-white"
+      strokeWidth="1px"
+      vectorEffect="non-scaling-stroke"
+      x1={properties.probePosition * 100}
+      y1={0}
+      x2={properties.probePosition * 100}
+      y2={numRows * 100}
+    ></line>
+  );
   let gateIcons = [];
   properties.gateList.forEach((gate, column) => {
     let min = gate.targets.reduce((a, b) => Math.min(a, b));
@@ -83,6 +109,9 @@ export default function CircuitViewer(properties: {
         className="col absolute inset-0 grid h-full w-full"
         style={{
           grid: `repeat(${numRows}, minmax(0, 1fr)) / repeat(${numColumns}, minmax(0, 1fr))`,
+        }}
+        onClick={evt => {
+          handleClick(evt, numRows, numColumns, properties.setProbePosition);
         }}
       >
         {gateIcons}
