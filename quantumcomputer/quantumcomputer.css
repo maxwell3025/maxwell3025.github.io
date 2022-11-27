@@ -498,11 +498,11 @@ video {
 .hidden {
   display: none;
 }
-.h-96 {
-  height: 24rem;
-}
 .h-full {
   height: 100%;
+}
+.h-96 {
+  height: 24rem;
 }
 .w-full {
   width: 100%;
