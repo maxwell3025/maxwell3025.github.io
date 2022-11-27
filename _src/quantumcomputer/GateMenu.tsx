@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { complex } from 'ts-complex-numbers';
+import Complex from 'complex.js'
 import { QuantumGate } from './quantum';
 
 function handleSubmit(
@@ -15,10 +15,10 @@ function handleSubmit(
         newGate = new QuantumGate(1, 'hadamard');
         newGate.targets[0] = parseInt(tokens[1]);
         newGate.coefficients = [
-          new complex(Math.SQRT1_2, 0),
-          new complex(Math.SQRT1_2, 0),
-          new complex(Math.SQRT1_2, 0),
-          new complex(-Math.SQRT1_2, 0),
+          Complex(Math.SQRT1_2),
+          Complex(Math.SQRT1_2),
+          Complex(Math.SQRT1_2),
+          Complex(-Math.SQRT1_2),
         ];
         gateList.push(newGate);
         break;
@@ -27,22 +27,22 @@ function handleSubmit(
         newGate.targets[0] = parseInt(tokens[1]);
         newGate.targets[1] = parseInt(tokens[2]);
         newGate.coefficients = [
-          new complex(1, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(1, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(1, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(0, 0),
-          new complex(1, 0),
+          Complex(1),
+          Complex(0),
+          Complex(0),
+          Complex(0),
+          Complex(0),
+          Complex(0),
+          Complex(1),
+          Complex(0),
+          Complex(0),
+          Complex(1),
+          Complex(0),
+          Complex(0),
+          Complex(0),
+          Complex(0),
+          Complex(0),
+          Complex(1),
         ];
         gateList.push(newGate);
         break;
