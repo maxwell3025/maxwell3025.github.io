@@ -2,6 +2,7 @@ import * as React from 'react';
 import { QuantumGate } from './quantum';
 import Hadamard from './icons/Hadamard';
 import Swap from './icons/Swap';
+import SVGLine from './SVGLine';
 
 function handleClick(
   event: React.MouseEvent<HTMLDivElement, MouseEvent>,
@@ -16,59 +17,47 @@ function handleClick(
 }
 
 export default function CircuitViewer(properties: {
-  initialWidth: number;
-  gateList: QuantumGate[];
+  numBits: number;
+  numColumns: number;
+  gateList: [number, QuantumGate][];
   probePosition: number;
   setProbePosition: (probePosition: number) => void;
 }) {
-  const [bitCount, setBitCount] = React.useState<number>(
-    properties.initialWidth
-  );
-  const numColumns = Math.max(properties.gateList.length + 1);
-  const numRows = bitCount;
-  let wireIcons = [];
+  const numRows = properties.numBits;
+
+  let horizontalWires = [];
+  let verticalWires = [];
+  let gateIcons = [];
+  let probeMarker;
+
+  //generate horizontal wires
   for (let row = 0; row < numRows; row++) {
-    wireIcons.push(
-      <line
+    horizontalWires.push(
+      <SVGLine
         key={`${row}`}
-        className="stroke-white"
-        strokeWidth="1px"
-        vectorEffect="non-scaling-stroke"
         x1={0}
-        y1={row * 100 + 50}
-        x2={numColumns * 100 + 100}
-        y2={row * 100 + 50}
-      ></line>
+        y1={row + 0.5}
+        x2={properties.numColumns}
+        y2={row + 0.5}
+      ></SVGLine>
     );
   }
-  wireIcons.push(
-    <line
-      key="probe marker"
-      className="stroke-white"
-      strokeWidth="1px"
-      vectorEffect="non-scaling-stroke"
-      x1={properties.probePosition * 100}
-      y1={0}
-      x2={properties.probePosition * 100}
-      y2={numRows * 100}
-    ></line>
-  );
-  let gateIcons = [];
-  properties.gateList.forEach((gate, column) => {
+
+  //add all of the gates
+  properties.gateList.forEach(([column, gate]) => {
     let min = gate.targets.reduce((a, b) => Math.min(a, b));
     let max = gate.targets.reduce((a, b) => Math.max(a, b));
-    wireIcons.push(
-      <line
+    //connections btwn wires
+    verticalWires.push(
+      <SVGLine
         key={`column ${column}, rows ${min}-${max}`}
-        className="stroke-white"
-        strokeWidth="1px"
-        vectorEffect="non-scaling-stroke"
-        x1={column * 100 + 50}
-        y1={min * 100 + 50}
-        x2={column * 100 + 50}
-        y2={max * 100 + 50}
-      ></line>
+        x1={column + 0.5}
+        y1={min + 0.5}
+        x2={column + 0.5}
+        y2={max + 0.5}
+      ></SVGLine>
     );
+    //gate icons
     switch (gate.name) {
       case 'hadamard':
         gateIcons.push(
@@ -96,22 +85,35 @@ export default function CircuitViewer(properties: {
     }
   });
 
+  //add probe
+  probeMarker = (
+    <SVGLine
+      x1={properties.probePosition}
+      y1={0}
+      x2={properties.probePosition}
+      y2={numRows}
+    ></SVGLine>
+  );
+
+  //render
   return (
     <div className="relative flex-grow">
       <svg
         className="absolute inset-0 h-full w-full"
-        viewBox={`0 0 ${numColumns * 100} ${numRows * 100}`}
+        viewBox={`0 0 ${properties.numColumns * 100} ${numRows * 100}`}
         preserveAspectRatio="none"
       >
-        {wireIcons}
+        {horizontalWires}
+        {verticalWires}
+        {probeMarker}
       </svg>
       <div
         className="col absolute inset-0 grid h-full w-full"
         style={{
-          grid: `repeat(${numRows}, minmax(0, 1fr)) / repeat(${numColumns}, minmax(0, 1fr))`,
+          grid: `repeat(${numRows}, minmax(0, 1fr)) / repeat(${properties.numColumns}, minmax(0, 1fr))`,
         }}
         onClick={evt => {
-          handleClick(evt, numRows, numColumns, properties.setProbePosition);
+          handleClick(evt, numRows, properties.numColumns, properties.setProbePosition);
         }}
       >
         {gateIcons}

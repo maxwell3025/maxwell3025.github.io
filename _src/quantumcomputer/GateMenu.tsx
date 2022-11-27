@@ -4,28 +4,29 @@ import { QuantumGate } from './quantum';
 
 function handleSubmit(
   inputData: string,
-  setGateList: (gateList: QuantumGate[]) => void
+  setGateList: (gateList: [number, QuantumGate][]) => void
 ) {
-  let gateList: QuantumGate[] = [];
+  let gateList: [number, QuantumGate][] = [];
   inputData.split('\n').forEach(line => {
     let tokens = line.split(' ');
     let newGate: QuantumGate;
-    switch (tokens[0]) {
+    let column = parseInt(tokens[0])
+    switch (tokens[1]) {
       case 'H':
         newGate = new QuantumGate(1, 'hadamard');
-        newGate.targets[0] = parseInt(tokens[1]);
+        newGate.targets[0] = parseInt(tokens[2]);
         newGate.coefficients = [
           Complex(Math.SQRT1_2),
           Complex(Math.SQRT1_2),
           Complex(Math.SQRT1_2),
           Complex(-Math.SQRT1_2),
         ];
-        gateList.push(newGate);
+        gateList.push([column, newGate]);
         break;
       case 'SWAP':
         newGate = new QuantumGate(1, 'swap');
-        newGate.targets[0] = parseInt(tokens[1]);
-        newGate.targets[1] = parseInt(tokens[2]);
+        newGate.targets[0] = parseInt(tokens[2]);
+        newGate.targets[1] = parseInt(tokens[3]);
         newGate.coefficients = [
           Complex(1),
           Complex(0),
@@ -44,7 +45,7 @@ function handleSubmit(
           Complex(0),
           Complex(1),
         ];
-        gateList.push(newGate);
+        gateList.push([column, newGate]);
         break;
       default:
     }
@@ -52,7 +53,7 @@ function handleSubmit(
   setGateList(gateList)
 }
 
-export default function GateMenu(properties: {setGateList: (gateList: QuantumGate[]) => void}) {
+export default function GateMenu(properties: {setGateList: (gateList: [number, QuantumGate][]) => void}) {
   const textAreaRef = React.useRef<HTMLTextAreaElement>(null);
   return (
     <div>

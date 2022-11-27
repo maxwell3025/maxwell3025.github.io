@@ -5,14 +5,15 @@ import { QuantumGate, QuantumState } from './quantum';
 import StateViewer from './StateViewer';
 
 export default function CircuitEditor(properties: { initialWidth: number }) {
-  const [gateList, setGateList] = React.useState<QuantumGate[]>([]);
+  const [gateList, setGateList] = React.useState<[number, QuantumGate][]>([]);
   const [inputState, setInputState] = React.useState<QuantumState>(
     new QuantumState(properties.initialWidth)
   );
   const [probePosition, setProbePosition] = React.useState<number>(0);
 
   let displayedState = inputState.clone();
-  gateList.slice(0, probePosition).forEach(gate => {
+  let prevGates = gateList.filter(a => a[0] < probePosition).sort((a, b) => a[0] - b[0]).map(a => a[1])
+  prevGates.forEach(gate => {
     displayedState = displayedState.genericGate(
       gate.targets,
       gate.coefficients
@@ -24,7 +25,8 @@ export default function CircuitEditor(properties: { initialWidth: number }) {
       <GateMenu setGateList={setGateList}></GateMenu>
       <div className="flex flex-grow flex-row items-stretch">
         <CircuitViewer
-          initialWidth={properties.initialWidth}
+          numBits={properties.initialWidth}
+          numColumns ={4}
           gateList={gateList}
           probePosition={probePosition}
           setProbePosition={setProbePosition}
