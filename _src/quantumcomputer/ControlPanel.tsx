@@ -53,7 +53,7 @@ function handleSubmit(
   setGateList(gateList)
 }
 
-export default function GateMenu(properties: {setGateList: (gateList: [number, QuantumGate][]) => void}) {
+export default function ControlPanel(properties: {setGateList: (gateList: [number, QuantumGate][]) => void}) {
   const textAreaRef = React.useRef<HTMLTextAreaElement>(null);
   return (
     <div>

@@ -16,7 +16,7 @@ function handleClick(
   setProbePosition(Math.round(x));
 }
 
-export default function CircuitViewer(properties: {
+export default function CircuitDisplay(properties: {
   numBits: number;
   numColumns: number;
   gateList: [number, QuantumGate][];

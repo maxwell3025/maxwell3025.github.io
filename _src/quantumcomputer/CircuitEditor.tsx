@@ -1,8 +1,8 @@
 import * as React from 'react';
-import CircuitViewer from './CircuitViewer';
-import GateMenu from './GateMenu';
+import CircuitDisplay from './CircuitDisplay';
+import ControlPanel from './ControlPanel';
 import { QuantumGate, QuantumState } from './quantum';
-import StateViewer from './StateViewer';
+import StateDisplay from './StateDisplay';
 
 export default function CircuitEditor(properties: { initialWidth: number }) {
   const [gateList, setGateList] = React.useState<[number, QuantumGate][]>([]);
@@ -22,16 +22,16 @@ export default function CircuitEditor(properties: { initialWidth: number }) {
 
   return (
     <div className="flex h-96 flex-col">
-      <GateMenu setGateList={setGateList}></GateMenu>
+      <ControlPanel setGateList={setGateList}></ControlPanel>
       <div className="flex flex-grow flex-row items-stretch">
-        <CircuitViewer
+        <CircuitDisplay
           numBits={properties.initialWidth}
           numColumns ={4}
           gateList={gateList}
           probePosition={probePosition}
           setProbePosition={setProbePosition}
-        ></CircuitViewer>
-        <StateViewer state={displayedState}></StateViewer>
+        ></CircuitDisplay>
+        <StateDisplay state={displayedState}></StateDisplay>
       </div>
     </div>
   );
