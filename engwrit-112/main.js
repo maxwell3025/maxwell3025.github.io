@@ -80,13 +80,73 @@ eval("\n\nif (false) {} else {\n  module.exports = __webpack_require__(/*! ./cjs
 
 /***/ }),
 
+/***/ "./_src/engwrit-112/Dropdown.tsx":
+/*!***************************************!*\
+  !*** ./_src/engwrit-112/Dropdown.tsx ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ Dropdown)\n/* harmony export */ });\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction Dropdown(properties) {\n  var _a = react__WEBPACK_IMPORTED_MODULE_0__.useState(false),\n    open = _a[0],\n    setOpen = _a[1];\n  if (open) {\n    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n      className: \"flex flex-col\"\n    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n      onClick: function () {\n        return setOpen(false);\n      }\n    }, properties.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n      className: \"h-max overflow-clip transition-all duration-500 ease-in-out\"\n    }, properties.children));\n  } else {\n    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n      className: \"flex flex-col\"\n    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n      onClick: function () {\n        return setOpen(true);\n      }\n    }, properties.title), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n      className: \"h-0 overflow-clip transition-all duration-500 ease-in-out\"\n    }, properties.children));\n  }\n}\n\n//# sourceURL=webpack:///./_src/engwrit-112/Dropdown.tsx?");
+
+/***/ }),
+
 /***/ "./_src/engwrit-112/Index.tsx":
 /*!************************************!*\
   !*** ./_src/engwrit-112/Index.tsx ***!
   \************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ Index)\n/* harmony export */ });\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction Index() {\n  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n    className: \"bg-red-500 w-10 h-10\"\n  });\n}\n\n//# sourceURL=webpack:///./_src/engwrit-112/Index.tsx?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ Index)\n/* harmony export */ });\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);\n/* harmony import */ var _documentComponents_Citation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./documentComponents/Citation */ \"./_src/engwrit-112/documentComponents/Citation.tsx\");\n/* harmony import */ var _documentComponents_H1__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./documentComponents/H1 */ \"./_src/engwrit-112/documentComponents/H1.tsx\");\n/* harmony import */ var _documentComponents_H2__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./documentComponents/H2 */ \"./_src/engwrit-112/documentComponents/H2.tsx\");\n/* harmony import */ var _documentComponents_Link__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./documentComponents/Link */ \"./_src/engwrit-112/documentComponents/Link.tsx\");\n/* harmony import */ var _documentComponents_Paragraph__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./documentComponents/Paragraph */ \"./_src/engwrit-112/documentComponents/Paragraph.tsx\");\n/* harmony import */ var _Dropdown__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./Dropdown */ \"./_src/engwrit-112/Dropdown.tsx\");\n\n\n\n\n\n\n\nfunction Index() {\n  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n    className: \"flex min-h-screen flex-col items-center justify-start bg-amber-800 text-amber-50\"\n  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(_documentComponents_H1__WEBPACK_IMPORTED_MODULE_2__[\"default\"], null, \"The Importance of SciHub, Explained in 3 Graphs\"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(_documentComponents_H2__WEBPACK_IMPORTED_MODULE_3__[\"default\"], null, \"What Is Sci-Hub?\"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(_documentComponents_Paragraph__WEBPACK_IMPORTED_MODULE_5__[\"default\"], {\n    first: true\n  }, \"Testing Testing\"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(_documentComponents_Citation__WEBPACK_IMPORTED_MODULE_1__[\"default\"], null, \"Hello world!\", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"br\", null), \"Hello world!\", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"br\", null), \"the source is \", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(_documentComponents_Link__WEBPACK_IMPORTED_MODULE_4__[\"default\"], {\n    href: \".\"\n  }, \"This\")), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(_Dropdown__WEBPACK_IMPORTED_MODULE_6__[\"default\"], {\n    title: \"THIS IS A TEST\"\n  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n    className: \"h-96 w-96 bg-white\"\n  }, \"HELLO\")));\n}\n\n//# sourceURL=webpack:///./_src/engwrit-112/Index.tsx?");
+
+/***/ }),
+
+/***/ "./_src/engwrit-112/documentComponents/Citation.tsx":
+/*!**********************************************************!*\
+  !*** ./_src/engwrit-112/documentComponents/Citation.tsx ***!
+  \**********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ Citation)\n/* harmony export */ });\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction Citation(properties) {\n  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"div\", {\n    className: \"w-[36rem] mx-auto\"\n  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"p\", {\n    className: \"-indent-4 ml-4\"\n  }, properties.children));\n}\n\n//# sourceURL=webpack:///./_src/engwrit-112/documentComponents/Citation.tsx?");
+
+/***/ }),
+
+/***/ "./_src/engwrit-112/documentComponents/H1.tsx":
+/*!****************************************************!*\
+  !*** ./_src/engwrit-112/documentComponents/H1.tsx ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ H1)\n/* harmony export */ });\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction H1(properties) {\n  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"h1\", {\n    className: \"my-5 text-center text-4xl font-semibold\"\n  }, properties.children);\n}\n\n//# sourceURL=webpack:///./_src/engwrit-112/documentComponents/H1.tsx?");
+
+/***/ }),
+
+/***/ "./_src/engwrit-112/documentComponents/H2.tsx":
+/*!****************************************************!*\
+  !*** ./_src/engwrit-112/documentComponents/H2.tsx ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ H2)\n/* harmony export */ });\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction H2(properties) {\n  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"h2\", {\n    className: \"my-2 text-center text-2xl font-normal\"\n  }, properties.children);\n}\n\n//# sourceURL=webpack:///./_src/engwrit-112/documentComponents/H2.tsx?");
+
+/***/ }),
+
+/***/ "./_src/engwrit-112/documentComponents/Link.tsx":
+/*!******************************************************!*\
+  !*** ./_src/engwrit-112/documentComponents/Link.tsx ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ Link)\n/* harmony export */ });\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction Link(properties) {\n  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"a\", {\n    href: properties.href,\n    className: \"text-red-200 font-semibold\"\n  }, properties.children);\n}\n\n//# sourceURL=webpack:///./_src/engwrit-112/documentComponents/Link.tsx?");
+
+/***/ }),
+
+/***/ "./_src/engwrit-112/documentComponents/Paragraph.tsx":
+/*!***********************************************************!*\
+  !*** ./_src/engwrit-112/documentComponents/Paragraph.tsx ***!
+  \***********************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (/* binding */ Paragraph)\n/* harmony export */ });\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ \"./node_modules/react/index.js\");\n/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);\n\nfunction Paragraph(properties) {\n  if (properties.first) {\n    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"p\", {\n      className: \"indent-0 w-[36rem] mx-auto\"\n    }, properties.children);\n  } else {\n    return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0__.createElement(\"p\", {\n      className: \"indent-4 w-[36rem] mx-auto\"\n    }, properties.children);\n  }\n}\n\n//# sourceURL=webpack:///./_src/engwrit-112/documentComponents/Paragraph.tsx?");
 
 /***/ }),
 
