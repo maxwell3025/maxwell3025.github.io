@@ -1,11 +1,20 @@
 import * as React from 'react';
+import DocDiv from './DocDiv';
 
 export default function Paragraph(
   properties: React.PropsWithChildren<{ first?: boolean }>
 ) {
   if (properties.first) {
-    return <p className="indent-0 w-[36rem] mx-auto">{properties.children}</p>;
+    return (
+      <DocDiv>
+        <p className="indent-0">{properties.children}</p>
+      </DocDiv>
+    );
   } else {
-    return <p className="indent-4 w-[36rem] mx-auto">{properties.children}</p>;
+    return (
+      <DocDiv>
+        <p className="indent-4">{properties.children}</p>
+      </DocDiv>
+    );
   }
 }

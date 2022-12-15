@@ -9,10 +9,29 @@ module.exports = file => {
       filename: file + '.js',
     },
     resolve: {
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', 'svg'],
     },
     module: {
       rules: [
+        {
+          test: /\.svg$/,
+          issuer: /\.[jt]sx?$/,
+          use: [
+            {
+              loader: '@svgr/webpack',
+              options: {
+                svgoConfig: {
+                  plugins: [
+                    {
+                      name: 'removeViewBox',
+                      active: false,
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+        },
         {
           test: /\.html$/i,
           loader: 'html-loader',
