@@ -22,15 +22,16 @@ function fromGeoMesh(geoMesh: GeoMesh): THREE.BufferGeometry {
 
 //row-major order
 const metricInput = {
-  'metric function': '//use x and y for inputs\n//output is the metric tensor in row-major order\noutput[3] = x'
-}
+  'metric function':
+    '//use x and y for inputs\n//output is the metric tensor in row-major order\noutput[3] = x',
+};
 
 function metric(coords: Vec2): [number, number, number, number] {
   let x = coords.x;
   let y = coords.y;
-  let output: [number, number, number, number] = [1, 0, 0, 1]
-  eval(metricInput['metric function'])
-  console.log(output)
+  let output: [number, number, number, number] = [1, 0, 0, 1];
+  eval(metricInput['metric function']);
+  console.log(output);
   return output;
 }
 
@@ -169,7 +170,7 @@ initFolder.add(meshSettings, 'initialNoise');
 initFolder.add(
   {
     initialize: () => {
-      stepSize = 1
+      stepSize = 1;
       myGeoMesh = initialize();
     },
   },

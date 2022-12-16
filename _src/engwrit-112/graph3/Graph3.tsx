@@ -49,7 +49,16 @@ export default function Graph3() {
         className="transition delay-500"
         style={{ fill: `#${colors[index]}` }}
       ></rect>,
-      <text key={`title${index}`} x={0} y={0} transform={`translate(${50} ${currentHeight + elem/2}) scale(0.5 0.5)`} textAnchor="middle" dominantBaseline="middle">
+      <text
+        key={`title${index}`}
+        x={0}
+        y={0}
+        transform={`translate(${50} ${
+          currentHeight + elem / 2
+        }) scale(0.5 0.5)`}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
         {titles[index]}
       </text>
     );

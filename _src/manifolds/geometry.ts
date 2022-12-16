@@ -20,11 +20,11 @@ export class Vec2 {
   get r(): number {
     return Math.sqrt(this.x * this.x + this.y * this.y);
   }
-  clone(): Vec2{
-    return new Vec2(this.x, this.y)
+  clone(): Vec2 {
+    return new Vec2(this.x, this.y);
   }
-  norm(): Vec2{
-    return this.mul(1.0/this.r)
+  norm(): Vec2 {
+    return this.mul(1.0 / this.r);
   }
 }
 
@@ -52,10 +52,10 @@ export class Vec3 {
   get r(): number {
     return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
   }
-  clone(): Vec3{
-    return new Vec3(this.x, this.y, this.z)
+  clone(): Vec3 {
+    return new Vec3(this.x, this.y, this.z);
   }
-  norm(): Vec3{
-    return this.mul(1.0/this.r)
+  norm(): Vec3 {
+    return this.mul(1.0 / this.r);
   }
 }

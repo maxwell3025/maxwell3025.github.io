@@ -18,6 +18,6 @@ export default function CountryDescription(
       </div>
     );
   } else {
-    return <></>
+    return <></>;
   }
 }
