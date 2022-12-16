@@ -15,8 +15,8 @@ import Graph3 from './graph3/Graph3';
 export default function Index() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-start bg-amber-800 text-amber-50">
-      <H1>The Importance of SciHub, Explained in 3 Graphs</H1>
-      <H2>*Insert hook*</H2>
+      <H1>The Importance of Sci-Hub, Explained in 3 Graphs</H1>
+      <H2>Pirating can save lives.</H2>
       <img
         alt="Sci-Hub logo"
         src="https://sci-hub.se/pictures/ravenround_hs.gif"
@@ -41,8 +41,9 @@ export default function Index() {
         understand how scientific publishing works.
       </Paragraph>
 
+      <H2>The Process of Publishing</H2>
       <Graph1 />
-
+      <Caption>Based on (Schultz)</Caption>
       <Paragraph first>
         Researchers in developing countries especially benefit from Sci-Hub
         because without it, up-to-date scientific knowledge would be
@@ -51,6 +52,7 @@ export default function Index() {
       </Paragraph>
       <H2></H2>
 
+      <H2>Global Issues With Jounal Access</H2>
       <Graph2 />
 
       <Paragraph>
@@ -66,7 +68,9 @@ export default function Index() {
         consolidation, which impede smaller society publishers from competing on
         a level playing field.”(Matthias 22).
       </Paragraph>
+      <H2>Fraction of Papers in NMS Printed by Major Publishers</H2>
       <Graph3 />
+      <Caption>Based on data from (Lariviere)</Caption>
       <Paragraph first>
         As can be seen in the above graphic, this problem has only gotten worse
         in recent years.

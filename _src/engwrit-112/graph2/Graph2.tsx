@@ -37,8 +37,14 @@ export default function Graph2() {
         setSelectedCountry={setSelectedCountry}
         id="Brazil"
       >
-        “a lack of correlation between disease burden, research output and
-        government funding for priority NTDs in Brazil”(Fonseca 1373)
+        A paper in TMIH found “a lack of correlation between disease burden,
+        research output and government funding for priority NTDs in
+        Brazil”(Fonseca 1373)
+        <br></br>
+        <br></br>
+        In Brazil, funding for research into neglected tropical diseases is
+        already tight, so the financial burden of journal subscriptions is
+        especially harmful.
       </CountryDescription>
       <CountryDescription
         selectedCountry={selectedCountry}
@@ -48,6 +54,10 @@ export default function Graph2() {
         "Having to pay US$1,000 per year to HINARI has left many public
         universities in the provinces of Peru without access because they cannot
         afford it"(Villafuerte-Gálvez 1134)
+        <br></br>
+        <br></br>
+        Even with aid, many universities and research institutions in developing
+        countries cannot afford subscriptions to journals.
       </CountryDescription>
       <CountryDescription
         selectedCountry={selectedCountry}
@@ -55,9 +65,12 @@ export default function Graph2() {
         id="Liberia"
       >
         <p>
-          In 1982, an Ebola outbreak was left hidden to public heapth officials
-          due to the information being published in a subscription-only
-          journal(Capocasa)
+          "the Ebola virus outbreak in Liberia in 1982 remained hidden to some
+          public health institutions because the paper reporting this
+          information was published in a subscription-only journal"(Capocasa)
+          <br></br>
+          <br></br>
+          Lack of access to research can lead to disaster in the worst cases.
         </p>
       </CountryDescription>
     </div>
