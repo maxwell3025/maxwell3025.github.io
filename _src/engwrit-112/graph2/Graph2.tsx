@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as React from 'react';
+import Caption from '../documentComponents/Caption';
 import CountryDescription from './CountryDescription';
 import World from './world.svg';
 
@@ -73,6 +74,7 @@ export default function Graph2() {
           Lack of access to research can lead to disaster in the worst cases.
         </p>
       </CountryDescription>
+      <a href = "https://simplemaps.com/resources/svg-world"><Caption>From simplemaps.com</Caption></a>
     </div>
   );
 }
