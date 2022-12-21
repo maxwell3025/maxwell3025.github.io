@@ -6,16 +6,20 @@ export class ClassicalState {
   constructor(bitCount: number, value = 0) {
     this.bitCount = bitCount;
     this.bits = [];
-    let bitMask = 1;
+    let bitMask = Math.pow(2, bitCount) >> 1;
     for (let bitIndex = 0; bitIndex < bitCount; bitIndex++) {
       this.bits.push((bitMask & value) > 0);
-      bitMask = bitMask << 1;
+      bitMask = bitMask >> 1;
     }
   }
   get value(): number {
     let value = 0;
+    let bitMask = Math.pow(2, this.bitCount) >> 1;
     for (let i = 0; i < this.bitCount; i++) {
-      if (this.bits[i]) value += Math.pow(2, i);
+      if (this.bits[i]) {
+        value += bitMask;
+      }
+      bitMask = bitMask >> 1;
     }
     return value;
   }
@@ -26,7 +30,6 @@ export class ClassicalState {
     let output = '|';
     this.bits
       .map(a => a)
-      .reverse()
       .forEach(bit => {
         output += bit ? '1' : '0';
       });
@@ -59,10 +62,10 @@ export class QuantumGate {
     }
     this.coefficients = [];
     for (let i = 0; i < matrixWidth * matrixWidth; i++) {
-      this.coefficients.push(Complex(0, 0));
+      this.coefficients.push(new Complex(0, 0));
     }
     for (let i = 0; i < matrixWidth; i++) {
-      this.coefficients[i + i * matrixWidth] = Complex(1, 0);
+      this.coefficients[i + i * matrixWidth] = new Complex(1, 0);
     }
   }
 }
@@ -74,25 +77,32 @@ export class QuantumState {
     this.bitCount = bitCount;
     this.amplitudes = [];
     for (let i = 0; i < value; i++) {
-      this.amplitudes.push(Complex(0, 0));
+      this.amplitudes.push(new Complex(0, 0));
     }
-    this.amplitudes.push(Complex(1, 0));
+    this.amplitudes.push(new Complex(1, 0));
     for (let i = 0; i < stateCount - value - 1; i++) {
-      this.amplitudes.push(Complex(0, 0));
+      this.amplitudes.push(new Complex(0, 0));
     }
   }
   genericGate(bits: number[], coefficients: Complex[]): QuantumState {
     let output = new QuantumState(this.bitCount);
-    let matrixSize = Math.pow(2, bits.length);
+    const matrixSize = Math.pow(2, bits.length);
     ennumerateStates(this.bitCount).forEach(outputClassicalState => {
-      let outputSubState = new ClassicalState(bits.length);
+      const outputSubState = new ClassicalState(bits.length);
       outputSubState.bits = bits.map(index => outputClassicalState.bits[index]);
-      let outputAmplitude = Complex(0, 0);
+      let outputAmplitude = new Complex(0, 0);
       ennumerateStates(bits.length).forEach(inputSubState => {
         let inputClassicalState = outputClassicalState.clone();
         bits.forEach((value, index) => {
           inputClassicalState.bits[value] = inputSubState.bits[index];
         });
+        console.log(
+          `${inputClassicalState.value} -> ${outputClassicalState.value}: ${
+            coefficients[
+              outputSubState.value * matrixSize + inputSubState.value
+            ]
+          }`
+        );
         outputAmplitude = outputAmplitude.add(
           coefficients[
             outputSubState.value * matrixSize + inputSubState.value
@@ -115,16 +125,16 @@ export class QuantumState {
       );
     };
     ennumerateStates(this.bitCount).forEach(classicalState => {
-      let amplitudes = this.amplitudes[classicalState.value];
+      let amplitude = this.amplitudes[classicalState.value];
       output += `${classicalState}: ${formatNumber(
-        amplitudes.re
-      )}\t ${formatNumber(amplitudes.im)}i\n`;
+        amplitude.re
+      )}\t ${formatNumber(amplitude.im)}i\n`;
     });
     return output;
   }
-  clone(): QuantumState{
+  clone(): QuantumState {
     let output: QuantumState = new QuantumState(this.bitCount);
-    output.amplitudes = this.amplitudes.map(a => a.clone())
+    output.amplitudes = this.amplitudes.map(a => a.clone());
     return output;
   }
 }

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import Complex from 'complex.js'
 import { QuantumGate } from './quantum';
+import getCoefficients from './Coefficients';
 
 function handleSubmit(
   inputData: string,
@@ -15,39 +16,37 @@ function handleSubmit(
       case 'H':
         newGate = new QuantumGate(1, 'hadamard');
         newGate.targets[0] = parseInt(tokens[2]);
-        newGate.coefficients = [
-          Complex(Math.SQRT1_2),
-          Complex(Math.SQRT1_2),
-          Complex(Math.SQRT1_2),
-          Complex(-Math.SQRT1_2),
-        ];
+        newGate.coefficients = getCoefficients('H')
         gateList.push([column, newGate]);
         break;
       case 'SWAP':
-        newGate = new QuantumGate(1, 'swap');
+        newGate = new QuantumGate(2, 'swap');
         newGate.targets[0] = parseInt(tokens[2]);
         newGate.targets[1] = parseInt(tokens[3]);
-        newGate.coefficients = [
-          Complex(1),
-          Complex(0),
-          Complex(0),
-          Complex(0),
-          Complex(0),
-          Complex(0),
-          Complex(1),
-          Complex(0),
-          Complex(0),
-          Complex(1),
-          Complex(0),
-          Complex(0),
-          Complex(0),
-          Complex(0),
-          Complex(0),
-          Complex(1),
-        ];
+        newGate.coefficients = getCoefficients('SWAP')
+        gateList.push([column, newGate]);
+        break;
+      case 'NOT':
+        newGate = new QuantumGate(1, 'not');
+        newGate.targets[0] = parseInt(tokens[2]);
+        newGate.coefficients = getCoefficients('NOT')
+        gateList.push([column, newGate]);
+        break;
+      case 'CNOT':
+        newGate = new QuantumGate(2, 'cnot');
+        newGate.targets[0] = parseInt(tokens[2]);
+        newGate.targets[1] = parseInt(tokens[3]);
+        newGate.coefficients = getCoefficients('CNOT')
+        gateList.push([column, newGate]);
+        break;
+      case 'PHASE':
+        newGate = new QuantumGate(1, 'phase');
+        newGate.targets[0] = parseInt(tokens[2]);
+        newGate.coefficients = getCoefficients('PHASE', parseFloat(tokens[3]))
         gateList.push([column, newGate]);
         break;
       default:
+        console.log("Malformed Input")
     }
   });
   setGateList(gateList)

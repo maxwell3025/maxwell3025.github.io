@@ -3,6 +3,16 @@ import { QuantumGate } from './quantum';
 import Hadamard from './icons/Hadamard';
 import Swap from './icons/Swap';
 import SVGLine from './SVGLine';
+import Not from './icons/Not';
+import Phase from './icons/Phase';
+
+const gateAssets: Map<string, (() => JSX.Element)[]> = new Map([
+  ['not', [Not]],
+  ['cnot', [Swap, Not]],
+  ['hadamard', [Hadamard]],
+  ['swap', [Swap, Swap]],
+  ['phase', [Phase]],
+]);
 
 function handleClick(
   event: React.MouseEvent<HTMLDivElement, MouseEvent>,
@@ -58,30 +68,20 @@ export default function CircuitDisplay(properties: {
       ></SVGLine>
     );
     //gate icons
-    switch (gate.name) {
-      case 'hadamard':
+    if (gateAssets.has(gate.name)) {
+      gateAssets.get(gate.name).forEach((Icon, index) => {
         gateIcons.push(
-          <Hadamard
-            key={`${gate.targets[0]}, ${column}`}
-            row={gate.targets[0]}
-            column={column}
-          ></Hadamard>
+          <div
+            key={`${gate.targets[index]}, ${column}`}
+            style={{
+              gridColumn: column + 1,
+              gridRow: gate.targets[index] + 1,
+            }}
+          >
+            <Icon></Icon>
+          </div>
         );
-        break;
-      case 'swap':
-        gateIcons.push(
-          <Swap
-            key={`${gate.targets[0]}, ${column}`}
-            row={gate.targets[0]}
-            column={column}
-          ></Swap>,
-          <Swap
-            key={`${gate.targets[1]}, ${column}`}
-            row={gate.targets[1]}
-            column={column}
-          ></Swap>
-        );
-        break;
+      });
     }
   });
 
@@ -113,7 +113,12 @@ export default function CircuitDisplay(properties: {
           grid: `repeat(${numRows}, minmax(0, 1fr)) / repeat(${properties.numColumns}, minmax(0, 1fr))`,
         }}
         onClick={evt => {
-          handleClick(evt, numRows, properties.numColumns, properties.setProbePosition);
+          handleClick(
+            evt,
+            numRows,
+            properties.numColumns,
+            properties.setProbePosition
+          );
         }}
       >
         {gateIcons}

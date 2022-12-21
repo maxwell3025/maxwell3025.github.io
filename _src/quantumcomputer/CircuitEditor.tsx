@@ -12,7 +12,10 @@ export default function CircuitEditor(properties: { initialWidth: number }) {
   const [probePosition, setProbePosition] = React.useState<number>(0);
 
   let displayedState = inputState.clone();
-  let prevGates = gateList.filter(a => a[0] < probePosition).sort((a, b) => a[0] - b[0]).map(a => a[1])
+  let prevGates = gateList
+    .filter(a => a[0] < probePosition)
+    .sort((a, b) => a[0] - b[0])
+    .map(a => a[1]);
   prevGates.forEach(gate => {
     displayedState = displayedState.genericGate(
       gate.targets,
@@ -26,7 +29,7 @@ export default function CircuitEditor(properties: { initialWidth: number }) {
       <div className="flex flex-grow flex-row items-stretch">
         <CircuitDisplay
           numBits={properties.initialWidth}
-          numColumns ={4}
+          numColumns={4}
           gateList={gateList}
           probePosition={probePosition}
           setProbePosition={setProbePosition}
