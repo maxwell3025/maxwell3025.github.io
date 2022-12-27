@@ -4,14 +4,20 @@ import ControlPanel from './ControlPanel';
 import { QuantumGate, QuantumState } from './quantum';
 import StateDisplay from './StateDisplay';
 
-export default function CircuitEditor(properties: { initialWidth: number }) {
+export default function CircuitEditor(properties: {
+  initialWidth: number;
+  initialColumnCount: number;
+}) {
   const [gateList, setGateList] = React.useState<[number, QuantumGate][]>([]);
-  const [inputState, setInputState] = React.useState<QuantumState>(
-    new QuantumState(properties.initialWidth)
-  );
   const [probePosition, setProbePosition] = React.useState<number>(0);
+  const [columnCount, setColumnCount] = React.useState<number>(
+    properties.initialColumnCount
+  );
+  const [bitCount, setBitCount] = React.useState<number>(
+    properties.initialWidth
+  );
 
-  let displayedState = inputState.clone();
+  let displayedState = new QuantumState(bitCount);
   let prevGates = gateList
     .filter(a => a[0] < probePosition)
     .sort((a, b) => a[0] - b[0])
@@ -25,11 +31,17 @@ export default function CircuitEditor(properties: { initialWidth: number }) {
 
   return (
     <div className="flex h-96 flex-col">
-      <ControlPanel setGateList={setGateList}></ControlPanel>
+      <ControlPanel
+        setGateList={setGateList}
+        columnCount={columnCount}
+        bitCount={bitCount}
+        setColumnCount={setColumnCount}
+        setBitCount={setBitCount}
+      ></ControlPanel>
       <div className="flex flex-grow flex-row items-stretch">
         <CircuitDisplay
-          numBits={properties.initialWidth}
-          numColumns={4}
+          numBits={bitCount}
+          numColumns={columnCount}
           gateList={gateList}
           probePosition={probePosition}
           setProbePosition={setProbePosition}

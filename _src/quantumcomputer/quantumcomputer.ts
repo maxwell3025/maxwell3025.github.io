@@ -3,4 +3,4 @@ import * as ReactDOM from 'react-dom/client'
 import CircuitEditor from "./CircuitEditor";
 
 const root = ReactDOM.createRoot(document.getElementById('root'))
-root.render(React.createElement(CircuitEditor, {initialWidth: 2}))
+root.render(React.createElement(CircuitEditor, {initialWidth: 2, initialColumnCount: 4}))
