@@ -1,9 +1,14 @@
 "use strict";
 
 const webpack = require('webpack');
+const webpackConfig = require('./webpack.config');
+
+const postcss = require('postcss');
+const postcssConfig = require('./postcss.config');
+
 const fs = require('fs');
 
-const webpackConfig = require('./webpack.config');
+const target = '../../gravity/'
 
 new Promise((resolve, reject) =>
     webpack(webpackConfig, (err, stats) => {
@@ -20,3 +25,15 @@ new Promise((resolve, reject) =>
         resolve();
     })
 )
+
+new Promise((resolve, reject) => {
+    postcss(postcssConfig.plugins)
+    .process(fs.readFileSync('gravity.css'))
+    .then(result => 
+        fs.writeFileSync(target + 'gravity.css', result.css)
+    )
+
+    resolve();
+})
+
+fs.copyFileSync('index.html', target + 'index.html')

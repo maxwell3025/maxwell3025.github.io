@@ -191,6 +191,7 @@ window.onload = () => {
   });
 
   svg.on('mousemove', event => {
+    console.log("HI");
     let [mouseX, mouseY] = d3.pointer(event, svg.node());
     //update label
     coordLabel = coordLabel.attr('x', mouseX).attr('y', mouseY - 20);
@@ -227,8 +228,6 @@ window.onload = () => {
         )
       );
       bindData();
-      console.log(planetShapes);
-      //remove old shapes
       newPlanetShape = newPlanetShape.style('visibility', 'hidden');
       velocityLine = velocityLine.style('visibility', 'hidden');
     }
