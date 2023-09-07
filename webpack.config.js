@@ -9,7 +9,7 @@ module.exports = file => {
       filename: file + '.js',
     },
     resolve: {
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', 'svg'],
+      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.svg'],
     },
     module: {
       rules: [
