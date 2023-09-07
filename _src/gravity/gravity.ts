@@ -191,7 +191,6 @@ window.onload = () => {
   });
 
   svg.on('mousemove', event => {
-    console.log("HI");
     let [mouseX, mouseY] = d3.pointer(event, svg.node());
     //update label
     coordLabel = coordLabel.attr('x', mouseX).attr('y', mouseY - 20);
@@ -249,8 +248,8 @@ window.onload = () => {
     //update counter
     t += 4;
     if (t % 1000 == 0) {
-      console.log(planets);
-      console.log(`state: ${state}`);
+      console.debug(planets);
+      console.debug(`state: ${state}`);
       counter.text(`simulation is ${d3.now() - t}ms behind real-time`);
     }
   }, 4); //4ms is min delay
