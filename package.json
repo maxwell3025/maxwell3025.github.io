@@ -44,8 +44,14 @@
     "_src/engwrit-112",
     "_src/gravity",
     "_src/handwriting",
-    "_src/home",
+    "home",
     "_src/manifolds",
     "_src/wall"
-  ]
+  ],
+  "name": "maxwell3025.github.io",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:maxwell3025/maxwell3025.github.io.git",
+  "author": "Maxwell Tang <amoinus@gmail.com>",
+  "license": "MIT"
 }
