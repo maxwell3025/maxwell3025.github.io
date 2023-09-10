@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as dat from 'dat-gui';
+import './gravity.css'
 //data types
 class Planet {
   xPos;
@@ -227,8 +228,6 @@ window.onload = () => {
         )
       );
       bindData();
-      console.log(planetShapes);
-      //remove old shapes
       newPlanetShape = newPlanetShape.style('visibility', 'hidden');
       velocityLine = velocityLine.style('visibility', 'hidden');
     }
@@ -250,8 +249,8 @@ window.onload = () => {
     //update counter
     t += 4;
     if (t % 1000 == 0) {
-      console.log(planets);
-      console.log(`state: ${state}`);
+      console.debug(planets);
+      console.debug(`state: ${state}`);
       counter.text(`simulation is ${d3.now() - t}ms behind real-time`);
     }
   }, 4); //4ms is min delay
