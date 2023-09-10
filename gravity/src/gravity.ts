@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as dat from 'dat-gui';
+import './gravity.css'
 //data types
 class Planet {
   xPos;
