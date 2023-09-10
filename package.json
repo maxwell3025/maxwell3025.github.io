@@ -38,7 +38,20 @@
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0"
   },
-  "scripts": {
-    "format": "npx prettier --write \"./_src/**/*.{js,jsx,ts,tsx,json}\""
-  }
+  "workspaces": [
+    "_src/assembly",
+    "_src/button",
+    "engwrit-112",
+    "_src/gravity",
+    "_src/handwriting",
+    "home",
+    "_src/manifolds",
+    "_src/wall"
+  ],
+  "name": "maxwell3025.github.io",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:maxwell3025/maxwell3025.github.io.git",
+  "author": "Maxwell Tang <amoinus@gmail.com>",
+  "license": "MIT"
 }

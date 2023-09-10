@@ -1,12 +1,10 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
     "noImplicitAny": false,
     "module": "es6",
     "target": "es5",
-    "jsx": "react",
     "allowJs": true,
     "moduleResolution": "node"
   },
-  "include": ["_src","custom.d.ts"]
+  "include": ["src"]
 }
