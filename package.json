@@ -41,7 +41,7 @@
   "workspaces": [
     "_src/assembly",
     "_src/button",
-    "_src/engwrit-112",
+    "engwrit-112",
     "_src/gravity",
     "_src/handwriting",
     "home",
