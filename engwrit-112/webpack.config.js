@@ -32,10 +32,6 @@ module.exports = {
         ],
       },
       {
-        test: /\.html$/i,
-        loader: 'html-loader',
-      },
-      {
         test: /\.(ts|tsx|js|jsx)/,
         use: [
           {
@@ -60,6 +56,17 @@ module.exports = {
         loader: 'ts-loader',
         exclude: /node_modules/,
       },
+      {
+        test: /\.css$/,
+        exclude: /node_modules/,
+        use: [
+          'style-loader',
+          'css-loader',
+          {
+            loader: 'postcss-loader'
+          }
+        ]
+      }
     ],
   },
 };
