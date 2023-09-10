@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
     "noImplicitAny": false,
     "module": "es6",
     "target": "es5",
@@ -8,5 +7,5 @@
     "allowJs": true,
     "moduleResolution": "node"
   },
-  "include": ["_src","custom.d.ts", "button/src/button.ts"]
+  "include": ["./src"]
 }
