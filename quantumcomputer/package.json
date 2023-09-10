@@ -1,0 +1,15 @@
+{
+  "name": "quantumcomputer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "quantumcomputer.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@mui/material": "^5.14.8",
+    "mathjs": "^11.11.0"
+  }
+}
