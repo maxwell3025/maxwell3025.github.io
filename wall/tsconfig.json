@@ -6,5 +6,5 @@
     "allowJs": true,
     "moduleResolution": "node"
   },
-  "include": ["_src","custom.d.ts", "button/src/button.ts", "wall/src/wall.ts"]
+  "include": ["./src"]
 }
