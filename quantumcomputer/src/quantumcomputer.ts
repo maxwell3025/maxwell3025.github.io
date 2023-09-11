@@ -1,7 +1,8 @@
-import * as React from 'react'
-import * as ReactDOM from 'react-dom/client'
-import CircuitEditor from "./CircuitEditor";
-import 'quantumcomputer.css'
+import * as React from 'react';
+import * as ReactDOM from 'react-dom/client';
+import './quantumcomputer.css';
+import Index from './Index';
 
-const root = ReactDOM.createRoot(document.getElementById('root'))
-root.render(React.createElement(CircuitEditor, {initialWidth: 2, initialColumnCount: 4}))
+document.body.append(document.createElement('div'));
+const root = ReactDOM.createRoot(document.querySelector('body>div'));
+root.render(React.createElement(Index));

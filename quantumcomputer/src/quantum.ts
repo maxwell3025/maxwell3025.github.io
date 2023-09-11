@@ -69,6 +69,7 @@ export class QuantumGate {
     }
   }
 }
+
 export class QuantumState {
   amplitudes: Complex[];
   bitCount: number;
