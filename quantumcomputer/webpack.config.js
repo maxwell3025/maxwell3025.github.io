@@ -6,12 +6,13 @@ module.exports = {
     filename: 'quantumcomputer.js',
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.svg'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
   },
   module: {
     rules: [
       {
         test: /\.svg$/,
+        exclude: /node_modules/,
         issuer: /\.[jt]sx?$/,
         use: [
           {
@@ -30,7 +31,8 @@ module.exports = {
         ],
       },
       {
-        test: /\.(ts|tsx|js|jsx)/,
+        test: /\.[jt]sx?$/,
+        exclude: /node_modules/,
         use: [
           {
             loader: 'babel-loader',
@@ -50,19 +52,12 @@ module.exports = {
         ],
       },
       {
-        test: /\.tsx?$/,
-        loader: 'ts-loader',
-        exclude: /node_modules/,
-      },
-      {
         test: /\.css$/,
         exclude: /node_modules/,
         use: [
           'style-loader',
           'css-loader',
-          {
-            loader: 'postcss-loader'
-          }
+          'postcss-loader'
         ]
       }
     ],
