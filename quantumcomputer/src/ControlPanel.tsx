@@ -84,7 +84,7 @@ export default function ControlPanel(properties: {
         onClick={() => {
           properties.setGateList(parseScript(scriptInput.current.value));
           properties.setBitCount(parseInt(bitWidthSlider.current.value));
-          properties.setColumnCount(parseInt(bitWidthSlider.current.value));
+          properties.setColumnCount(parseInt(columnCountSlider.current.value));
         }}
       >
         Update Circuit

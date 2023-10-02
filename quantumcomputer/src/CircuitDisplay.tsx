@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { QuantumGate } from './quantum';
-import Hadamard from './icons/Hadamard';
-import Swap from './icons/Swap';
+import Hadamard from './icons/Hadamard.svg';
+import Swap from './icons/Swap.svg';
 import SVGLine from './SVGLine';
-import Not from './icons/Not';
-import Phase from './icons/Phase';
+import Not from './icons/Not.svg';
+import Phase from './icons/Phase.svg';
 
-const gateAssets: Map<string, (() => JSX.Element)[]> = new Map([
+const gateAssets: Map<string, React.FunctionComponent[]> = new Map([
   ['not', [Not]],
   ['cnot', [Swap, Not]],
   ['hadamard', [Hadamard]],

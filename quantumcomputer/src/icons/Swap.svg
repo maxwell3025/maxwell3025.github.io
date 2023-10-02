@@ -1,9 +1,9 @@
-import * as React from 'react';
-import NodeIcon from './NodeIcon';
-
-export default function Swap() {
-  return (
-    <NodeIcon>
+<svg
+    className="h-full w-full"
+    viewBox="0 0 100 100"
+    xmlns="http://www.w3.org/2000/svg"
+    preserveAspectRatio="xMidYMid meet"
+>
       <line
         className="stroke-white"
         strokeWidth="1px"
@@ -22,6 +22,4 @@ export default function Swap() {
         x2="75"
         y2="25"
       ></line>
-    </NodeIcon>
-  );
-}
+</svg>
