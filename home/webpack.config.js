@@ -6,12 +6,12 @@ module.exports = {
     filename: './main.js',
   },
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json', '.svg'],
+    extensions: ['.js', '.jsx', '.ts', '.tsx'],
   },
   module: {
     rules: [
       {
-        test: /\.(ts|tsx|js|jsx)/,
+        test: /\.(ts|tsx|js|jsx)$/,
         use: [
           {
             loader: 'babel-loader',

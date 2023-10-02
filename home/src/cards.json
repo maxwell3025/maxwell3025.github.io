@@ -1,0 +1,29 @@
+{
+    "cards": [
+        {
+            "image": "./resources/thumbnail-gravity.png",
+            "link": "../gravity",
+            "name": "Gravity Simulation"
+        },
+        {
+            "image": "./resources/thumbnail-wall.png",
+            "link": "../wall",
+            "name": "Chat Wall"
+        },
+        {
+            "image": "./resources/thumbnail-button.png",
+            "link": "../button",
+            "name": "Voting Button"
+        },
+        {
+            "image": "./resources/thumbnail-handwriting.png",
+            "link": "../handwriting",
+            "name": "Number Classifier"
+        },
+        {
+            "image": "./resources/thumbnail-manifolds.png",
+            "link": "../manifolds",
+            "name": "Topology Thing"
+        }
+    ]
+}
