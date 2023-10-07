@@ -1,9 +1,13 @@
 module.exports = {
   mode: 'development',
-  entry: './src/quantumcomputer.ts',
+  entry: './src/main.ts',
+  devServer: {
+    static: './',
+    hot: true,
+  },
   output: {
     path: __dirname,
-    filename: 'quantumcomputer.js',
+    filename: 'main.js',
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
@@ -54,12 +58,8 @@ module.exports = {
       {
         test: /\.css$/,
         exclude: /node_modules/,
-        use: [
-          'style-loader',
-          'css-loader',
-          'postcss-loader'
-        ]
-      }
+        use: ['style-loader', 'css-loader', 'postcss-loader'],
+      },
     ],
   },
 };
