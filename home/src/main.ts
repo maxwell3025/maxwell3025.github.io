@@ -1,91 +1,6 @@
 import * as d3 from 'd3';
-
-const g = 1;
-
-type Vec2 = [number, number];
-
-class RigidBody {
-  x: number;
-  y: number;
-  a: number;
-  vx: number;
-  vy: number;
-  va: number;
-  m: number;
-  i: number;
-  constructor() {
-    this.x = 0;
-    this.y = 0;
-    this.a = 0;
-    this.vx = 0;
-    this.vy = 0;
-    this.va = 0;
-    this.m = 1;
-    this.i = 1;
-  }
-
-  get pos(): Vec2 {
-    return [this.x, this.y];
-  }
-
-  get energy(): number {
-    return (
-      0.5 * this.i * this.va * this.va +
-      0.5 * this.m * this.vx * this.vx +
-      0.5 * this.m * this.vy * this.vy -
-      this.y * g * this.m
-    );
-  }
-
-  vel(pos: Vec2 = this.pos): Vec2 {
-    let diff = sub(pos, this.pos);
-    return [this.vx - this.va * diff[1], this.vy + this.va * diff[0]];
-  }
-
-  step(dt: number) {
-    this.x += this.vx * dt;
-    this.y += this.vy * dt + dt * dt * 0.5 * g;
-    this.a += this.va * dt;
-    this.vy += g * dt;
-  }
-
-  applyImpulse(pos: Vec2, imp: Vec2) {
-    let dist: Vec2 = sub(pos, this.pos);
-    this.va += (imp[1] * dist[0] - imp[0] * dist[1]) / this.i;
-    this.vx += imp[0] / this.m;
-    this.vy += imp[1] / this.m;
-  }
-
-  effectiveMass(pos: Vec2, axis: Vec2) {
-    let diff = sub(pos, this.pos);
-    return (
-      1.0 /
-      (1 / this.m +
-        (dot(diff, diff) -
-          (dot(axis, diff) * dot(axis, diff)) / dot(axis, axis)) /
-          this.i)
-    );
-  }
-
-  collide(pos: Vec2, norm: Vec2, other?: RigidBody) {
-    if (other) {
-      let collisionVel = proj(sub(other.vel(pos), this.vel(pos)), norm);
-      let selfMass = this.effectiveMass(pos, norm);
-      let otherMass = other.effectiveMass(pos, norm);
-      let impulse = scale(
-        collisionVel,
-        (2 * selfMass * otherMass) / (selfMass + otherMass)
-      );
-      this.applyImpulse(pos, impulse);
-      other.applyImpulse(pos, scale(impulse, -1));
-    } else {
-      let collisionVel = proj(scale(this.vel(pos), -1), norm);
-      let selfMass = this.effectiveMass(pos, norm);
-      let impulse = scale(collisionVel, 2 * selfMass);
-      this.applyImpulse(pos, impulse);
-    }
-  }
-}
+import cards from './cards.json';
+import { RigidBody, Vec2, add, dot, sub } from './physics';
 
 class Card {
   image: string;
@@ -174,26 +89,6 @@ class Card {
   }
 }
 
-const dot = (a: Vec2, b: Vec2): number => {
-  return a[0] * b[0] + a[1] * b[1];
-};
-
-const scale = (a: Vec2, scale: number): Vec2 => {
-  return [a[0] * scale, a[1] * scale];
-};
-
-const proj = (a: Vec2, b: Vec2): Vec2 => {
-  return scale(b, dot(a, b) / dot(b, b));
-};
-
-const add = (a: Vec2, b: Vec2): Vec2 => {
-  return [a[0] + b[0], a[1] + b[1]];
-};
-
-const sub = (a: Vec2, b: Vec2): Vec2 => {
-  return [a[0] - b[0], a[1] - b[1]];
-};
-
 const stepPhysics = (ballList: Card[], dt: number, aspectRatio: number) => {
   ballList.forEach(ball => {
     //direct integration
@@ -240,37 +135,27 @@ const stepPhysics = (ballList: Card[], dt: number, aspectRatio: number) => {
 const frameDelay = 42; //24 fps
 
 window.onload = () => {
-  let projectMenu = d3.select('#project_menu');
-  let ballList: Card[] = [];
+  //setup footer
+  const footerElement = document.getElementById("footer")!;
+  cards.cards.forEach(({image, link, name}) => {
+    const linkElement = document.createElement("a");
+    linkElement.setAttribute("href", link);
+    linkElement.classList.add("thumbnail-link")
 
-  ballList.push(
-    new Card(
-      '/resources/thumbnail-gravity.png',
-      '../gravity',
-      'Gravity Simulation'
-    )
-  );
-  ballList.push(
-    new Card('/resources/thumbnail-wall.png', '../wall', 'Chat Wall')
-  );
-  ballList.push(
-    new Card('/resources/thumbnail-button.png', '../button', 'Voting Button')
-  );
-  ballList.push(
-    new Card(
-      '/resources/thumbnail-handwriting.png',
-      '../handwriting',
-      'Number Classifier'
-    )
-  );
-  ballList.push(
-    new Card(
-      '/resources/thumbnail-manifolds.png',
-      '../manifolds',
-      'Topology Thing'
-    )
-  );
-  ballList.push(new Card('/resources/nerd_face.png', '', ''));
+    const thumb = document.createElement("img");
+    thumb.setAttribute("src", image);
+    thumb.classList.add("thumbnail-img")
+
+    linkElement.appendChild(thumb);
+    footerElement.appendChild(linkElement)
+  })
+  let ballList: Card[] = [];
+  cards.cards.forEach(({image, link, name}) => {
+    ballList.push(new Card(image, link, name));
+  });
+  let projectMenu = d3.select('#project_menu');
+  ballList.push(new Card('./resources/nerd_face.png', '', ''));
+
   let svgNode: Element = projectMenu.node()! as Element;
   let svgDimensions = svgNode.getBoundingClientRect();
   let aspectRatio = svgDimensions.width / svgDimensions.height;
