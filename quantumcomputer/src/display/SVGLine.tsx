@@ -11,10 +11,10 @@ export default function SVGLine(properties: {
       className="stroke-white"
       strokeWidth="1px"
       vectorEffect="non-scaling-stroke"
-      x1={properties.x1 * 100}
-      y1={properties.y1 * 100}
-      x2={properties.x2 * 100}
-      y2={properties.y2 * 100}
+      x1={properties.x1}
+      y1={properties.y1}
+      x2={properties.x2}
+      y2={properties.y2}
     ></line>
   );
 }

@@ -1,8 +1,8 @@
 import * as React from 'react';
-import CircuitDisplay from './CircuitDisplay';
-import ControlPanel from './ControlPanel';
-import { QuantumGate, QuantumState } from './quantum';
-import StateDisplay from './StateDisplay';
+import CircuitDisplay from './display/CircuitDisplay';
+import ControlPanel from './control/ControlPanel';
+import { QuantumGate, QuantumState } from './Quantum';
+import StateDisplay from './display/StateDisplay';
 
 export default function CircuitEditor(properties: {
   initialWidth: number;
@@ -45,6 +45,8 @@ export default function CircuitEditor(properties: {
           gateList={gateList}
           probePosition={probePosition}
           setProbePosition={setProbePosition}
+          width={500}
+          height={250}
         ></CircuitDisplay>
         <StateDisplay state={displayedState}></StateDisplay>
       </div>
