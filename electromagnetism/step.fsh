@@ -1,19 +1,20 @@
 #version 300 es
 precision highp float;
-uniform sampler2D e_x_tex;
-uniform sampler2D e_y_tex;
-uniform sampler2D e_z_tex;
+uniform sampler2D d_x_tex;
+uniform sampler2D d_y_tex;
+uniform sampler2D d_z_tex;
 uniform sampler2D b_x_tex;
 uniform sampler2D b_y_tex;
 uniform sampler2D b_z_tex;
+uniform sampler2D inv_permittivity_tex;
 uniform float width;
 uniform float height;
 uniform float dt;
 uniform float ds;
 uniform float ds_inv;
-layout(location = 0) out float e_x_new;
-layout(location = 1) out float e_y_new;
-layout(location = 2) out float e_z_new;
+layout(location = 0) out float d_x_new;
+layout(location = 1) out float d_y_new;
+layout(location = 2) out float d_z_new;
 layout(location = 3) out float b_x_new;
 layout(location = 4) out float b_y_new;
 layout(location = 5) out float b_z_new;
@@ -24,15 +25,27 @@ float read_texture(sampler2D tex, vec2 coord){
 }
 // TODO(optional) set boundary conditions to be nicer
 float e_x(vec2 coord){
-  return read_texture(e_x_tex, coord);
+  return read_texture(d_x_tex, coord) * read_texture(inv_permittivity_tex, coord + vec2(0.25, -0.25));
 }
 
 float e_y(vec2 coord){
-  return read_texture(e_y_tex, coord);
+  return read_texture(d_y_tex, coord) * read_texture(inv_permittivity_tex, coord + vec2(-0.25, 0.25));
 }
 
 float e_z(vec2 coord){
-  return read_texture(e_z_tex, coord);
+  return read_texture(d_z_tex, coord) * read_texture(inv_permittivity_tex, coord - vec2(0.25, 0.25));
+}
+
+float d_x(vec2 coord){
+  return read_texture(d_x_tex, coord);
+}
+
+float d_y(vec2 coord){
+  return read_texture(d_y_tex, coord);
+}
+
+float d_z(vec2 coord){
+  return read_texture(d_z_tex, coord);
 }
 
 float b_x(vec2 coord){
@@ -66,15 +79,14 @@ float high_pass(sampler2D tex, vec2 coord){
   ) / 64.0;
 }
 
-// TODO change to using displacement field when dielectrics are implemented
 // TODO implement charge
 // Returns the residual amount of E field divergence at the location of e_z in the current cell
-float e_div_residual(vec2 coord){
+float d_div_residual(vec2 coord){
   return ds_inv * (
-    e_x(coord) +
-    e_y(coord) -
-    e_x(coord - vec2(1.0, 0.0)) -
-    e_y(coord - vec2(0.0, 1.0))
+    d_x(coord) +
+    d_y(coord) -
+    d_x(coord - vec2(1.0, 0.0)) -
+    d_y(coord - vec2(0.0, 1.0))
   );
 }
 
@@ -92,17 +104,18 @@ float filter_strength = 1.0;
 void main(){
   float conservation_coeff = ds / 8.0;
   vec2 pos = gl_FragCoord.xy;
-  e_x_new = e_x(pos) + dt * ds_inv * (
-    b_z(pos) - b_z(pos - vec2(0.0, 1.0))
-  ) - high_pass(e_x_tex, pos) * filter_strength;
-  
-  e_y_new = e_y(pos) + dt * ds_inv * (
-    b_z(pos - vec2(1.0, 0.0)) - b_z(pos)
-  ) - high_pass(e_y_tex, pos) * filter_strength;
 
-  e_z_new = e_z(pos) + dt * ds_inv * (
+  d_x_new = d_x(pos) + dt * ds_inv * (
+    b_z(pos) - b_z(pos - vec2(0.0, 1.0))
+  ) - high_pass(d_x_tex, pos) * filter_strength;
+  
+  d_y_new = d_y(pos) + dt * ds_inv * (
+    b_z(pos - vec2(1.0, 0.0)) - b_z(pos)
+  ) - high_pass(d_y_tex, pos) * filter_strength;
+
+  d_z_new = d_z(pos) + dt * ds_inv * (
     b_y(pos) - b_x(pos) - b_y(pos - vec2(1.0, 0.0)) + b_x(pos - vec2(0.0, 1.0))
-  ) - high_pass(e_z_tex, pos) * filter_strength;
+  ) - high_pass(d_z_tex, pos) * filter_strength;
 
   b_x_new = b_x(pos) + dt * ds_inv * (
     e_z(pos) - e_z(pos + vec2(0.0, 1.0))
@@ -116,12 +129,12 @@ void main(){
     e_y(pos) - e_x(pos) + e_x(pos + vec2(0.0, 1.0)) - e_y(pos + vec2(1.0, 0.0))
   ) - high_pass(b_z_tex, pos) * filter_strength;
 
-  e_x_new += conservation_coeff * (
-    e_div_residual(pos + vec2(1.0, 0.0)) - e_div_residual(pos)
+  d_x_new += conservation_coeff * (
+    d_div_residual(pos + vec2(1.0, 0.0)) - d_div_residual(pos)
   );
 
-  e_y_new += conservation_coeff * (
-    e_div_residual(pos + vec2(0.0, 1.0)) - e_div_residual(pos)
+  d_y_new += conservation_coeff * (
+    d_div_residual(pos + vec2(0.0, 1.0)) - d_div_residual(pos)
   );
 
   b_x_new += conservation_coeff * (

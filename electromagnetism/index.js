@@ -1,8 +1,8 @@
 (async () => {
 const displayWidth = 400;
 const displayHeight = 400;
-const simulationWidth = 800;
-const simulationHeight = 800;
+const simulationWidth = 200;
+const simulationHeight = 200;
 const display = document.getElementById("display");
 display.setAttribute("width", displayWidth * 3);
 display.setAttribute("height", displayHeight * 2);
@@ -58,14 +58,16 @@ class Field{
   destTexture;
   srcBinding = currentBinding++;
   destBinding = currentBinding++;
+  scale;
 
-  constructor(){
+  constructor(scale = 1){
     this.srcTexture = gl.createTexture();
     this.destTexture = gl.createTexture();
+    this.scale = scale;
     function initData(texture, binding){
       gl.activeTexture(gl.TEXTURE0 + binding);
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      const data = new Float32Array(simulationWidth * simulationHeight).fill(0);
+      const data = new Float32Array(simulationWidth * simulationHeight * scale * scale).fill(0);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -74,8 +76,8 @@ class Field{
         gl.TEXTURE_2D,
         0,
         gl.R32F,
-        simulationWidth,
-        simulationHeight,
+        simulationWidth * scale,
+        simulationHeight * scale,
         0,
         gl.RED,
         gl.FLOAT,
@@ -92,8 +94,8 @@ class Field{
       gl.TEXTURE_2D,
       0,
       gl.R32F,
-      simulationWidth,
-      simulationHeight,
+      simulationWidth * this.scale,
+      simulationHeight * this.scale,
       0,
       gl.RED,
       gl.FLOAT,
@@ -147,12 +149,13 @@ class Field{
   }
 }
 
-const fieldEX = new Field();
-const fieldEY = new Field();
-const fieldEZ = new Field();
+const fieldDX = new Field();
+const fieldDY = new Field();
+const fieldDZ = new Field();
 const fieldBX = new Field();
 const fieldBY = new Field();
 const fieldBZ = new Field();
+const fieldPermittivity = new Field(2);
 
 const stepProgram = loadFrag(await fetch("./step.fsh").then(x => x.text()));
 
@@ -165,6 +168,7 @@ const initialStateEZ = new Float32Array(simulationWidth * simulationHeight).fill
 const initialStateBX = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateBY = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateBZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
+const permittivityData = new Float32Array(simulationWidth * simulationHeight * 4).fill(1);
 
 // Unsupported Charge
 
@@ -198,33 +202,45 @@ for(let x = 0; x < simulationWidth; x++){
   }
 }
 
-fieldEX.setData(initialStateEX);
-fieldEY.setData(initialStateEY);
-fieldEZ.setData(initialStateEZ);
+for(let x = 0; x < simulationWidth * 2; x++){
+  for(let y = 0; y < simulationHeight * 2; y++){
+    const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
+    if(distSqr <= 1600){
+      permittivityData[x + y * simulationWidth * 2] = 0.5;
+    }
+  }
+}
+
+fieldDX.setData(initialStateEX);
+fieldDY.setData(initialStateEY);
+fieldDZ.setData(initialStateEZ);
 fieldBX.setData(initialStateBX);
 fieldBY.setData(initialStateBY);
 fieldBZ.setData(initialStateBZ);
+fieldPermittivity.setData(permittivityData);
+
 while(true){
   const frameEnd = new Promise((r) => setTimeout(r, 10));
-  fieldEX.display(0, displayHeight);
-  fieldEY.display(displayWidth, displayHeight);
-  fieldEZ.display(displayWidth * 2, displayHeight);
+  fieldDX.display(0, displayHeight);
+  fieldDY.display(displayWidth, displayHeight);
+  fieldDZ.display(displayWidth * 2, displayHeight);
   fieldBX.display(0, 0);
   fieldBY.display(displayWidth, 0);
   fieldBZ.display(displayWidth * 2, 0);
 
   frameBufferDrawBuffers.splice(0);
   //Link everything
-  fieldEX.link(stepProgram, "e_x_tex");
-  fieldEY.link(stepProgram, "e_y_tex");
-  fieldEZ.link(stepProgram, "e_z_tex");
+  fieldDX.link(stepProgram, "d_x_tex");
+  fieldDY.link(stepProgram, "d_y_tex");
+  fieldDZ.link(stepProgram, "d_z_tex");
   fieldBX.link(stepProgram, "b_x_tex");
   fieldBY.link(stepProgram, "b_y_tex");
   fieldBZ.link(stepProgram, "b_z_tex");
+  fieldPermittivity.link(stepProgram, "inv_permittivity_tex");
 
-  fieldEX.link(stepProgram, "e_x_new");
-  fieldEY.link(stepProgram, "e_y_new");
-  fieldEZ.link(stepProgram, "e_z_new");
+  fieldDX.link(stepProgram, "d_x_new");
+  fieldDY.link(stepProgram, "d_y_new");
+  fieldDZ.link(stepProgram, "d_z_new");
   fieldBX.link(stepProgram, "b_x_new");
   fieldBY.link(stepProgram, "b_y_new");
   fieldBZ.link(stepProgram, "b_z_new");
@@ -251,9 +267,9 @@ while(true){
   gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   gl.useProgram(null);
 
-  fieldEX.swap();
-  fieldEY.swap();
-  fieldEZ.swap();
+  fieldDX.swap();
+  fieldDY.swap();
+  fieldDZ.swap();
   fieldBX.swap();
   fieldBY.swap();
   fieldBZ.swap();
