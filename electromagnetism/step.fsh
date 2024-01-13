@@ -88,7 +88,6 @@ float b_div_residual(vec2 coord){
   );
 }
 
-// TODO account for conservation(maxwell's first 2 equations)
 float filter_strength = 1.0;
 void main(){
   float conservation_coeff = ds / 8.0;

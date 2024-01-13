@@ -1,8 +1,8 @@
 (async () => {
 const displayWidth = 400;
 const displayHeight = 400;
-const simulationWidth = 200;
-const simulationHeight = 200;
+const simulationWidth = 800;
+const simulationHeight = 800;
 const display = document.getElementById("display");
 display.setAttribute("width", displayWidth * 3);
 display.setAttribute("height", displayHeight * 2);
@@ -168,13 +168,13 @@ const initialStateBZ = new Float32Array(simulationWidth * simulationHeight).fill
 
 // Unsupported Charge
 
-for(let x = 0; x < simulationWidth; x++){
-  for(let y = 0; y < simulationHeight; y++){
-    const distSqr = sqr(x-99.5) + sqr(y-99.5)
-    initialStateEX[x + y * simulationWidth] = (x - 99.5) / distSqr * 100;
-    initialStateEY[x + y * simulationWidth] = (y - 99.5) / distSqr * 100;
-  }
-}
+// for(let x = 0; x < simulationWidth; x++){
+//   for(let y = 0; y < simulationHeight; y++){
+//     const distSqr = sqr(x-99.5) + sqr(y-99.5)
+//     initialStateEX[x + y * simulationWidth] = (x - 99.5) / distSqr * 100;
+//     initialStateEY[x + y * simulationWidth] = (y - 99.5) / distSqr * 100;
+//   }
+// }
 
 // Magnetic pulse
 
@@ -186,6 +186,17 @@ for(let x = 0; x < simulationWidth; x++){
 //     }
 //   }
 // }
+
+// Sharp magnetic pulse
+
+for(let x = 0; x < simulationWidth; x++){
+  for(let y = 0; y < simulationHeight; y++){
+    const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
+    if(distSqr <= 100){
+      initialStateBZ[x + y * simulationWidth] = 1.0;
+    }
+  }
+}
 
 fieldEX.setData(initialStateEX);
 fieldEY.setData(initialStateEY);
