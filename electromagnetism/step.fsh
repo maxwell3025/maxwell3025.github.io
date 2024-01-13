@@ -84,7 +84,8 @@ float laplacian(sampler2D tex, vec2 coord){
   ) / dx / dx / 6.0;
 }
 
-float attenuation = 1.0;
+//TODO account for conservation(maxwell's first 2 equations)
+float attenuation = 0.5;
 void main(){
   vec2 pos = gl_FragCoord.xy;
   e_x_new = e_x(pos) + dt * (-grad_y(b_z_tex, pos))

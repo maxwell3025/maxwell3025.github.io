@@ -159,15 +159,25 @@ const stepProgram = loadFrag(await fetch("./step.fsh").then(x => x.text()));
 function sqr(x){
   return x * x;
 }
+const initialStateEX = new Float32Array(simulationWidth * simulationHeight).fill(0);
+const initialStateEY = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateEZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
+const initialStateBX = new Float32Array(simulationWidth * simulationHeight).fill(0);
+const initialStateBY = new Float32Array(simulationWidth * simulationHeight).fill(0);
+const initialStateBZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
 for(let x = 0; x < simulationWidth; x++){
   for(let y = 0; y < simulationHeight; y++){
-    if((x - 100) * (x - 100) + (y - 100) * (y - 100) < 100){
-      initialStateEZ[x + y * simulationWidth] = 100 * sqr(0.01 * (100 - ((x - 100) * (x - 100) + (y - 100) * (y - 100))));
-    }
+    const distSqr = sqr(x-99.5) + sqr(y-99.5)
+    initialStateEX[x + y * simulationWidth] = (x - 99.5) / distSqr * 100;
+    initialStateEY[x + y * simulationWidth] = (y - 99.5) / distSqr * 100;
   }
 }
-fieldBZ.setData(initialStateEZ)
+fieldEX.setData(initialStateEX)
+fieldEY.setData(initialStateEY)
+fieldEZ.setData(initialStateEZ)
+fieldBX.setData(initialStateBX)
+fieldBY.setData(initialStateBY)
+fieldBZ.setData(initialStateBZ)
 while(true){
   const frameEnd = new Promise((r) => setTimeout(r, 10))
   fieldEX.display(0, displayHeight);
