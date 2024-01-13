@@ -68,8 +68,8 @@ class Field{
       const data = new Float32Array(simulationWidth * simulationHeight).fill(0);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -166,26 +166,26 @@ const initialStateBX = new Float32Array(simulationWidth * simulationHeight).fill
 const initialStateBY = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateBZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
 
-// Uniform Field
-
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     const distSqr = sqr(x-99.5) + sqr(y-99.5)
-//     initialStateEX[x + y * simulationWidth] = (x - 99.5) / distSqr * 100;
-//     initialStateEY[x + y * simulationWidth] = (y - 99.5) / distSqr * 100;
-//   }
-// }
-
-// Magnetic pulse
+// Unsupported Charge
 
 for(let x = 0; x < simulationWidth; x++){
   for(let y = 0; y < simulationHeight; y++){
-    const distSqr = sqr(x-99.5) + sqr(y-99.5);
-    if(distSqr <= 100){
-      initialStateBZ[x + y * simulationWidth] = (100 - distSqr) * 0.01;
-    }
+    const distSqr = sqr(x-99.5) + sqr(y-99.5)
+    initialStateEX[x + y * simulationWidth] = (x - 99.5) / distSqr * 100;
+    initialStateEY[x + y * simulationWidth] = (y - 99.5) / distSqr * 100;
   }
 }
+
+// Magnetic pulse
+
+// for(let x = 0; x < simulationWidth; x++){
+//   for(let y = 0; y < simulationHeight; y++){
+//     const distSqr = sqr(x-99.5) + sqr(y-99.5);
+//     if(distSqr <= 100){
+//       initialStateBZ[x + y * simulationWidth] = (100 - distSqr) * 0.01;
+//     }
+//   }
+// }
 
 fieldEX.setData(initialStateEX);
 fieldEY.setData(initialStateEY);
