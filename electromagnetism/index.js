@@ -1,6 +1,6 @@
 (async () => {
-const displayWidth = 500;
-const displayHeight = 500;
+const displayWidth = 400;
+const displayHeight = 400;
 const simulationWidth = 200;
 const simulationHeight = 200;
 const display = document.getElementById("display");
@@ -68,8 +68,8 @@ class Field{
       const data = new Float32Array(simulationWidth * simulationHeight).fill(0);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.MIRRORED_REPEAT);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.MIRRORED_REPEAT);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP);
       gl.texImage2D(
         gl.TEXTURE_2D,
         0,
@@ -165,21 +165,36 @@ const initialStateEZ = new Float32Array(simulationWidth * simulationHeight).fill
 const initialStateBX = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateBY = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateBZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
+
+// Uniform Field
+
+// for(let x = 0; x < simulationWidth; x++){
+//   for(let y = 0; y < simulationHeight; y++){
+//     const distSqr = sqr(x-99.5) + sqr(y-99.5)
+//     initialStateEX[x + y * simulationWidth] = (x - 99.5) / distSqr * 100;
+//     initialStateEY[x + y * simulationWidth] = (y - 99.5) / distSqr * 100;
+//   }
+// }
+
+// Magnetic pulse
+
 for(let x = 0; x < simulationWidth; x++){
   for(let y = 0; y < simulationHeight; y++){
-    const distSqr = sqr(x-99.5) + sqr(y-99.5)
-    initialStateEX[x + y * simulationWidth] = (x - 99.5) / distSqr * 100;
-    initialStateEY[x + y * simulationWidth] = (y - 99.5) / distSqr * 100;
+    const distSqr = sqr(x-99.5) + sqr(y-99.5);
+    if(distSqr <= 100){
+      initialStateBZ[x + y * simulationWidth] = (100 - distSqr) * 0.01;
+    }
   }
 }
-fieldEX.setData(initialStateEX)
-fieldEY.setData(initialStateEY)
-fieldEZ.setData(initialStateEZ)
-fieldBX.setData(initialStateBX)
-fieldBY.setData(initialStateBY)
-fieldBZ.setData(initialStateBZ)
+
+fieldEX.setData(initialStateEX);
+fieldEY.setData(initialStateEY);
+fieldEZ.setData(initialStateEZ);
+fieldBX.setData(initialStateBX);
+fieldBY.setData(initialStateBY);
+fieldBZ.setData(initialStateBZ);
 while(true){
-  const frameEnd = new Promise((r) => setTimeout(r, 10))
+  const frameEnd = new Promise((r) => setTimeout(r, 10));
   fieldEX.display(0, displayHeight);
   fieldEY.display(displayWidth, displayHeight);
   fieldEZ.display(displayWidth * 2, displayHeight);
@@ -209,13 +224,14 @@ while(true){
   const widthUniformLocation = gl.getUniformLocation(stepProgram, "width");
   const heightUniformLocation = gl.getUniformLocation(stepProgram, "height");
   const dtUniformLocation = gl.getUniformLocation(stepProgram, "dt");
-  const dxUniformLocation = gl.getUniformLocation(stepProgram, "dx");
-  const dyUniformLocation = gl.getUniformLocation(stepProgram, "dy");
+  const ds = 0.01;
+  const dsUniformLocation = gl.getUniformLocation(stepProgram, "ds");
+  const dsInvUniformLocation = gl.getUniformLocation(stepProgram, "ds_inv");
   gl.uniform1f(widthUniformLocation, simulationWidth);
   gl.uniform1f(heightUniformLocation, simulationHeight);
   gl.uniform1f(dtUniformLocation, 0.001);
-  gl.uniform1f(dxUniformLocation, 0.01);
-  gl.uniform1f(dyUniformLocation, 0.01);
+  gl.uniform1f(dsInvUniformLocation, 1 / ds);
+  gl.uniform1f(dsUniformLocation, ds);
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   const aVertexPosition = gl.getAttribLocation(stepProgram, "vertex_position");
   gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
