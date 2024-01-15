@@ -6,6 +6,12 @@ uniform sampler2D d_z_tex;
 uniform sampler2D b_x_tex;
 uniform sampler2D b_y_tex;
 uniform sampler2D b_z_tex;
+uniform sampler2D d_x_tex_soln;
+uniform sampler2D d_y_tex_soln;
+uniform sampler2D d_z_tex_soln;
+uniform sampler2D b_x_tex_soln;
+uniform sampler2D b_y_tex_soln;
+uniform sampler2D b_z_tex_soln;
 uniform sampler2D inv_permittivity_tex;
 uniform sampler2D antenna_frequency;
 uniform sampler2D j_z_tex;
@@ -42,63 +48,44 @@ float read_texture(sampler2D tex, vec2 coord){
   return texture(tex, coord / vec2(width, height)).x;
 }
 
-float e_x(vec2 coord){
-  return read_texture(d_x_tex, coord) * read_texture(inv_permittivity_tex, coord + vec2(0.25, -0.25));
-}
-
-float e_y(vec2 coord){
-  return read_texture(d_y_tex, coord) * read_texture(inv_permittivity_tex, coord + vec2(-0.25, 0.25));
-}
-
-float e_z(vec2 coord){
-  return read_texture(d_z_tex, coord) * read_texture(inv_permittivity_tex, coord - vec2(0.25, 0.25));
-}
-
 float d_x(vec2 coord){
-  return read_texture(d_x_tex, coord);
+  return 0.5 * read_texture(d_x_tex, coord) + 0.5 * read_texture(d_x_tex_soln, coord) ;
 }
 
 float d_y(vec2 coord){
-  return read_texture(d_y_tex, coord);
+  return 0.5 * read_texture(d_y_tex, coord) + 0.5 * read_texture(d_y_tex_soln, coord);
 }
 
 float d_z(vec2 coord){
-  return read_texture(d_z_tex, coord);
+  return 0.5 * read_texture(d_z_tex, coord) + 0.5 * read_texture(d_z_tex_soln, coord);
 }
 
 float b_x(vec2 coord){
-  return read_texture(b_x_tex, coord);
+  return 0.5 * read_texture(b_x_tex, coord) + 0.5 * read_texture(b_x_tex_soln, coord);
 }
 
 float b_y(vec2 coord){
-  return read_texture(b_y_tex, coord);
+  return 0.5 * read_texture(b_y_tex, coord) + 0.5 * read_texture(b_y_tex_soln, coord);
 }
 
 float b_z(vec2 coord){
-  return read_texture(b_z_tex, coord);
+  return 0.5 * read_texture(b_z_tex, coord) + 0.5 * read_texture(b_z_tex_soln, coord);
+}
+
+float e_x(vec2 coord){
+  return d_x(coord) * read_texture(inv_permittivity_tex, coord + vec2(0.25, -0.25));
+}
+
+float e_y(vec2 coord){
+  return d_y(coord) * read_texture(inv_permittivity_tex, coord + vec2(-0.25, 0.25));
+}
+
+float e_z(vec2 coord){
+  return d_z(coord) * read_texture(inv_permittivity_tex, coord - vec2(0.25, 0.25));
 }
 
 float j_z(vec2 coord){
   return read_texture(j_z_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
-}
-
-// Returns how much the current cell matches a checkerboard(1.0 for checkers, 0.0 for DC field)
-float high_pass(sampler2D tex, vec2 coord){
-  return (
-    read_texture(tex, coord + vec2( 0.0,  0.0)) * 20.0 +
-    read_texture(tex, coord + vec2( 1.0,  0.0)) * -8.0 +
-    read_texture(tex, coord + vec2(-1.0,  0.0)) * -8.0 +
-    read_texture(tex, coord + vec2( 0.0,  1.0)) * -8.0 +
-    read_texture(tex, coord + vec2( 0.0, -1.0)) * -8.0 +
-    read_texture(tex, coord + vec2( 1.0,  1.0)) *  2.0 +
-    read_texture(tex, coord + vec2( 1.0, -1.0)) *  2.0 +
-    read_texture(tex, coord + vec2(-1.0,  1.0)) *  2.0 +
-    read_texture(tex, coord + vec2(-1.0, -1.0)) *  2.0 +
-    read_texture(tex, coord + vec2( 2.0,  0.0)) *  1.0 +
-    read_texture(tex, coord + vec2(-2.0,  0.0)) *  1.0 +
-    read_texture(tex, coord + vec2( 0.0,  2.0)) *  1.0 +
-    read_texture(tex, coord + vec2( 0.0, -2.0)) *  1.0
-  ) / 64.0;
 }
 
 // TODO implement charge
@@ -130,63 +117,42 @@ void absorb(float intensity){
   d_z_new *= absorption_coeff;
 }
 float boundary_thickness = 40.0;
-float filter_strength = 0.5;
+
 void main(){
   float conservation_coeff = ds / 8.0;
   vec2 pos = gl_FragCoord.xy;
 
-  d_x_new = d_x(pos) + dt * ds_inv * (
-    b_z(pos) - b_z(pos - vec2(0.0, 1.0))
-  ) - high_pass(d_x_tex, pos) * filter_strength;
-  
-  d_y_new = d_y(pos) + dt * ds_inv * (
-    b_z(pos - vec2(1.0, 0.0)) - b_z(pos)
-  ) - high_pass(d_y_tex, pos) * filter_strength;
+  d_x_new = d_x(pos);
+  d_y_new = d_y(pos);
+  d_z_new = d_z(pos);
+  b_x_new = b_x(pos);
+  b_y_new = b_y(pos);
+  b_z_new = b_z(pos);
 
-  d_z_new = d_z(pos) + dt * ds_inv * (
-    b_y(pos) - b_x(pos) - b_y(pos - vec2(1.0, 0.0)) + b_x(pos - vec2(0.0, 1.0))
-  ) - high_pass(d_z_tex, pos) * filter_strength
-  - dt * j_z(pos);
+  d_y_new += dt * ds_inv * ( b_z(pos - vec2(1.0, 0.0)) - b_z(pos                 )                                                         );
+  b_y_new += dt * ds_inv * ( e_z(pos + vec2(1.0, 0.0)) - e_z(pos                 )                                                         );
+  d_x_new += dt * ds_inv * ( b_z(pos                 ) - b_z(pos - vec2(0.0, 1.0))                                                         );
+  b_x_new += dt * ds_inv * ( e_z(pos                 ) - e_z(pos + vec2(0.0, 1.0))                                                         );
+  d_z_new += dt * ds_inv * ( b_y(pos                 ) - b_y(pos - vec2(1.0, 0.0)) - b_x(pos                 ) + b_x(pos - vec2(0.0, 1.0)) );
+  b_z_new += dt * ds_inv * ( e_y(pos                 ) + e_x(pos + vec2(0.0, 1.0)) - e_x(pos                 ) - e_y(pos + vec2(1.0, 0.0)) );
 
-  b_x_new = b_x(pos) + dt * ds_inv * (
-    e_z(pos) - e_z(pos + vec2(0.0, 1.0))
-  ) - high_pass(b_x_tex, pos) * filter_strength;
-  
-  b_y_new = b_y(pos) + dt * ds_inv * (
-    e_z(pos + vec2(1.0, 0.0)) - e_z(pos)
-  ) - high_pass(b_y_tex, pos) * filter_strength;
-  
-  b_z_new = b_z(pos) + dt * ds_inv * (
-    e_y(pos) - e_x(pos) + e_x(pos + vec2(0.0, 1.0)) - e_y(pos + vec2(1.0, 0.0))
-  ) - high_pass(b_z_tex, pos) * filter_strength;
+  d_z_new -= dt * j_z(pos);
 
-  d_x_new += conservation_coeff * (
-    d_div_residual(pos + vec2(1.0, 0.0)) - d_div_residual(pos)
-  );
+  d_x_new += conservation_coeff * ( d_div_residual(pos + vec2(1.0, 0.0)) - d_div_residual(pos                 ) );
+  d_y_new += conservation_coeff * ( d_div_residual(pos + vec2(0.0, 1.0)) - d_div_residual(pos                 ) );
+  b_x_new += conservation_coeff * ( b_div_residual(pos                 ) - b_div_residual(pos - vec2(1.0, 0.0)) );
+  b_y_new += conservation_coeff * ( b_div_residual(pos                 ) - b_div_residual(pos - vec2(0.0, 1.0)) );
 
-  d_y_new += conservation_coeff * (
-    d_div_residual(pos + vec2(0.0, 1.0)) - d_div_residual(pos)
-  );
-
-  b_x_new += conservation_coeff * (
-    b_div_residual(pos) - b_div_residual(pos - vec2(1.0, 0.0))
-  );
-
-  b_y_new += conservation_coeff * (
-    b_div_residual(pos) - b_div_residual(pos - vec2(0.0, 1.0))
-  );
   float boundary_depth = 0.0;
-  if(gl_FragCoord.y < boundary_thickness){
+
+  if(gl_FragCoord.y < boundary_thickness)
     boundary_depth = boundary_thickness - gl_FragCoord.y;
-  }
-  if((height - gl_FragCoord.y) < boundary_thickness){
+  if((height - gl_FragCoord.y) < boundary_thickness)
     boundary_depth = gl_FragCoord.y - height + boundary_thickness;
-  }
-  if(gl_FragCoord.x < boundary_thickness){
+  if(gl_FragCoord.x < boundary_thickness)
     boundary_depth = max(boundary_depth, boundary_thickness - gl_FragCoord.x);
-  }
-  if((width - gl_FragCoord.x) < boundary_thickness){
+  if((width - gl_FragCoord.x) < boundary_thickness)
     boundary_depth = max(boundary_depth, gl_FragCoord.x - width + boundary_thickness);
-  }
+
   absorb(boundary_depth * boundary_opacity);
 }

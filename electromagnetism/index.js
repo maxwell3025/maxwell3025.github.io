@@ -1,8 +1,8 @@
 (async () => {
-const displayWidth = 1000;
-const displayHeight = 1000;
-const simulationWidth = 1000;
-const simulationHeight = 1000;
+const displayWidth = 256;
+const displayHeight = 256;
+const simulationWidth = 256;
+const simulationHeight = 256;
 const display = document.getElementById("display");
 display.setAttribute("width", displayWidth * 3);
 display.setAttribute("height", displayHeight * 2);
@@ -56,13 +56,16 @@ const frameBufferDrawBuffers = [];
 class Field{
   srcTexture;
   destTexture;
+  solnTexture;
   srcBinding = currentBinding++;
   destBinding = currentBinding++;
+  solnBinding = currentBinding++;
   scale;
 
   constructor(scale = 1){
     this.srcTexture = gl.createTexture();
     this.destTexture = gl.createTexture();
+    this.solnTexture = gl.createTexture();
     this.scale = scale;
     function initData(texture, binding){
       gl.activeTexture(gl.TEXTURE0 + binding);
@@ -86,10 +89,23 @@ class Field{
     }
     initData(this.srcTexture, this.srcBinding);
     initData(this.destTexture, this.destBinding);
+    initData(this.solnTexture, this.solnBinding);
   }
 
   setData(data){
     gl.activeTexture(gl.TEXTURE0 + this.srcBinding);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.R32F,
+      simulationWidth * this.scale,
+      simulationHeight * this.scale,
+      0,
+      gl.RED,
+      gl.FLOAT,
+      data
+    );
+    gl.activeTexture(gl.TEXTURE0 + this.solnBinding);
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
@@ -106,6 +122,12 @@ class Field{
   swap() {
     [this.srcTexture, this.destTexture] = [this.destTexture, this.srcTexture];
     [this.srcBinding, this.destBinding] = [this.destBinding, this.srcBinding];
+  }
+
+  // when using Crank-Nicholson with fixed point, we can use this
+  swapCNIter() {
+    [this.solnTexture, this.destTexture] = [this.destTexture, this.solnTexture];
+    [this.solnBinding, this.destBinding] = [this.destBinding, this.solnBinding];
   }
 
   link(program, name){
@@ -126,6 +148,13 @@ class Field{
       frameBufferDrawBuffers.push(gl.COLOR_ATTACHMENT0 + outputIndex);
     }
   }
+
+  linkSoln(program, name){
+    gl.useProgram(program);
+    const texUniformLocation = gl.getUniformLocation(program, name);
+    gl.uniform1i(texUniformLocation, this.solnBinding);
+  }
+
 
   display(x, y){
     gl.viewport(x, y, displayWidth, displayHeight);
@@ -211,23 +240,23 @@ const permittivityData = new Float32Array(simulationWidth * simulationHeight * 4
 for(let x = 0; x < simulationWidth; x++){
   for(let y = 0; y < simulationHeight; y++){
     const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
-    if(distSqr <= 100){
-      initialStateJZ[x + y * simulationWidth] = 50.0;
-      initialStateFreq[x + y * simulationWidth] = 50.0;
+    if(distSqr <= 4){
+      initialStateJZ[x + y * simulationWidth] = 100.0;
+      initialStateFreq[x + y * simulationWidth] = 200.0;
     }
   }
 }
 
 // Circular lens to the right of the center
 
-// for(let x = 0; x < simulationWidth * 2; x++){
-//   for(let y = 0; y < simulationHeight * 2; y++){
-//     const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
-//     if(distSqr <= 1600){
-//       permittivityData[x + y * simulationWidth * 2] = 0.9;
-//     }
-//   }
-// }
+for(let x = 0; x < simulationWidth * 2; x++){
+  for(let y = 0; y < simulationHeight * 2; y++){
+    const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
+    if(distSqr <= 1600){
+      permittivityData[x + y * simulationWidth * 2] = 0.9;
+    }
+  }
+}
 
 fieldDX.setData(initialStateEX);
 fieldDY.setData(initialStateEY);
@@ -239,69 +268,86 @@ fieldJZ.setData(initialStateJZ);
 fieldFreq.setData(initialStateFreq);
 fieldPermittivity.setData(permittivityData);
 
+const ds = 0.01;
+const dt = 0.005;
 let time = 0;
+const crankNicholsonIterCount = 20;
 while(true){
-  const frameEnd = new Promise((r) => setTimeout(r, 20));
+  const frameEnd = new Promise((r) => setTimeout(r, 0));
   fieldDX.display(0, displayHeight);
   fieldDY.display(displayWidth, displayHeight);
   fieldDZ.display(displayWidth * 2, displayHeight);
   fieldBX.display(0, 0);
   fieldBY.display(displayWidth, 0);
   fieldBZ.display(displayWidth * 2, 0);
+  //Crank the Nicholson
+  for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
+    frameBufferDrawBuffers.splice(0);
+    //Link everything
+    fieldDX.link(stepProgram, "d_x_tex");
+    fieldDY.link(stepProgram, "d_y_tex");
+    fieldDZ.link(stepProgram, "d_z_tex");
+    fieldBX.link(stepProgram, "b_x_tex");
+    fieldBY.link(stepProgram, "b_y_tex");
+    fieldBZ.link(stepProgram, "b_z_tex");
+    fieldDX.linkSoln(stepProgram, "d_x_tex_soln");
+    fieldDY.linkSoln(stepProgram, "d_y_tex_soln");
+    fieldDZ.linkSoln(stepProgram, "d_z_tex_soln");
+    fieldBX.linkSoln(stepProgram, "b_x_tex_soln");
+    fieldBY.linkSoln(stepProgram, "b_y_tex_soln");
+    fieldBZ.linkSoln(stepProgram, "b_z_tex_soln");
+    fieldPermittivity.link(stepProgram, "inv_permittivity_tex");
+    fieldJZ.link(stepProgram, "j_z_tex");
+    fieldFreq.link(stepProgram, "antenna_frequency");
 
-  frameBufferDrawBuffers.splice(0);
-  //Link everything
-  fieldDX.link(stepProgram, "d_x_tex");
-  fieldDY.link(stepProgram, "d_y_tex");
-  fieldDZ.link(stepProgram, "d_z_tex");
-  fieldBX.link(stepProgram, "b_x_tex");
-  fieldBY.link(stepProgram, "b_y_tex");
-  fieldBZ.link(stepProgram, "b_z_tex");
-  fieldPermittivity.link(stepProgram, "inv_permittivity_tex");
-  fieldJZ.link(stepProgram, "j_z_tex");
-  fieldFreq.link(stepProgram, "antenna_frequency");
+    fieldDX.link(stepProgram, "d_x_new");
+    fieldDY.link(stepProgram, "d_y_new");
+    fieldDZ.link(stepProgram, "d_z_new");
+    fieldBX.link(stepProgram, "b_x_new");
+    fieldBY.link(stepProgram, "b_y_new");
+    fieldBZ.link(stepProgram, "b_z_new");
 
-  fieldDX.link(stepProgram, "d_x_new");
-  fieldDY.link(stepProgram, "d_y_new");
-  fieldDZ.link(stepProgram, "d_z_new");
-  fieldBX.link(stepProgram, "b_x_new");
-  fieldBY.link(stepProgram, "b_y_new");
-  fieldBZ.link(stepProgram, "b_z_new");
+    // Test Step 
+    gl.viewport(0, 0, simulationWidth, simulationHeight);
+    gl.useProgram(stepProgram);
 
-  // Test Step 
-  gl.viewport(0, 0, simulationWidth, simulationHeight);
-  gl.useProgram(stepProgram);
+    const widthUniformLocation = gl.getUniformLocation(stepProgram, "width");
+    const heightUniformLocation = gl.getUniformLocation(stepProgram, "height");
+    const dtUniformLocation = gl.getUniformLocation(stepProgram, "dt");
+    const dsUniformLocation = gl.getUniformLocation(stepProgram, "ds");
+    const dsInvUniformLocation = gl.getUniformLocation(stepProgram, "ds_inv");
+    const timeUniformLocation = gl.getUniformLocation(stepProgram, "time");
+    gl.uniform1f(widthUniformLocation, simulationWidth);
+    gl.uniform1f(heightUniformLocation, simulationHeight);
+    gl.uniform1f(dtUniformLocation, dt);
+    gl.uniform1f(dsInvUniformLocation, 1 / ds);
+    gl.uniform1f(dsUniformLocation, ds);
+    gl.uniform1f(timeUniformLocation, time);
 
-  const ds = 0.01;
-  const dt = 0.001;
-  const widthUniformLocation = gl.getUniformLocation(stepProgram, "width");
-  const heightUniformLocation = gl.getUniformLocation(stepProgram, "height");
-  const dtUniformLocation = gl.getUniformLocation(stepProgram, "dt");
-  const dsUniformLocation = gl.getUniformLocation(stepProgram, "ds");
-  const dsInvUniformLocation = gl.getUniformLocation(stepProgram, "ds_inv");
-  const timeUniformLocation = gl.getUniformLocation(stepProgram, "time");
-  gl.uniform1f(widthUniformLocation, simulationWidth);
-  gl.uniform1f(heightUniformLocation, simulationHeight);
-  gl.uniform1f(dtUniformLocation, dt);
-  gl.uniform1f(dsInvUniformLocation, 1 / ds);
-  gl.uniform1f(dsUniformLocation, ds);
-  gl.uniform1f(timeUniformLocation, time);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const aVertexPosition = gl.getAttribLocation(stepProgram, "vertex_position");
+    gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(aVertexPosition);
+    gl.drawBuffers(frameBufferDrawBuffers);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.useProgram(null);
 
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  const aVertexPosition = gl.getAttribLocation(stepProgram, "vertex_position");
-  gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-  gl.enableVertexAttribArray(aVertexPosition);
-  gl.drawBuffers(frameBufferDrawBuffers);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  gl.useProgram(null);
-
+    fieldDX.swapCNIter();
+    fieldDY.swapCNIter();
+    fieldDZ.swapCNIter();
+    fieldBX.swapCNIter();
+    fieldBY.swapCNIter();
+    fieldBZ.swapCNIter();
+  }
   fieldDX.swap();
   fieldDY.swap();
   fieldDZ.swap();
   fieldBX.swap();
   fieldBY.swap();
   fieldBZ.swap();
+
   time += dt;
   await frameEnd;
+  await new Promise((r) => setTimeout(r, 100));
 }
 })()
