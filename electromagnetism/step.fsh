@@ -122,12 +122,12 @@ void main(){
   float conservation_coeff = ds / 8.0;
   vec2 pos = gl_FragCoord.xy;
 
-  d_x_new = d_x(pos);
-  d_y_new = d_y(pos);
-  d_z_new = d_z(pos);
-  b_x_new = b_x(pos);
-  b_y_new = b_y(pos);
-  b_z_new = b_z(pos);
+  d_x_new = read_texture(d_x_tex, pos);
+  d_y_new = read_texture(d_y_tex, pos);
+  d_z_new = read_texture(d_z_tex, pos);
+  b_x_new = read_texture(b_x_tex, pos);
+  b_y_new = read_texture(b_y_tex, pos);
+  b_z_new = read_texture(b_z_tex, pos);
 
   d_y_new += dt * ds_inv * ( b_z(pos - vec2(1.0, 0.0)) - b_z(pos                 )                                                         );
   b_y_new += dt * ds_inv * ( e_z(pos + vec2(1.0, 0.0)) - e_z(pos                 )                                                         );

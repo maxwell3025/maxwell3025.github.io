@@ -242,7 +242,7 @@ for(let x = 0; x < simulationWidth; x++){
     const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
     if(distSqr <= 4){
       initialStateJZ[x + y * simulationWidth] = 100.0;
-      initialStateFreq[x + y * simulationWidth] = 200.0;
+      initialStateFreq[x + y * simulationWidth] = 100.0;
     }
   }
 }
@@ -269,9 +269,9 @@ fieldFreq.setData(initialStateFreq);
 fieldPermittivity.setData(permittivityData);
 
 const ds = 0.01;
-const dt = 0.005;
+const dt = 0.001;
 let time = 0;
-const crankNicholsonIterCount = 20;
+const crankNicholsonIterCount = 4;
 while(true){
   const frameEnd = new Promise((r) => setTimeout(r, 0));
   fieldDX.display(0, displayHeight);
@@ -280,6 +280,7 @@ while(true){
   fieldBX.display(0, 0);
   fieldBY.display(displayWidth, 0);
   fieldBZ.display(displayWidth * 2, 0);
+
   //Crank the Nicholson
   for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
     frameBufferDrawBuffers.splice(0);
@@ -348,6 +349,6 @@ while(true){
 
   time += dt;
   await frameEnd;
-  await new Promise((r) => setTimeout(r, 100));
+  await new Promise((r) => setTimeout(r, 10));
 }
 })()
