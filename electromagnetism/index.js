@@ -1,8 +1,8 @@
 (async () => {
-const displayWidth = 400;
-const displayHeight = 400;
-const simulationWidth = 400;
-const simulationHeight = 400;
+const displayWidth = 1000;
+const displayHeight = 1000;
+const simulationWidth = 1000;
+const simulationHeight = 1000;
 const display = document.getElementById("display");
 display.setAttribute("width", displayWidth * 3);
 display.setAttribute("height", displayHeight * 2);
@@ -241,7 +241,7 @@ fieldPermittivity.setData(permittivityData);
 
 let time = 0;
 while(true){
-  const frameEnd = new Promise((r) => setTimeout(r, 10));
+  const frameEnd = new Promise((r) => setTimeout(r, 20));
   fieldDX.display(0, displayHeight);
   fieldDY.display(displayWidth, displayHeight);
   fieldDZ.display(displayWidth * 2, displayHeight);
