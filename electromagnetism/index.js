@@ -155,6 +155,8 @@ const fieldDZ = new Field();
 const fieldBX = new Field();
 const fieldBY = new Field();
 const fieldBZ = new Field();
+const fieldJZ = new Field();
+const fieldFreq = new Field();
 const fieldPermittivity = new Field(2);
 
 const stepProgram = loadFrag(await fetch("./step.fsh").then(x => x.text()));
@@ -168,6 +170,8 @@ const initialStateEZ = new Float32Array(simulationWidth * simulationHeight).fill
 const initialStateBX = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateBY = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateBZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
+const initialStateJZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
+const initialStateFreq = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const permittivityData = new Float32Array(simulationWidth * simulationHeight * 4).fill(1);
 
 // Unsupported Charge
@@ -193,20 +197,34 @@ const permittivityData = new Float32Array(simulationWidth * simulationHeight * 4
 
 // Sharp magnetic pulse
 
+// for(let x = 0; x < simulationWidth; x++){
+//   for(let y = 0; y < simulationHeight; y++){
+//     const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
+//     if(distSqr <= 100){
+//       initialStateBZ[x + y * simulationWidth] = 1.0;
+//     }
+//   }
+// }
+
+// Emitter at the center
+
 for(let x = 0; x < simulationWidth; x++){
   for(let y = 0; y < simulationHeight; y++){
     const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
     if(distSqr <= 100){
-      initialStateBZ[x + y * simulationWidth] = 1.0;
+      initialStateJZ[x + y * simulationWidth] = 10.0;
+      initialStateFreq[x + y * simulationWidth] = 50.0;
     }
   }
 }
+
+// Circular lens to the right of the center
 
 for(let x = 0; x < simulationWidth * 2; x++){
   for(let y = 0; y < simulationHeight * 2; y++){
     const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
     if(distSqr <= 1600){
-      permittivityData[x + y * simulationWidth * 2] = 0.5;
+      permittivityData[x + y * simulationWidth * 2] = 0.9;
     }
   }
 }
@@ -217,8 +235,11 @@ fieldDZ.setData(initialStateEZ);
 fieldBX.setData(initialStateBX);
 fieldBY.setData(initialStateBY);
 fieldBZ.setData(initialStateBZ);
+fieldJZ.setData(initialStateJZ);
+fieldFreq.setData(initialStateFreq);
 fieldPermittivity.setData(permittivityData);
 
+let time = 0;
 while(true){
   const frameEnd = new Promise((r) => setTimeout(r, 10));
   fieldDX.display(0, displayHeight);
@@ -237,6 +258,8 @@ while(true){
   fieldBY.link(stepProgram, "b_y_tex");
   fieldBZ.link(stepProgram, "b_z_tex");
   fieldPermittivity.link(stepProgram, "inv_permittivity_tex");
+  fieldJZ.link(stepProgram, "j_z_tex");
+  fieldFreq.link(stepProgram, "antenna_frequency");
 
   fieldDX.link(stepProgram, "d_x_new");
   fieldDY.link(stepProgram, "d_y_new");
@@ -248,17 +271,22 @@ while(true){
   // Test Step 
   gl.viewport(0, 0, simulationWidth, simulationHeight);
   gl.useProgram(stepProgram);
+
+  const ds = 0.01;
+  const dt = 0.001;
   const widthUniformLocation = gl.getUniformLocation(stepProgram, "width");
   const heightUniformLocation = gl.getUniformLocation(stepProgram, "height");
   const dtUniformLocation = gl.getUniformLocation(stepProgram, "dt");
-  const ds = 0.01;
   const dsUniformLocation = gl.getUniformLocation(stepProgram, "ds");
   const dsInvUniformLocation = gl.getUniformLocation(stepProgram, "ds_inv");
+  const timeUniformLocation = gl.getUniformLocation(stepProgram, "time");
   gl.uniform1f(widthUniformLocation, simulationWidth);
   gl.uniform1f(heightUniformLocation, simulationHeight);
-  gl.uniform1f(dtUniformLocation, 0.001);
+  gl.uniform1f(dtUniformLocation, dt);
   gl.uniform1f(dsInvUniformLocation, 1 / ds);
   gl.uniform1f(dsUniformLocation, ds);
+  gl.uniform1f(timeUniformLocation, time);
+
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   const aVertexPosition = gl.getAttribLocation(stepProgram, "vertex_position");
   gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
@@ -273,6 +301,7 @@ while(true){
   fieldBX.swap();
   fieldBY.swap();
   fieldBZ.swap();
+  time += dt;
   await frameEnd;
 }
 })()
