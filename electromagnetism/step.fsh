@@ -122,9 +122,9 @@ float b_div_residual(vec2 coord){
   );
 }
 
-float boundary_opacity = 20.0;
-void absorb(){
-  float absorption_coeff = 1.0 - boundary_opacity * dt;
+float boundary_opacity = 1.0;
+void absorb(float intensity){
+  float absorption_coeff = 1.0 - intensity * dt;
   d_x_new *= absorption_coeff;
   d_y_new *= absorption_coeff;
   d_z_new *= absorption_coeff;
@@ -175,7 +175,18 @@ void main(){
   b_y_new += conservation_coeff * (
     b_div_residual(pos) - b_div_residual(pos - vec2(0.0, 1.0))
   );
-  if(gl_FragCoord.x < boundary_thickness || gl_FragCoord.y < boundary_thickness || (width - gl_FragCoord.x) < boundary_thickness || (height - gl_FragCoord.y) < boundary_thickness){
-    absorb();
+  float boundary_depth = 0.0;
+  if(gl_FragCoord.y < boundary_thickness){
+    boundary_depth = boundary_thickness - gl_FragCoord.y;
   }
+  if((height - gl_FragCoord.y) < boundary_thickness){
+    boundary_depth = gl_FragCoord.y - height + boundary_thickness;
+  }
+  if(gl_FragCoord.x < boundary_thickness){
+    boundary_depth = max(boundary_depth, boundary_thickness - gl_FragCoord.x);
+  }
+  if((width - gl_FragCoord.x) < boundary_thickness){
+    boundary_depth = max(boundary_depth, gl_FragCoord.x - width + boundary_thickness);
+  }
+  absorb(boundary_depth * boundary_opacity);
 }

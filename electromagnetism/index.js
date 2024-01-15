@@ -212,7 +212,7 @@ for(let x = 0; x < simulationWidth; x++){
   for(let y = 0; y < simulationHeight; y++){
     const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
     if(distSqr <= 100){
-      initialStateJZ[x + y * simulationWidth] = 10.0;
+      initialStateJZ[x + y * simulationWidth] = 50.0;
       initialStateFreq[x + y * simulationWidth] = 50.0;
     }
   }
@@ -220,14 +220,14 @@ for(let x = 0; x < simulationWidth; x++){
 
 // Circular lens to the right of the center
 
-for(let x = 0; x < simulationWidth * 2; x++){
-  for(let y = 0; y < simulationHeight * 2; y++){
-    const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
-    if(distSqr <= 1600){
-      permittivityData[x + y * simulationWidth * 2] = 0.9;
-    }
-  }
-}
+// for(let x = 0; x < simulationWidth * 2; x++){
+//   for(let y = 0; y < simulationHeight * 2; y++){
+//     const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
+//     if(distSqr <= 1600){
+//       permittivityData[x + y * simulationWidth * 2] = 0.9;
+//     }
+//   }
+// }
 
 fieldDX.setData(initialStateEX);
 fieldDY.setData(initialStateEY);
