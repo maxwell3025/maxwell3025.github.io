@@ -1,8 +1,10 @@
 (async () => {
-const displayWidth = 256;
-const displayHeight = 256;
-const simulationWidth = 256;
-const simulationHeight = 256;
+const displayWidth = 1024;
+const displayHeight = 1024;
+const simulationWidth = 1024;
+const simulationHeight = 1024;
+const ds = 0.01;
+const dt = 0.0025;
 const display = document.getElementById("display");
 display.setAttribute("width", displayWidth * 3);
 display.setAttribute("height", displayHeight * 2);
@@ -237,27 +239,64 @@ const permittivityData = new Float32Array(simulationWidth * simulationHeight * 4
 
 // Emitter at the center
 
+// for(let x = 0; x < simulationWidth; x++){
+//   for(let y = 0; y < simulationHeight; y++){
+//     const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
+//     if(distSqr <= 4){
+//       initialStateJZ[x + y * simulationWidth] = 500.0;
+//       initialStateFreq[x + y * simulationWidth] = 100.0;
+//     }
+//   }
+// }
+
+// Line Source
+
 for(let x = 0; x < simulationWidth; x++){
   for(let y = 0; y < simulationHeight; y++){
-    const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
-    if(distSqr <= 4){
-      initialStateJZ[x + y * simulationWidth] = 100.0;
-      initialStateFreq[x + y * simulationWidth] = 100.0;
+    if(y == 100){
+      initialStateJZ[x + y * simulationWidth] = 50.0;
+      initialStateFreq[x + y * simulationWidth] = 25.0;
     }
   }
 }
 
 // Circular lens to the right of the center
 
+// for(let x = 0; x < simulationWidth * 2; x++){
+//   for(let y = 0; y < simulationHeight * 2; y++){
+//     const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
+//     if(distSqr <= 2500){
+//       permittivityData[x + y * simulationWidth * 2] = 0.9;
+//     }
+//   }
+// }
+
+// Circular lens in the center
+
+// for(let x = 0; x < simulationWidth * 2; x++){
+//   for(let y = 0; y < simulationHeight * 2; y++){
+//     const distSqr = sqr(x - simulationWidth) + sqr(y - simulationHeight);
+//     if(distSqr <= sqr(100)){
+//       permittivityData[x + y * simulationWidth * 2] = 0.9;
+//     }
+//   }
+// }
+
+// Perfect GRIN lens in the center
+
+const focalDist = 4;
+const depth = 0.4;
+const maxIndex = 2;
+const lensRadius = Math.sqrt(sqr(maxIndex * depth + focalDist - depth) - sqr(focalDist));
 for(let x = 0; x < simulationWidth * 2; x++){
   for(let y = 0; y < simulationHeight * 2; y++){
-    const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
-    if(distSqr <= 1600){
-      permittivityData[x + y * simulationWidth * 2] = 0.9;
+    const simX = (x - simulationWidth) * ds * 0.5;
+    const simY = (y - 400) * ds * 0.5;
+    if(Math.abs(simY) <= depth * 0.5 && Math.abs(simX) < lensRadius){
+      permittivityData[x + y * simulationWidth * 2] = sqr(depth / (focalDist + maxIndex * depth - Math.sqrt(sqr(focalDist) + sqr(simX))));
     }
   }
 }
-
 fieldDX.setData(initialStateEX);
 fieldDY.setData(initialStateEY);
 fieldDZ.setData(initialStateEZ);
@@ -268,11 +307,10 @@ fieldJZ.setData(initialStateJZ);
 fieldFreq.setData(initialStateFreq);
 fieldPermittivity.setData(permittivityData);
 
-const ds = 0.01;
-const dt = 0.001;
 let time = 0;
 const crankNicholsonIterCount = 4;
 while(true){
+  console.log(time);
   const frameEnd = new Promise((r) => setTimeout(r, 0));
   fieldDX.display(0, displayHeight);
   fieldDY.display(displayWidth, displayHeight);
