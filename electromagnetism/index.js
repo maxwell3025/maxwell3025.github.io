@@ -5,6 +5,7 @@ const simulationWidth = 1024;
 const simulationHeight = 1024;
 const ds = 0.01;
 const dt = 0.0025;
+
 const display = document.getElementById("display");
 display.setAttribute("width", displayWidth * 3);
 display.setAttribute("height", displayHeight * 2);
@@ -55,96 +56,183 @@ const displayProgram = loadFrag(await fetch("./display.fsh").then(x => x.text())
 let currentBinding = 0;
 const wbFrameBuffer = gl.createFramebuffer();
 const frameBufferDrawBuffers = [];
+/**
+ * Represents a shader program and an output
+ */
+class RenderPipeline{
+  program;
+  framebuffer;
+  viewport;
+  outputWidth;
+  outputHeight;
+  bufs = new Array(gl.MAX_COLOR_ATTACHMENTS).fill(gl.NONE);
+
+  constructor(source, width, height, framebuffer = gl.createFrameBuffer()){
+    const fragShader = loadShader(gl.FRAGMENT_SHADER, source);
+    this.program = gl.createProgram();
+    gl.attachShader(this.program, fragShader);
+    gl.attachShader(this.program, vertexPassthroughShader);
+    gl.linkProgram(this.program);
+
+    this.framebuffer = framebuffer;
+
+    this.outputWidth = width;
+    this.outputHeight = height;
+  }
+
+  setUniform1f(name, value){
+    gl.useProgram(this.program);
+    const uniformLocation = gl.getUniformLocation(this.program, name);
+    gl.uniform1f(uniformLocation, value);
+  }
+
+  setSampler2D(name, texture){
+    gl.useProgram(this.program);
+    const texUniformLocation = gl.getUniformLocation(this.program, name);
+    gl.uniform1i(texUniformLocation, texture.binding);
+  }
+
+  bindOutput(name, texture){
+    if(this.framebuffer === null) throw new Error("Cannot bind outptu when targeting default framebuffer")
+    const outputIndex = gl.getFragDataLocation(program, name); //-1 if name is not an output variable
+    if(outputIndex === -1) throw new Error(`${name} is not a fragment shader output variable in this program`);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0 + outputIndex,
+        gl.TEXTURE_2D,
+        texture.texture,
+        0
+    );
+    this.bufs[outputIndex] = gl.COLOR_ATTACHMENT0 + outputIndex;
+  }
+
+  unbindOutput(name){
+    const outputIndex = gl.getFragDataLocation(program, name); //-1 if name is not an output variable
+    if(outputIndex === -1) throw new Error(`${name} is not a fragment shader output variable in this program`);
+    this.bufs[outputIndex] = gl.NONE;
+  }
+
+  execute(){
+    gl.viewport(0, 0, this.outputWidth, this.outputHeight);
+    gl.useProgram(this.program);
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const aVertexPosition = gl.getAttribLocation(this.program, "vertex_position");
+    gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(aVertexPosition);
+    gl.drawBuffers(frameBufferDrawBuffers);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+}
+
+class FloatTexture{
+  texture;
+  binding = currentBinding++;
+  width;
+  height;
+
+  constructor(width, height){
+    this.width = width;
+    this.height = height;
+    this.texture = gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0 + this.binding);
+    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+    const data = new Float32Array(this.width * this.height).fill(0);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.R32F,
+      this.width,
+      this.height,
+      0,
+      gl.RED,
+      gl.FLOAT,
+      data
+    );
+  }
+
+  setData(data){
+    gl.activeTexture(gl.TEXTURE0 + this.binding);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.R32F,
+      this.width,
+      this.height,
+      0,
+      gl.RED,
+      gl.FLOAT,
+      data
+    );
+  }
+
+  link(program, name){
+    gl.useProgram(program);
+    const texUniformLocation = gl.getUniformLocation(program, name);
+    gl.uniform1i(texUniformLocation, this.binding);
+  }
+
+  display(x, y){
+    gl.viewport(x, y, displayWidth, displayHeight);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.useProgram(displayProgram);
+    const widthUniformLocation = gl.getUniformLocation(displayProgram, "width");
+    const heightUniformLocation = gl.getUniformLocation(displayProgram, "height");
+    const xUniformLocation = gl.getUniformLocation(displayProgram, "x");
+    const yUniformLocation = gl.getUniformLocation(displayProgram, "y");
+    gl.uniform1f(widthUniformLocation, displayWidth);
+    gl.uniform1f(heightUniformLocation, displayHeight);
+    gl.uniform1f(xUniformLocation, x);
+    gl.uniform1f(yUniformLocation, y);
+    this.link(displayProgram, "tex0")
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const aVertexPosition = gl.getAttribLocation(displayProgram, "vertex_position");
+    gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(aVertexPosition);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    gl.useProgram(null);
+  }
+}
 class Field{
   srcTexture;
   destTexture;
   solnTexture;
-  srcBinding = currentBinding++;
-  destBinding = currentBinding++;
-  solnBinding = currentBinding++;
-  scale;
 
-  constructor(scale = 1){
-    this.srcTexture = gl.createTexture();
-    this.destTexture = gl.createTexture();
-    this.solnTexture = gl.createTexture();
-    this.scale = scale;
-    function initData(texture, binding){
-      gl.activeTexture(gl.TEXTURE0 + binding);
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      const data = new Float32Array(simulationWidth * simulationHeight * scale * scale).fill(0);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.R32F,
-        simulationWidth * scale,
-        simulationHeight * scale,
-        0,
-        gl.RED,
-        gl.FLOAT,
-        data
-      );
-    }
-    initData(this.srcTexture, this.srcBinding);
-    initData(this.destTexture, this.destBinding);
-    initData(this.solnTexture, this.solnBinding);
+  constructor(){
+    this.srcTexture = new FloatTexture(simulationWidth, simulationHeight);
+    this.destTexture = new FloatTexture(simulationWidth, simulationHeight);
+    this.solnTexture = new FloatTexture(simulationWidth, simulationHeight);
   }
 
   setData(data){
-    gl.activeTexture(gl.TEXTURE0 + this.srcBinding);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.R32F,
-      simulationWidth * this.scale,
-      simulationHeight * this.scale,
-      0,
-      gl.RED,
-      gl.FLOAT,
-      data
-    );
-    gl.activeTexture(gl.TEXTURE0 + this.solnBinding);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.R32F,
-      simulationWidth * this.scale,
-      simulationHeight * this.scale,
-      0,
-      gl.RED,
-      gl.FLOAT,
-      data
-    );
+    this.srcTexture.setData(data);
+    this.solnTexture.setData(data);
   }
 
   swap() {
     [this.srcTexture, this.destTexture] = [this.destTexture, this.srcTexture];
-    [this.srcBinding, this.destBinding] = [this.destBinding, this.srcBinding];
   }
 
   // when using Crank-Nicholson with fixed point, we can use this
   swapCNIter() {
     [this.solnTexture, this.destTexture] = [this.destTexture, this.solnTexture];
-    [this.solnBinding, this.destBinding] = [this.destBinding, this.solnBinding];
   }
 
   link(program, name){
     const outputIndex = gl.getFragDataLocation(program, name); //-1 if name is not an output variable
     if(outputIndex === -1){
-      gl.useProgram(program);
-      const texUniformLocation = gl.getUniformLocation(program, name);
-      gl.uniform1i(texUniformLocation, this.srcBinding);
+      this.srcTexture.link(program, name);
     } else {
       gl.bindFramebuffer(gl.FRAMEBUFFER, wbFrameBuffer);
       gl.framebufferTexture2D(
           gl.FRAMEBUFFER,
           gl.COLOR_ATTACHMENT0 + outputIndex,
           gl.TEXTURE_2D,
-          this.destTexture,
+          this.destTexture.texture,
           0
       );
       frameBufferDrawBuffers.push(gl.COLOR_ATTACHMENT0 + outputIndex);
@@ -152,11 +240,8 @@ class Field{
   }
 
   linkSoln(program, name){
-    gl.useProgram(program);
-    const texUniformLocation = gl.getUniformLocation(program, name);
-    gl.uniform1i(texUniformLocation, this.solnBinding);
+    this.solnTexture.link(program, name);
   }
-
 
   display(x, y){
     gl.viewport(x, y, displayWidth, displayHeight);
@@ -186,9 +271,9 @@ const fieldDZ = new Field();
 const fieldBX = new Field();
 const fieldBY = new Field();
 const fieldBZ = new Field();
-const fieldJZ = new Field();
-const fieldFreq = new Field();
-const fieldPermittivity = new Field(2);
+const fieldJZ = new FloatTexture(simulationWidth, simulationHeight);
+const fieldFreq = new FloatTexture(simulationWidth, simulationHeight);
+const fieldPermittivity = new FloatTexture(simulationWidth * 2, simulationHeight * 2);
 
 const stepProgram = loadFrag(await fetch("./step.fsh").then(x => x.text()));
 
@@ -387,6 +472,6 @@ while(true){
 
   time += dt;
   await frameEnd;
-  await new Promise((r) => setTimeout(r, 10));
+  await new Promise((r) => setTimeout(r, 20));
 }
 })()
