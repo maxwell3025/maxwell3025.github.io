@@ -3,8 +3,11 @@ const displayWidth = 1024;
 const displayHeight = 1024;
 const simulationWidth = 1024;
 const simulationHeight = 1024;
-const ds = 0.01;
-const dt = 0.0025;
+const ds = 0.1;
+const dt = 0.05;
+const frameDelay = 50;
+const boundaryDepth = 10;
+const boundaryOpacity = 10;
 
 const display = document.getElementById("display");
 display.setAttribute("width", displayWidth * 3);
@@ -38,10 +41,10 @@ function loadShader(type, source) {
 const vertexPassthroughCode = await fetch("./passthrough.vsh").then(x => x.text());
 const vertexPassthroughShader = loadShader(gl.VERTEX_SHADER, vertexPassthroughCode)
 
-const fillMesh = new Float32Array([-1, -1, -1, 1, 1, -1, 1, 1]);
+const meshData = new Float32Array([-1, -1, -1, 1, 1, -1, 1, 1]);
 const positionBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, fillMesh, gl.STATIC_DRAW, 0);
+gl.bufferData(gl.ARRAY_BUFFER, meshData, gl.STATIC_DRAW, 0);
 
 /**
  * Represents a shader program and an output
@@ -308,8 +311,8 @@ const permittivityData = new Float32Array(simulationWidth * simulationHeight * 4
 for(let x = 0; x < simulationWidth; x++){
   for(let y = 0; y < simulationHeight; y++){
     if(y == 100){
-      initialStateJZ[x + y * simulationWidth] = 50.0;
-      initialStateFreq[x + y * simulationWidth] = 25.0;
+      initialStateJZ[x + y * simulationWidth] = 5.0;
+      initialStateFreq[x + y * simulationWidth] = 2.0;
     }
   }
 }
@@ -339,7 +342,7 @@ for(let x = 0; x < simulationWidth; x++){
 // Perfect GRIN lens in the center
 
 const focalDist = 4;
-const depth = 0.4;
+const depth = 2;
 const maxIndex = 2;
 const lensRadius = Math.sqrt(sqr(maxIndex * depth + focalDist - depth) - sqr(focalDist));
 for(let x = 0; x < simulationWidth * 2; x++){
@@ -365,7 +368,9 @@ let time = 0;
 const crankNicholsonIterCount = 4;
 while(true){
   console.log(time);
-  const frameEnd = new Promise((r) => setTimeout(r, 0));
+  const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
+
+  const timeA = Date.now();
   fieldDX.display(0, displayHeight);
   fieldDY.display(displayWidth, displayHeight);
   fieldDZ.display(displayWidth * 2, displayHeight);
@@ -405,6 +410,8 @@ while(true){
     stepProgram.setUniform1f("ds_inv", 1 / ds);
     stepProgram.setUniform1f("ds", ds);
     stepProgram.setUniform1f("time", time);
+    stepProgram.setUniform1f("boundary_thickness", boundaryDepth / ds);
+    stepProgram.setUniform1f("boundary_opacity", 2 * boundaryOpacity * ds / boundaryDepth);
 
     stepProgram.execute();
 
@@ -421,9 +428,9 @@ while(true){
   fieldBX.swap();
   fieldBY.swap();
   fieldBZ.swap();
-
+  const timeB = Date.now();
+  console.log(timeB - timeA);
   time += dt;
   await frameEnd;
-  await new Promise((r) => setTimeout(r, 100));
 }
 })()

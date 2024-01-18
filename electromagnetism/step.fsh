@@ -21,6 +21,8 @@ uniform float dt;
 uniform float time;
 uniform float ds;
 uniform float ds_inv;
+uniform float boundary_thickness;
+uniform float boundary_opacity;
 layout(location = 0) out float d_x_new;
 layout(location = 1) out float d_y_new;
 layout(location = 2) out float d_z_new;
@@ -109,14 +111,12 @@ float b_div_residual(vec2 coord){
   );
 }
 
-float boundary_opacity = 1.0;
 void absorb(float intensity){
   float absorption_coeff = 1.0 - intensity * dt;
   d_x_new *= absorption_coeff;
   d_y_new *= absorption_coeff;
   d_z_new *= absorption_coeff;
 }
-float boundary_thickness = 40.0;
 
 void main(){
   float conservation_coeff = ds / 8.0;
@@ -153,6 +153,5 @@ void main(){
     boundary_depth = max(boundary_depth, boundary_thickness - gl_FragCoord.x);
   if((width - gl_FragCoord.x) < boundary_thickness)
     boundary_depth = max(boundary_depth, gl_FragCoord.x - width + boundary_thickness);
-
   absorb(boundary_depth * boundary_opacity);
 }
