@@ -9,6 +9,7 @@ const dt = 0.0025;
 const display = document.getElementById("display");
 display.setAttribute("width", displayWidth * 3);
 display.setAttribute("height", displayHeight * 2);
+
 const gl = display.getContext("webgl2")
 if(gl == null){
     console.log("Could not create a display context")
@@ -65,9 +66,9 @@ class RenderPipeline{
   viewport;
   outputWidth;
   outputHeight;
-  bufs = new Array(gl.MAX_COLOR_ATTACHMENTS).fill(gl.NONE);
+  bufs = new Array(gl.getParameter(gl.MAX_COLOR_ATTACHMENTS)).fill(gl.NONE);
 
-  constructor(source, width, height, framebuffer = gl.createFrameBuffer()){
+  constructor(source, outputWidth, outputHeight, framebuffer = gl.createFramebuffer()){
     const fragShader = loadShader(gl.FRAGMENT_SHADER, source);
     this.program = gl.createProgram();
     gl.attachShader(this.program, fragShader);
@@ -76,8 +77,14 @@ class RenderPipeline{
 
     this.framebuffer = framebuffer;
 
-    this.outputWidth = width;
-    this.outputHeight = height;
+    this.outputWidth = outputWidth;
+    this.outputHeight = outputHeight;
+
+    this.viewport = [0, 0, this.outputWidth, this.outputHeight];
+    
+    if(framebuffer === null){
+      this.bufs = [gl.BACK];
+    }
   }
 
   setUniform1f(name, value){
@@ -94,7 +101,7 @@ class RenderPipeline{
 
   bindOutput(name, texture){
     if(this.framebuffer === null) throw new Error("Cannot bind outptu when targeting default framebuffer")
-    const outputIndex = gl.getFragDataLocation(program, name); //-1 if name is not an output variable
+    const outputIndex = gl.getFragDataLocation(this.program, name); //-1 if name is not an output variable
     if(outputIndex === -1) throw new Error(`${name} is not a fragment shader output variable in this program`);
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
     gl.framebufferTexture2D(
@@ -108,22 +115,29 @@ class RenderPipeline{
   }
 
   unbindOutput(name){
-    const outputIndex = gl.getFragDataLocation(program, name); //-1 if name is not an output variable
+    const outputIndex = gl.getFragDataLocation(this.program, name); //-1 if name is not an output variable
     if(outputIndex === -1) throw new Error(`${name} is not a fragment shader output variable in this program`);
     this.bufs[outputIndex] = gl.NONE;
   }
 
+  setViewport(x, y, width, height){
+    this.viewport = [x, y, width, height]
+  }
+
   execute(){
-    gl.viewport(0, 0, this.outputWidth, this.outputHeight);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+    gl.viewport(...this.viewport);
     gl.useProgram(this.program);
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     const aVertexPosition = gl.getAttribLocation(this.program, "vertex_position");
     gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(aVertexPosition);
-    gl.drawBuffers(frameBufferDrawBuffers);
+    gl.drawBuffers(this.bufs);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
   }
 }
+
+const displayProgramPipeline = new RenderPipeline(await fetch("./display.fsh").then(x => x.text()), displayWidth, displayHeight, null);
 
 class FloatTexture{
   texture;
@@ -244,24 +258,31 @@ class Field{
   }
 
   display(x, y){
-    gl.viewport(x, y, displayWidth, displayHeight);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.useProgram(displayProgram);
-    const widthUniformLocation = gl.getUniformLocation(displayProgram, "width");
-    const heightUniformLocation = gl.getUniformLocation(displayProgram, "height");
-    const xUniformLocation = gl.getUniformLocation(displayProgram, "x");
-    const yUniformLocation = gl.getUniformLocation(displayProgram, "y");
-    gl.uniform1f(widthUniformLocation, displayWidth);
-    gl.uniform1f(heightUniformLocation, displayHeight);
-    gl.uniform1f(xUniformLocation, x);
-    gl.uniform1f(yUniformLocation, y);
-    this.link(displayProgram, "tex0")
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    const aVertexPosition = gl.getAttribLocation(displayProgram, "vertex_position");
-    gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aVertexPosition);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.useProgram(null);
+    displayProgramPipeline.setSampler2D("tex0", this.srcTexture);
+    displayProgramPipeline.setUniform1f("width", displayWidth);
+    displayProgramPipeline.setUniform1f("height", displayHeight);
+    displayProgramPipeline.setUniform1f("x", x);
+    displayProgramPipeline.setUniform1f("y", y);
+    displayProgramPipeline.setViewport(x, y, displayWidth, displayHeight);
+    displayProgramPipeline.execute();
+    // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    // gl.viewport(x, y, displayWidth, displayHeight);
+    // gl.useProgram(displayProgram);
+    // const widthUniformLocation = gl.getUniformLocation(displayProgram, "width");
+    // const heightUniformLocation = gl.getUniformLocation(displayProgram, "height");
+    // const xUniformLocation = gl.getUniformLocation(displayProgram, "x");
+    // const yUniformLocation = gl.getUniformLocation(displayProgram, "y");
+    // gl.uniform1f(widthUniformLocation, displayWidth);
+    // gl.uniform1f(heightUniformLocation, displayHeight);
+    // gl.uniform1f(xUniformLocation, x);
+    // gl.uniform1f(yUniformLocation, y);
+    // this.link(displayProgram, "tex0")
+    // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    // const aVertexPosition = gl.getAttribLocation(displayProgram, "vertex_position");
+    // gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
+    // gl.enableVertexAttribArray(aVertexPosition);
+    // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    // gl.useProgram(null);
   }
 }
 
@@ -275,7 +296,7 @@ const fieldJZ = new FloatTexture(simulationWidth, simulationHeight);
 const fieldFreq = new FloatTexture(simulationWidth, simulationHeight);
 const fieldPermittivity = new FloatTexture(simulationWidth * 2, simulationHeight * 2);
 
-const stepProgram = loadFrag(await fetch("./step.fsh").then(x => x.text()));
+const stepProgram = new RenderPipeline(await fetch("./step.fsh").then(x => x.text()), simulationWidth, simulationHeight);
 
 function sqr(x){
   return x * x;
@@ -406,55 +427,38 @@ while(true){
 
   //Crank the Nicholson
   for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
-    frameBufferDrawBuffers.splice(0);
     //Link everything
-    fieldDX.link(stepProgram, "d_x_tex");
-    fieldDY.link(stepProgram, "d_y_tex");
-    fieldDZ.link(stepProgram, "d_z_tex");
-    fieldBX.link(stepProgram, "b_x_tex");
-    fieldBY.link(stepProgram, "b_y_tex");
-    fieldBZ.link(stepProgram, "b_z_tex");
-    fieldDX.linkSoln(stepProgram, "d_x_tex_soln");
-    fieldDY.linkSoln(stepProgram, "d_y_tex_soln");
-    fieldDZ.linkSoln(stepProgram, "d_z_tex_soln");
-    fieldBX.linkSoln(stepProgram, "b_x_tex_soln");
-    fieldBY.linkSoln(stepProgram, "b_y_tex_soln");
-    fieldBZ.linkSoln(stepProgram, "b_z_tex_soln");
-    fieldPermittivity.link(stepProgram, "inv_permittivity_tex");
-    fieldJZ.link(stepProgram, "j_z_tex");
-    fieldFreq.link(stepProgram, "antenna_frequency");
+    stepProgram.setSampler2D("d_x_tex", fieldDX.srcTexture);
+    stepProgram.setSampler2D("d_y_tex", fieldDY.srcTexture);
+    stepProgram.setSampler2D("d_z_tex", fieldDZ.srcTexture);
+    stepProgram.setSampler2D("b_x_tex", fieldBX.srcTexture);
+    stepProgram.setSampler2D("b_y_tex", fieldBY.srcTexture);
+    stepProgram.setSampler2D("b_z_tex", fieldBZ.srcTexture);
+    stepProgram.setSampler2D("d_x_tex_soln", fieldDX.solnTexture);
+    stepProgram.setSampler2D("d_y_tex_soln", fieldDY.solnTexture);
+    stepProgram.setSampler2D("d_z_tex_soln", fieldDZ.solnTexture);
+    stepProgram.setSampler2D("b_x_tex_soln", fieldBX.solnTexture);
+    stepProgram.setSampler2D("b_y_tex_soln", fieldBY.solnTexture);
+    stepProgram.setSampler2D("b_z_tex_soln", fieldBZ.solnTexture);
+    stepProgram.setSampler2D("inv_permittivity_tex", fieldPermittivity);
+    stepProgram.setSampler2D("j_z_tex", fieldJZ);
+    stepProgram.setSampler2D("antenna_frequency", fieldFreq);
 
-    fieldDX.link(stepProgram, "d_x_new");
-    fieldDY.link(stepProgram, "d_y_new");
-    fieldDZ.link(stepProgram, "d_z_new");
-    fieldBX.link(stepProgram, "b_x_new");
-    fieldBY.link(stepProgram, "b_y_new");
-    fieldBZ.link(stepProgram, "b_z_new");
+    stepProgram.bindOutput("d_x_new", fieldDX.destTexture);
+    stepProgram.bindOutput("d_y_new", fieldDY.destTexture);
+    stepProgram.bindOutput("d_z_new", fieldDZ.destTexture);
+    stepProgram.bindOutput("b_x_new", fieldBX.destTexture);
+    stepProgram.bindOutput("b_y_new", fieldBY.destTexture);
+    stepProgram.bindOutput("b_z_new", fieldBZ.destTexture);
 
-    // Test Step 
-    gl.viewport(0, 0, simulationWidth, simulationHeight);
-    gl.useProgram(stepProgram);
+    stepProgram.setUniform1f("width", simulationWidth);
+    stepProgram.setUniform1f("height", simulationHeight);
+    stepProgram.setUniform1f("dt", dt);
+    stepProgram.setUniform1f("ds_inv", 1 / ds);
+    stepProgram.setUniform1f("ds", ds);
+    stepProgram.setUniform1f("time", time);
 
-    const widthUniformLocation = gl.getUniformLocation(stepProgram, "width");
-    const heightUniformLocation = gl.getUniformLocation(stepProgram, "height");
-    const dtUniformLocation = gl.getUniformLocation(stepProgram, "dt");
-    const dsUniformLocation = gl.getUniformLocation(stepProgram, "ds");
-    const dsInvUniformLocation = gl.getUniformLocation(stepProgram, "ds_inv");
-    const timeUniformLocation = gl.getUniformLocation(stepProgram, "time");
-    gl.uniform1f(widthUniformLocation, simulationWidth);
-    gl.uniform1f(heightUniformLocation, simulationHeight);
-    gl.uniform1f(dtUniformLocation, dt);
-    gl.uniform1f(dsInvUniformLocation, 1 / ds);
-    gl.uniform1f(dsUniformLocation, ds);
-    gl.uniform1f(timeUniformLocation, time);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    const aVertexPosition = gl.getAttribLocation(stepProgram, "vertex_position");
-    gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aVertexPosition);
-    gl.drawBuffers(frameBufferDrawBuffers);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.useProgram(null);
+    stepProgram.execute();
 
     fieldDX.swapCNIter();
     fieldDY.swapCNIter();
@@ -472,6 +476,6 @@ while(true){
 
   time += dt;
   await frameEnd;
-  await new Promise((r) => setTimeout(r, 20));
+  await new Promise((r) => setTimeout(r, 100));
 }
 })()
