@@ -38,25 +38,11 @@ function loadShader(type, source) {
 const vertexPassthroughCode = await fetch("./passthrough.vsh").then(x => x.text());
 const vertexPassthroughShader = loadShader(gl.VERTEX_SHADER, vertexPassthroughCode)
 
-function loadFrag(source) {
-  const fragShader = loadShader(gl.FRAGMENT_SHADER, source);
-  const program = gl.createProgram();
-  gl.attachShader(program, fragShader);
-  gl.attachShader(program, vertexPassthroughShader);
-  gl.linkProgram(program);
-  return program;
-}
-
 const fillMesh = new Float32Array([-1, -1, -1, 1, 1, -1, 1, 1]);
 const positionBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 gl.bufferData(gl.ARRAY_BUFFER, fillMesh, gl.STATIC_DRAW, 0);
 
-const displayProgram = loadFrag(await fetch("./display.fsh").then(x => x.text()))
-
-let currentBinding = 0;
-const wbFrameBuffer = gl.createFramebuffer();
-const frameBufferDrawBuffers = [];
 /**
  * Represents a shader program and an output
  */
@@ -139,6 +125,7 @@ class RenderPipeline{
 
 const displayProgramPipeline = new RenderPipeline(await fetch("./display.fsh").then(x => x.text()), displayWidth, displayHeight, null);
 
+let currentBinding = 0;
 class FloatTexture{
   texture;
   binding = currentBinding++;
@@ -236,27 +223,6 @@ class Field{
     [this.solnTexture, this.destTexture] = [this.destTexture, this.solnTexture];
   }
 
-  link(program, name){
-    const outputIndex = gl.getFragDataLocation(program, name); //-1 if name is not an output variable
-    if(outputIndex === -1){
-      this.srcTexture.link(program, name);
-    } else {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, wbFrameBuffer);
-      gl.framebufferTexture2D(
-          gl.FRAMEBUFFER,
-          gl.COLOR_ATTACHMENT0 + outputIndex,
-          gl.TEXTURE_2D,
-          this.destTexture.texture,
-          0
-      );
-      frameBufferDrawBuffers.push(gl.COLOR_ATTACHMENT0 + outputIndex);
-    }
-  }
-
-  linkSoln(program, name){
-    this.solnTexture.link(program, name);
-  }
-
   display(x, y){
     displayProgramPipeline.setSampler2D("tex0", this.srcTexture);
     displayProgramPipeline.setUniform1f("width", displayWidth);
@@ -265,24 +231,6 @@ class Field{
     displayProgramPipeline.setUniform1f("y", y);
     displayProgramPipeline.setViewport(x, y, displayWidth, displayHeight);
     displayProgramPipeline.execute();
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    // gl.viewport(x, y, displayWidth, displayHeight);
-    // gl.useProgram(displayProgram);
-    // const widthUniformLocation = gl.getUniformLocation(displayProgram, "width");
-    // const heightUniformLocation = gl.getUniformLocation(displayProgram, "height");
-    // const xUniformLocation = gl.getUniformLocation(displayProgram, "x");
-    // const yUniformLocation = gl.getUniformLocation(displayProgram, "y");
-    // gl.uniform1f(widthUniformLocation, displayWidth);
-    // gl.uniform1f(heightUniformLocation, displayHeight);
-    // gl.uniform1f(xUniformLocation, x);
-    // gl.uniform1f(yUniformLocation, y);
-    // this.link(displayProgram, "tex0")
-    // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    // const aVertexPosition = gl.getAttribLocation(displayProgram, "vertex_position");
-    // gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-    // gl.enableVertexAttribArray(aVertexPosition);
-    // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    // gl.useProgram(null);
   }
 }
 
