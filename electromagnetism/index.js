@@ -174,6 +174,28 @@ class FloatTexture{
     );
   }
 
+  /**
+   * 
+   * @param {string} src 
+   * @param {(x: [number, number, number, number]) => number} transformation 
+   */
+  async setDataFromImage(src, transformation){
+    const image = new Image();
+    image.src = src;
+    const canvas = document.createElement("canvas");
+    canvas.width = this.width;
+    canvas.height = this.height;
+    const context = canvas.getContext("2d");
+    await new Promise(r => image.onload = r);
+    context.drawImage(image, 0, 0, this.width, this.height);
+    const imageData = Array.from(context.getImageData(0, 0, this.width, this.height).data);
+    const fieldData = [];
+    while(imageData.length > 0){
+      fieldData.push(transformation(imageData.splice(0, 4)));
+    }
+    this.setData(fieldData);
+  }
+
   link(program, name){
     gl.useProgram(program);
     const texUniformLocation = gl.getUniformLocation(program, name);
