@@ -94,16 +94,42 @@ float e_z(vec2 coord){
   return d_z(coord) * read_texture(inv_permittivity_tex, coord - vec2(0.25, 0.25));
 }
 
+float charge(vec2 coord){
+  return 0.5 * read_texture(charge_tex, coord) + 0.5 * read_texture(charge_tex_soln, coord);
+}
+
+// NOTE: high fl sensitivity with high conductivity leads to stiff equations which explode
+/**
+* In general, this should only be a function of charge density.
+* For conductors, this should be a constant or a linear function with a very small coefficient(on the order of inverse conductivity).
+* For semimetals, this should be a linear function with a coefficient corrsponding above.
+* For insulators, ditto above.
+* For semiconductors, TODO
+*/
+float fermi_level_difference(vec2 coord){
+  float fldiff = charge(coord) * 0.01;
+  if(coord.x > width * 0.5){
+    fldiff += 1.0;
+  }
+  return fldiff;
+}
+
 float j_x(vec2 coord){
-  return e_x(coord) * read_texture(conductivity_tex, coord + vec2(0.25, -0.25)) + read_texture(j_x_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
+  return 
+    (e_x(coord) - (fermi_level_difference(coord + vec2(1.0, 0.0)) - fermi_level_difference(coord)) * ds_inv) * read_texture(conductivity_tex, coord + vec2(0.25, -0.25))
+    + read_texture(j_x_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
 }
 
 float j_y(vec2 coord){
-  return e_y(coord) * read_texture(conductivity_tex, coord + vec2(-0.25, 0.25)) + read_texture(j_y_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
+  return 
+    (e_y(coord) - (fermi_level_difference(coord + vec2(0.0, 1.0)) - fermi_level_difference(coord)) * ds_inv) * read_texture(conductivity_tex, coord + vec2(-0.25, 0.25))
+    + read_texture(j_y_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
 }
 
 float j_z(vec2 coord){
-  return e_z(coord) * read_texture(conductivity_tex, coord - vec2(0.25, 0.25)) + read_texture(j_z_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
+  return 
+    e_z(coord) * read_texture(conductivity_tex, coord - vec2(0.25, 0.25))
+    + read_texture(j_z_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
 }
 
 // TODO implement charge
@@ -114,7 +140,7 @@ float d_div_residual(vec2 coord){
     d_y(coord) -
     d_x(coord - vec2(1.0, 0.0)) -
     d_y(coord - vec2(0.0, 1.0))
-  ) - read_texture(charge_tex, coord);
+  ) - charge(coord);
 }
 
 // Returns the residual amount of B field divergence at the location of b_z in the current cell

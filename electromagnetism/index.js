@@ -1,19 +1,23 @@
 (async () => {
-const displayWidth = 1024;
-const displayHeight = 1024;
-const simulationWidth = 128;
-const simulationHeight = 128;
+const simulationWidth = 256;
+const simulationHeight = 256;
+const displayWidth = simulationWidth;
+const displayHeight = simulationHeight;
 const ds = 0.1;
 const dt = ds * 0.25;
-const frameDelay = 100;
+const frameDelay = 50;
 const boundaryDepth = 1;
 const boundaryOpacity = 10;
 
+/**
+ * @type {HTMLCanvasElement}
+ */
 const display = document.getElementById("display");
-display.setAttribute("width", displayWidth * 3);
-display.setAttribute("height", displayHeight * 3);
+display.width = displayWidth * 3;
+display.height = displayHeight * 3;
+display.style.imageRendering = "pixelated";
 
-const gl = display.getContext("webgl2")
+const gl = display.getContext("webgl2", {powerPreference: "high-performance"})
 if(gl == null){
     console.log("Could not create a display context")
 }
@@ -294,11 +298,15 @@ const chargeData = new Float32Array(simulationWidth * simulationHeight).fill(0);
 
 // Unsupported Charge
 
+// const charge_amount = 1;
 // for(let x = 0; x < simulationWidth; x++){
 //   for(let y = 0; y < simulationHeight; y++){
-//     const distSqr = sqr(x-99.5) + sqr(y-99.5)
-//     initialStateEX[x + y * simulationWidth] = (x - 99.5) / distSqr * 100;
-//     initialStateEY[x + y * simulationWidth] = (y - 99.5) / distSqr * 100;
+//     const simXX = (x - simulationWidth * 0.5 + 0.5) * ds;
+//     const simYX = (y - simulationHeight * 0.5) * ds;
+//     const simXY = (x - simulationWidth * 0.5) * ds;
+//     const simYY = (y - simulationHeight * 0.5 + 0.5) * ds;
+//     initialStateEX[x + y * simulationWidth] = (simXX) / (sqr(simXX) + sqr(simYX)) * charge_amount;
+//     initialStateEY[x + y * simulationWidth] = (simYY) / (sqr(simXY) + sqr(simYY)) * charge_amount;
 //   }
 // }
 
@@ -349,21 +357,21 @@ const chargeData = new Float32Array(simulationWidth * simulationHeight).fill(0);
 
 // Line Source (x current)
 
-const antenna_height = 4;
-const antenna_length = 2;
-const antenna_thickness = 0.25;
-const antenna_strength = 10;
-const antenna_frequency = 1;
-for(let x = 0; x < simulationWidth; x++){
-  for(let y = 0; y < simulationHeight; y++){
-    const simX = (x - simulationWidth * 0.5) * ds;
-    const simY = (y - simulationHeight * 0.5) * ds;
-    if(Math.abs(simX) < antenna_length * 0.5 && Math.abs(simY + antenna_height) < antenna_thickness * 0.5){
-      initialStateJX[x + y * simulationWidth] = antenna_strength;
-      initialStateFreq[x + y * simulationWidth] = antenna_frequency;
-    }
-  }
-}
+// const antenna_height = 4;
+// const antenna_length = 2;
+// const antenna_thickness = 0.25;
+// const antenna_strength = 10;
+// const antenna_frequency = 1;
+// for(let x = 0; x < simulationWidth; x++){
+//   for(let y = 0; y < simulationHeight; y++){
+//     const simX = (x - simulationWidth * 0.5) * ds;
+//     const simY = (y - simulationHeight * 0.5) * ds;
+//     if(Math.abs(simX) < antenna_length * 0.5 && Math.abs(simY + antenna_height) < antenna_thickness * 0.5){
+//       initialStateJX[x + y * simulationWidth] = antenna_strength;
+//       initialStateFreq[x + y * simulationWidth] = antenna_frequency;
+//     }
+//   }
+// }
 
 // Circular lens to the right of the center
 
@@ -406,7 +414,7 @@ for(let x = 0; x < simulationWidth; x++){
 // Conductive cube in the center
 
 const cube_width = 4;
-const cube_conductivity = 20;
+const cube_conductivity = 1;
 for(let x = 0; x < simulationWidth * 2; x++){
   for(let y = 0; y < simulationHeight * 2; y++){
     const simX = (x - simulationWidth) * ds * 0.5;
@@ -420,7 +428,7 @@ for(let x = 0; x < simulationWidth * 2; x++){
 // Charge blob in center
 
 // const charge_size = 1;
-// const charge_strength = 1;
+// const charge_strength = 5;
 // for(let x = 0; x < simulationWidth; x++){
 //   for(let y = 0; y < simulationHeight; y++){
 //     const simX = (x - simulationWidth * 0.5) * ds;
