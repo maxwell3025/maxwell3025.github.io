@@ -1,8 +1,8 @@
 (async () => {
 const simulationWidth = 256;
 const simulationHeight = 256;
-const displayWidth = simulationWidth;
-const displayHeight = simulationHeight;
+const displayWidth = simulationWidth*2;
+const displayHeight = simulationHeight*2;
 const ds = 0.1;
 const dt = ds * 0.25;
 const frameDelay = 50;
@@ -275,6 +275,7 @@ const fieldJY = new FloatTexture(simulationWidth, simulationHeight);
 const fieldJZ = new FloatTexture(simulationWidth, simulationHeight);
 const fieldFreq = new FloatTexture(simulationWidth, simulationHeight);
 const fieldPermittivity = new FloatTexture(simulationWidth * 2, simulationHeight * 2);
+const fieldPermeability = new FloatTexture(simulationWidth * 2, simulationHeight * 2);
 const fieldConductivity = new FloatTexture(simulationWidth * 2, simulationHeight * 2);
 
 const stepProgram = new RenderPipeline(await fetch("./step.fsh").then(x => x.text()), simulationWidth, simulationHeight);
@@ -293,6 +294,7 @@ const initialStateJY = new Float32Array(simulationWidth * simulationHeight).fill
 const initialStateJZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const initialStateFreq = new Float32Array(simulationWidth * simulationHeight).fill(0);
 const permittivityData = new Float32Array(simulationWidth * simulationHeight * 4).fill(1);
+const permeabilityData = new Float32Array(simulationWidth * simulationHeight * 4).fill(1);
 const conductivityData = new Float32Array(simulationWidth * simulationHeight * 4).fill(0);
 const chargeData = new Float32Array(simulationWidth * simulationHeight).fill(0);
 
@@ -357,21 +359,21 @@ const chargeData = new Float32Array(simulationWidth * simulationHeight).fill(0);
 
 // Line Source (x current)
 
-// const antenna_height = 4;
-// const antenna_length = 2;
-// const antenna_thickness = 0.25;
-// const antenna_strength = 10;
-// const antenna_frequency = 1;
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     const simX = (x - simulationWidth * 0.5) * ds;
-//     const simY = (y - simulationHeight * 0.5) * ds;
-//     if(Math.abs(simX) < antenna_length * 0.5 && Math.abs(simY + antenna_height) < antenna_thickness * 0.5){
-//       initialStateJX[x + y * simulationWidth] = antenna_strength;
-//       initialStateFreq[x + y * simulationWidth] = antenna_frequency;
-//     }
-//   }
-// }
+const antenna_height = 4;
+const antenna_length = 5;
+const antenna_thickness = 0.25;
+const antenna_strength = 10;
+const antenna_frequency = 2;
+for(let x = 0; x < simulationWidth; x++){
+  for(let y = 0; y < simulationHeight; y++){
+    const simX = (x - simulationWidth * 0.5) * ds;
+    const simY = (y - simulationHeight * 0.5) * ds;
+    if(Math.abs(simX) < antenna_length * 0.5 && Math.abs(simY + antenna_height) < antenna_thickness * 0.5){
+      initialStateJX[x + y * simulationWidth] = antenna_strength;
+      initialStateFreq[x + y * simulationWidth] = antenna_frequency;
+    }
+  }
+}
 
 // Circular lens to the right of the center
 
@@ -387,7 +389,7 @@ const chargeData = new Float32Array(simulationWidth * simulationHeight).fill(0);
 // Circular lens in the center
 
 // for(let x = 0; x < simulationWidth * 2; x++){
-//   for(let y = 0; y < simulationHeight * 2; y++){
+//   for(let y = 0; y < sinew RenderPipeline(await fetch("./step.fsh").then(x => x.text()), simulationWidth, simulationHeight);mulationHeight * 2; y++){
 //     const distSqr = sqr(x - simulationWidth) + sqr(y - simulationHeight);
 //     if(distSqr <= sqr(100)){
 //       permittivityData[x + y * simulationWidth * 2] = 0.9;
@@ -397,33 +399,33 @@ const chargeData = new Float32Array(simulationWidth * simulationHeight).fill(0);
 
 // Perfect GRIN lens in the center
 
-// const focalDist = 4;
-// const depth = 2;
-// const maxIndex = 2;
-// const lensRadius = Math.sqrt(sqr(maxIndex * depth + focalDist - depth) - sqr(focalDist));
-// for(let x = 0; x < simulationWidth * 2; x++){
-//   for(let y = 0; y < simulationHeight * 2; y++){
-//     const simX = (x - simulationWidth) * ds * 0.5;
-//     const simY = (y - 400) * ds * 0.5;
-//     if(Math.abs(simY) <= depth * 0.5 && Math.abs(simX) < lensRadius){
-//       permittivityData[x + y * simulationWidth * 2] = sqr(depth / (focalDist + maxIndex * depth - Math.sqrt(sqr(focalDist) + sqr(simX))));
-//     }
-//   }
-// }
-
-// Conductive cube in the center
-
-const cube_width = 4;
-const cube_conductivity = 1;
+const focalDist = 4;
+const depth = 2;
+const maxIndex = 2;
+const lensRadius = Math.sqrt(sqr(maxIndex * depth + focalDist - depth) - sqr(focalDist));
 for(let x = 0; x < simulationWidth * 2; x++){
   for(let y = 0; y < simulationHeight * 2; y++){
     const simX = (x - simulationWidth) * ds * 0.5;
     const simY = (y - simulationHeight) * ds * 0.5;
-    if(Math.abs(simY) <= cube_width / 2 && Math.abs(simX) < cube_width / 2){
-      conductivityData[x + y * simulationWidth * 2] = cube_conductivity;
+    if(Math.abs(simY) <= depth * 0.5 && Math.abs(simX) < lensRadius){
+      permittivityData[x + y * simulationWidth * 2] = sqr(depth / (focalDist + maxIndex * depth - Math.sqrt(sqr(focalDist) + sqr(simX))));
     }
   }
 }
+
+// Conductive cube in the center
+
+// const cube_width = 4;
+// const cube_conductivity = 1;
+// for(let x = 0; x < simulationWidth * 2; x++){
+//   for(let y = 0; y < simulationHeight * 2; y++){
+//     const simX = (x - simulationWidth) * ds * 0.5;
+//     const simY = (y - simulationHeight) * ds * 0.5;
+//     if(Math.abs(simY) <= cube_width / 2 && Math.abs(simX) < cube_width / 2){
+//       conductivityData[x + y * simulationWidth * 2] = cube_conductivity;
+//     }
+//   }
+// }
 
 // Charge blob in center
 
@@ -438,6 +440,10 @@ for(let x = 0; x < simulationWidth * 2; x++){
 //     }
 //   }
 // }
+
+const displayDField = new RenderPipeline(await fetch("./displayD.fsh").then(x => x.text()), displayWidth, displayHeight, null);
+const displayBField = new RenderPipeline(await fetch("./displayB.fsh").then(x => x.text()), displayWidth, displayHeight, null);
+
 fieldDX.setData(initialStateEX);
 fieldDY.setData(initialStateEY);
 fieldDZ.setData(initialStateEZ);
@@ -450,6 +456,7 @@ fieldJY.setData(initialStateJY);
 fieldJZ.setData(initialStateJZ);
 fieldFreq.setData(initialStateFreq);
 fieldPermittivity.setData(permittivityData);
+fieldPermeability.setData(permeabilityData);
 fieldConductivity.setData(conductivityData);
 
 let time = 0;
@@ -466,6 +473,28 @@ while(true){
   fieldBY.display(displayWidth, 0);
   fieldBZ.display(displayWidth * 2, 0);
   fieldCharge.display(displayWidth, displayHeight * 2);
+
+  //Display Displacement Field
+  displayDField.setSampler2D("d_x_tex", fieldDX.srcTexture);
+  displayDField.setSampler2D("d_y_tex", fieldDY.srcTexture);
+  displayDField.setSampler2D("d_z_tex", fieldDZ.srcTexture);
+  displayDField.setUniform1f("width", displayWidth);
+  displayDField.setUniform1f("height", displayHeight);
+  displayDField.setUniform1f("x", 0);
+  displayDField.setUniform1f("y", displayHeight * 2);
+  displayDField.setViewport(0, displayHeight * 2, displayWidth, displayHeight);
+  displayDField.execute();
+
+  //Display Displacement Field
+  displayBField.setSampler2D("b_x_tex", fieldBX.srcTexture);
+  displayBField.setSampler2D("b_y_tex", fieldBY.srcTexture);
+  displayBField.setSampler2D("b_z_tex", fieldBZ.srcTexture);
+  displayBField.setUniform1f("width", displayWidth);
+  displayBField.setUniform1f("height", displayHeight);
+  displayBField.setUniform1f("x", displayWidth * 2);
+  displayBField.setUniform1f("y", displayHeight * 2);
+  displayBField.setViewport(displayWidth * 2, displayHeight * 2, displayWidth, displayHeight);
+  displayBField.execute();
 
   //Crank the Nicholson
   for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
@@ -485,6 +514,7 @@ while(true){
     stepProgram.setSampler2D("b_z_tex_soln", fieldBZ.solnTexture);
     stepProgram.setSampler2D("charge_tex_soln", fieldCharge.solnTexture);
     stepProgram.setSampler2D("inv_permittivity_tex", fieldPermittivity);
+    stepProgram.setSampler2D("inv_permeability_tex", fieldPermeability);
     stepProgram.setSampler2D("j_x_tex", fieldJX);
     stepProgram.setSampler2D("j_y_tex", fieldJY);
     stepProgram.setSampler2D("j_z_tex", fieldJZ);

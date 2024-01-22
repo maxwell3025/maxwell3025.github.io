@@ -16,6 +16,7 @@ uniform sampler2D b_z_tex_soln;
 uniform sampler2D charge_tex_soln;
 
 uniform sampler2D inv_permittivity_tex;
+uniform sampler2D inv_permeability_tex;
 uniform sampler2D antenna_frequency;
 uniform sampler2D j_x_tex;
 uniform sampler2D j_y_tex;
@@ -92,6 +93,18 @@ float e_y(vec2 coord){
 
 float e_z(vec2 coord){
   return d_z(coord) * read_texture(inv_permittivity_tex, coord - vec2(0.25, 0.25));
+}
+
+float h_x(vec2 coord){
+  return b_x(coord) * read_texture(inv_permeability_tex, coord + vec2(-0.25, 0.25));
+}
+
+float h_y(vec2 coord){
+  return b_y(coord) * read_texture(inv_permeability_tex, coord + vec2(0.25, -0.25));
+}
+
+float h_z(vec2 coord){
+  return b_z(coord) * read_texture(inv_permeability_tex, coord + vec2(0.25, 0.25));
 }
 
 float charge(vec2 coord){
@@ -172,11 +185,11 @@ void main(){
   b_z_new = read_texture(b_z_tex, pos);
   charge_new = read_texture(charge_tex, pos);
 
-  d_y_new += dt * ds_inv * ( b_z(pos - vec2(1.0, 0.0)) - b_z(pos                 )                                                         );
+  d_y_new += dt * ds_inv * ( h_z(pos - vec2(1.0, 0.0)) - h_z(pos                 )                                                         );
   b_y_new += dt * ds_inv * ( e_z(pos + vec2(1.0, 0.0)) - e_z(pos                 )                                                         );
-  d_x_new += dt * ds_inv * ( b_z(pos                 ) - b_z(pos - vec2(0.0, 1.0))                                                         );
+  d_x_new += dt * ds_inv * ( h_z(pos                 ) - h_z(pos - vec2(0.0, 1.0))                                                         );
   b_x_new += dt * ds_inv * ( e_z(pos                 ) - e_z(pos + vec2(0.0, 1.0))                                                         );
-  d_z_new += dt * ds_inv * ( b_y(pos                 ) - b_y(pos - vec2(1.0, 0.0)) - b_x(pos                 ) + b_x(pos - vec2(0.0, 1.0)) );
+  d_z_new += dt * ds_inv * ( h_y(pos                 ) - h_y(pos - vec2(1.0, 0.0)) - h_x(pos                 ) + h_x(pos - vec2(0.0, 1.0)) );
   b_z_new += dt * ds_inv * ( e_y(pos                 ) + e_x(pos + vec2(0.0, 1.0)) - e_x(pos                 ) - e_y(pos + vec2(1.0, 0.0)) );
 
   d_x_new -= dt * j_x(pos);
