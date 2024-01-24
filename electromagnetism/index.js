@@ -8,6 +8,7 @@ const dt = ds * 0.25;
 const frameDelay = 50;
 const boundaryDepth = 1;
 const boundaryOpacity = 10;
+let running = true;
 
 const display = document.createElement("canvas");
 display.width = displayWidth * 3;
@@ -457,13 +458,7 @@ fieldInvPermittivity.setData(permittivityData);
 fieldInvPermeability.setData(permeabilityData);
 fieldConductivity.setData(conductivityData);
 
-let time = 0;
-const crankNicholsonIterCount = 4;
-while(true){
-  console.log(time);
-  const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
-
-  const timeA = Date.now();
+function displayFields(){
   fieldDX.display(0, displayHeight);
   fieldDY.display(displayWidth, displayHeight);
   fieldDZ.display(displayWidth * 2, displayHeight);
@@ -493,66 +488,83 @@ while(true){
   displayBField.setUniform1f("y", displayHeight * 2);
   displayBField.setViewport(displayWidth * 2, displayHeight * 2, displayWidth, displayHeight);
   displayBField.execute();
+}
 
-  //Crank the Nicholson
-  for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
-    //Link everything
-    stepProgram.setSampler2D("d_x_tex", fieldDX.srcTexture);
-    stepProgram.setSampler2D("d_y_tex", fieldDY.srcTexture);
-    stepProgram.setSampler2D("d_z_tex", fieldDZ.srcTexture);
-    stepProgram.setSampler2D("b_x_tex", fieldBX.srcTexture);
-    stepProgram.setSampler2D("b_y_tex", fieldBY.srcTexture);
-    stepProgram.setSampler2D("b_z_tex", fieldBZ.srcTexture);
-    stepProgram.setSampler2D("charge_tex", fieldCharge.srcTexture);
-    stepProgram.setSampler2D("d_x_tex_soln", fieldDX.solnTexture);
-    stepProgram.setSampler2D("d_y_tex_soln", fieldDY.solnTexture);
-    stepProgram.setSampler2D("d_z_tex_soln", fieldDZ.solnTexture);
-    stepProgram.setSampler2D("b_x_tex_soln", fieldBX.solnTexture);
-    stepProgram.setSampler2D("b_y_tex_soln", fieldBY.solnTexture);
-    stepProgram.setSampler2D("b_z_tex_soln", fieldBZ.solnTexture);
-    stepProgram.setSampler2D("charge_tex_soln", fieldCharge.solnTexture);
-    stepProgram.setSampler2D("inv_permittivity_tex", fieldInvPermittivity);
-    stepProgram.setSampler2D("inv_permeability_tex", fieldInvPermeability);
-    stepProgram.setSampler2D("j_x_tex", fieldJX);
-    stepProgram.setSampler2D("j_y_tex", fieldJY);
-    stepProgram.setSampler2D("j_z_tex", fieldJZ);
-    stepProgram.setSampler2D("conductivity_tex", fieldConductivity);
-    stepProgram.setSampler2D("antenna_frequency", fieldFreq);
+let time = 0;
+const crankNicholsonIterCount = 4;
+function stepSimulation(){
+    //Crank the Nicholson
+    for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
+      //Link everything
+      stepProgram.setSampler2D("d_x_tex", fieldDX.srcTexture);
+      stepProgram.setSampler2D("d_y_tex", fieldDY.srcTexture);
+      stepProgram.setSampler2D("d_z_tex", fieldDZ.srcTexture);
+      stepProgram.setSampler2D("b_x_tex", fieldBX.srcTexture);
+      stepProgram.setSampler2D("b_y_tex", fieldBY.srcTexture);
+      stepProgram.setSampler2D("b_z_tex", fieldBZ.srcTexture);
+      stepProgram.setSampler2D("charge_tex", fieldCharge.srcTexture);
+      stepProgram.setSampler2D("d_x_tex_soln", fieldDX.solnTexture);
+      stepProgram.setSampler2D("d_y_tex_soln", fieldDY.solnTexture);
+      stepProgram.setSampler2D("d_z_tex_soln", fieldDZ.solnTexture);
+      stepProgram.setSampler2D("b_x_tex_soln", fieldBX.solnTexture);
+      stepProgram.setSampler2D("b_y_tex_soln", fieldBY.solnTexture);
+      stepProgram.setSampler2D("b_z_tex_soln", fieldBZ.solnTexture);
+      stepProgram.setSampler2D("charge_tex_soln", fieldCharge.solnTexture);
+      stepProgram.setSampler2D("inv_permittivity_tex", fieldInvPermittivity);
+      stepProgram.setSampler2D("inv_permeability_tex", fieldInvPermeability);
+      stepProgram.setSampler2D("j_x_tex", fieldJX);
+      stepProgram.setSampler2D("j_y_tex", fieldJY);
+      stepProgram.setSampler2D("j_z_tex", fieldJZ);
+      stepProgram.setSampler2D("conductivity_tex", fieldConductivity);
+      stepProgram.setSampler2D("antenna_frequency", fieldFreq);
 
-    stepProgram.bindOutput("d_x_new", fieldDX.destTexture);
-    stepProgram.bindOutput("d_y_new", fieldDY.destTexture);
-    stepProgram.bindOutput("d_z_new", fieldDZ.destTexture);
-    stepProgram.bindOutput("b_x_new", fieldBX.destTexture);
-    stepProgram.bindOutput("b_y_new", fieldBY.destTexture);
-    stepProgram.bindOutput("b_z_new", fieldBZ.destTexture);
-    stepProgram.bindOutput("charge_new", fieldCharge.destTexture);
+      stepProgram.bindOutput("d_x_new", fieldDX.destTexture);
+      stepProgram.bindOutput("d_y_new", fieldDY.destTexture);
+      stepProgram.bindOutput("d_z_new", fieldDZ.destTexture);
+      stepProgram.bindOutput("b_x_new", fieldBX.destTexture);
+      stepProgram.bindOutput("b_y_new", fieldBY.destTexture);
+      stepProgram.bindOutput("b_z_new", fieldBZ.destTexture);
+      stepProgram.bindOutput("charge_new", fieldCharge.destTexture);
 
-    stepProgram.setUniform1f("width", simulationWidth);
-    stepProgram.setUniform1f("height", simulationHeight);
-    stepProgram.setUniform1f("dt", dt);
-    stepProgram.setUniform1f("ds_inv", 1 / ds);
-    stepProgram.setUniform1f("ds", ds);
-    stepProgram.setUniform1f("time", time);
-    stepProgram.setUniform1f("boundary_thickness", boundaryDepth / ds);
-    stepProgram.setUniform1f("boundary_opacity", 2 * boundaryOpacity * ds / boundaryDepth);
+      stepProgram.setUniform1f("width", simulationWidth);
+      stepProgram.setUniform1f("height", simulationHeight);
+      stepProgram.setUniform1f("dt", dt);
+      stepProgram.setUniform1f("ds_inv", 1 / ds);
+      stepProgram.setUniform1f("ds", ds);
+      stepProgram.setUniform1f("time", time);
+      stepProgram.setUniform1f("boundary_thickness", boundaryDepth / ds);
+      stepProgram.setUniform1f("boundary_opacity", 2 * boundaryOpacity * ds / boundaryDepth);
 
-    stepProgram.execute();
+      stepProgram.execute();
 
-    fieldDX.swapCNIter();
-    fieldDY.swapCNIter();
-    fieldDZ.swapCNIter();
-    fieldBX.swapCNIter();
-    fieldBY.swapCNIter();
-    fieldBZ.swapCNIter();
-    fieldCharge.swapCNIter();
+      fieldDX.swapCNIter();
+      fieldDY.swapCNIter();
+      fieldDZ.swapCNIter();
+      fieldBX.swapCNIter();
+      fieldBY.swapCNIter();
+      fieldBZ.swapCNIter();
+      fieldCharge.swapCNIter();
+    }
+    fieldDX.swap();
+    fieldDY.swap();
+    fieldDZ.swap();
+    fieldBX.swap();
+    fieldBY.swap();
+    fieldBZ.swap();
+    fieldCharge.swap();
+}
+
+while(true){
+  console.log(time);
+  const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
+  const timeA = Date.now();
+
+  displayFields();
+  if(running){
+    stepSimulation();
   }
-  fieldDX.swap();
-  fieldDY.swap();
-  fieldDZ.swap();
-  fieldBX.swap();
-  fieldBY.swap();
-  fieldBZ.swap();
-  fieldCharge.swap();
+  gl.finish();
+
   const timeB = Date.now();
   console.log(timeB - timeA);
   time += dt;
