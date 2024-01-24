@@ -38,9 +38,9 @@ vec3 linearToSRGB(vec3 linear){
 
 void main() {
   vec2 pos = gl_FragCoord.xy - vec2(x, y);
-  vec3 d = vec3(0.5, 0.5, 0.5);
-  d.x += readSampler(b_x_tex, pos - vec2(1.0, 0.0));
-  d.y += readSampler(b_y_tex, pos - vec2(0.0, 1.0));
-  d.z += readSampler(b_z_tex, pos - vec2(1.0, 1.0));
-  fragColor = vec4(linearToSRGB(d), 1.0);
+  vec3 b = vec3(0.5, 0.5, 0.5);
+  b.x += readSampler(b_x_tex, pos - vec2(-1.0,  1.0));
+  b.y += readSampler(b_y_tex, pos - vec2( 1.0, -1.0));
+  b.z += readSampler(b_z_tex, pos - vec2( 1.0,  1.0));
+  fragColor = vec4(linearToSRGB(b), 1.0);
 }
