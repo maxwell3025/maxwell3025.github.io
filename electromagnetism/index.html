@@ -7,5 +7,18 @@
         <script src="index.js" defer></script>
     </head>
     <body>
+        <select id="viewTypeSelector">
+            <option value="d">Electric Displacement Field</option>
+            <option value="dx">Electric Displacement Field X</option>
+            <option value="dy">Electric Displacement Field Y</option>
+            <option value="dz">Electric Displacement Field Z</option>
+            <option value="b">Magnetic Field</option>
+            <option value="bx">Magnetic Field X</option>
+            <option value="by">Magnetic Field Y</option>
+            <option value="bz">Magnetic Field Z</option>
+            <option value="charge">Charge Density</option>
+        </select>
+        <input type="range" min="1" max="1000" value="50" id="widthSlider">
+        <input type="range" min="1" max="1000" value="50" id="heightSlider">
     </body>
 </html>
