@@ -599,12 +599,12 @@ while(true){
   displayFields();
   if(running){
     stepSimulation();
+    time += dt;
   }
   gl.finish();
 
   const timeB = Date.now();
   console.log(timeB - timeA);
-  time += dt;
   await frameEnd;
 }
 })()
