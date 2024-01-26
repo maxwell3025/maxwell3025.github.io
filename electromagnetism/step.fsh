@@ -15,13 +15,21 @@ uniform sampler2D b_y_tex_soln;
 uniform sampler2D b_z_tex_soln;
 uniform sampler2D charge_tex_soln;
 
-uniform sampler2D inv_permittivity_tex;
-uniform sampler2D inv_permeability_tex;
+uniform sampler2D inv_permittivity_x_tex;
+uniform sampler2D inv_permittivity_y_tex;
+uniform sampler2D inv_permittivity_z_tex;
+
+uniform sampler2D inv_permeability_x_tex;
+uniform sampler2D inv_permeability_y_tex;
+uniform sampler2D inv_permeability_z_tex;
+
 uniform sampler2D antenna_frequency;
 uniform sampler2D j_x_tex;
 uniform sampler2D j_y_tex;
 uniform sampler2D j_z_tex;
-uniform sampler2D conductivity_tex;
+uniform sampler2D conductivity_x_tex;
+uniform sampler2D conductivity_y_tex;
+uniform sampler2D conductivity_z_tex;
 
 uniform float width;
 uniform float height;
@@ -84,27 +92,27 @@ float b_z(vec2 coord){
 }
 
 float e_x(vec2 coord){
-  return d_x(coord) * read_texture(inv_permittivity_tex, coord + vec2(0.25, -0.25));
+  return d_x(coord) * read_texture(inv_permittivity_x_tex, coord);
 }
 
 float e_y(vec2 coord){
-  return d_y(coord) * read_texture(inv_permittivity_tex, coord + vec2(-0.25, 0.25));
+  return d_y(coord) * read_texture(inv_permittivity_y_tex, coord);
 }
 
 float e_z(vec2 coord){
-  return d_z(coord) * read_texture(inv_permittivity_tex, coord - vec2(0.25, 0.25));
+  return d_z(coord) * read_texture(inv_permittivity_z_tex, coord);
 }
 
 float h_x(vec2 coord){
-  return b_x(coord) * read_texture(inv_permeability_tex, coord + vec2(-0.25, 0.25));
+  return b_x(coord) * read_texture(inv_permeability_x_tex, coord);
 }
 
 float h_y(vec2 coord){
-  return b_y(coord) * read_texture(inv_permeability_tex, coord + vec2(0.25, -0.25));
+  return b_y(coord) * read_texture(inv_permeability_y_tex, coord);
 }
 
 float h_z(vec2 coord){
-  return b_z(coord) * read_texture(inv_permeability_tex, coord + vec2(0.25, 0.25));
+  return b_z(coord) * read_texture(inv_permeability_z_tex, coord);
 }
 
 float charge(vec2 coord){
@@ -129,19 +137,19 @@ float fermi_level_difference(vec2 coord){
 
 float j_x(vec2 coord){
   return 
-    (e_x(coord) - (fermi_level_difference(coord + vec2(1.0, 0.0)) - fermi_level_difference(coord)) * ds_inv) * read_texture(conductivity_tex, coord + vec2(0.25, -0.25))
+    (e_x(coord) - (fermi_level_difference(coord + vec2(1.0, 0.0)) - fermi_level_difference(coord)) * ds_inv) * read_texture(conductivity_x_tex, coord)
     + read_texture(j_x_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
 }
 
 float j_y(vec2 coord){
   return 
-    (e_y(coord) - (fermi_level_difference(coord + vec2(0.0, 1.0)) - fermi_level_difference(coord)) * ds_inv) * read_texture(conductivity_tex, coord + vec2(-0.25, 0.25))
+    (e_y(coord) - (fermi_level_difference(coord + vec2(0.0, 1.0)) - fermi_level_difference(coord)) * ds_inv) * read_texture(conductivity_y_tex, coord)
     + read_texture(j_y_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
 }
 
 float j_z(vec2 coord){
   return 
-    e_z(coord) * read_texture(conductivity_tex, coord - vec2(0.25, 0.25))
+    e_z(coord) * read_texture(conductivity_z_tex, coord)
     + read_texture(j_z_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
 }
 
