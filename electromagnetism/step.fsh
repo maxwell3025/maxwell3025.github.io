@@ -153,7 +153,6 @@ float j_z(vec2 coord){
     + read_texture(j_z_tex, coord) * cos(time * read_texture(antenna_frequency, coord));
 }
 
-// TODO implement charge
 // Returns the residual amount of E field divergence at the location of e_z in the current cell
 float d_div_residual(vec2 coord){
   return ds_inv * (

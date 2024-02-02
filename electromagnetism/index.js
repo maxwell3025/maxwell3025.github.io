@@ -1,15 +1,8 @@
 (async () => {
-const simulationWidth = 16;
-const simulationHeight = 16;
-const displayWidth = simulationWidth*4;
-const displayHeight = simulationHeight*4;
-const ds = 0.5;
-const dt = ds * 0.05;
 const frameDelay = 50;
-const boundaryDepth = 1;
-const boundaryOpacity = 10;
 
-let running = true;
+let running = false;
+
 document.addEventListener("keydown", e => {
   if(e.key === " "){
     running = !running;
@@ -23,9 +16,8 @@ document.addEventListener("keydown", e => {
 const viewTypeSelector = document.getElementById("viewTypeSelector")
 
 const display = document.createElement("canvas");
-display.width = displayWidth;
-display.height = displayHeight;
 display.style.imageRendering = "pixelated";
+display.hidden = true;
 document.body.appendChild(display);
 
 const gl = display.getContext("webgl2", {powerPreference: "high-performance"})
@@ -141,7 +133,6 @@ class RenderPipeline{
   }
 }
 
-const displayProgramPipeline = new RenderPipeline(await fetch("./display.fsh").then(x => x.text()), displayWidth, displayHeight, null);
 
 let currentBinding = 0;
 class FloatTexture{
@@ -217,36 +208,29 @@ class FloatTexture{
     gl.uniform1i(texUniformLocation, this.binding);
   }
 
-  display(x, y){
-    gl.viewport(x, y, displayWidth, displayHeight);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    gl.useProgram(displayProgram);
-    const widthUniformLocation = gl.getUniformLocation(displayProgram, "width");
-    const heightUniformLocation = gl.getUniformLocation(displayProgram, "height");
-    const xUniformLocation = gl.getUniformLocation(displayProgram, "x");
-    const yUniformLocation = gl.getUniformLocation(displayProgram, "y");
-    gl.uniform1f(widthUniformLocation, displayWidth);
-    gl.uniform1f(heightUniformLocation, displayHeight);
-    gl.uniform1f(xUniformLocation, x);
-    gl.uniform1f(yUniformLocation, y);
-    this.link(displayProgram, "tex0")
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    const aVertexPosition = gl.getAttribLocation(displayProgram, "vertex_position");
-    gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aVertexPosition);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    gl.useProgram(null);
+  display(x, y, program){
+    program.setSampler2D("tex0", this);
+    program.setUniform1f("width", this.width * 4);
+    program.setUniform1f("height", this.height * 4);
+    program.setUniform1f("x", x);
+    program.setUniform1f("y", y);
+    program.execute();
   }
 }
+
 class Field{
   srcTexture;
   destTexture;
   solnTexture;
+  width;
+  height;
 
-  constructor(){
-    this.srcTexture = new FloatTexture(simulationWidth, simulationHeight);
-    this.destTexture = new FloatTexture(simulationWidth, simulationHeight);
-    this.solnTexture = new FloatTexture(simulationWidth, simulationHeight);
+  constructor(width, height){
+    this.srcTexture = new FloatTexture(width, height);
+    this.destTexture = new FloatTexture(width, height);
+    this.solnTexture = new FloatTexture(width, height);
+    this.width = width;
+    this.height = height;
   }
 
   setData(data){
@@ -263,366 +247,269 @@ class Field{
     [this.solnTexture, this.destTexture] = [this.destTexture, this.solnTexture];
   }
 
-  display(x, y){
-    displayProgramPipeline.setSampler2D("tex0", this.srcTexture);
-    displayProgramPipeline.setUniform1f("width", displayWidth);
-    displayProgramPipeline.setUniform1f("height", displayHeight);
-    displayProgramPipeline.setUniform1f("x", x);
-    displayProgramPipeline.setUniform1f("y", y);
-    displayProgramPipeline.execute();
+  display(x, y, program){
+    program.setSampler2D("tex0", this.srcTexture);
+    program.setUniform1f("width", this.width * 4);
+    program.setUniform1f("height", this.height * 4);
+    program.setUniform1f("x", x);
+    program.setUniform1f("y", y);
+    program.execute();
   }
 }
-const fieldDX = new Field();
-const fieldDY = new Field();
-const fieldDZ = new Field();
-const fieldBX = new Field();
-const fieldBY = new Field();
-const fieldBZ = new Field();
-const fieldCharge = new Field(simulationWidth, simulationHeight);
-const fieldJX = new FloatTexture(simulationWidth, simulationHeight);
-const fieldJY = new FloatTexture(simulationWidth, simulationHeight);
-const fieldJZ = new FloatTexture(simulationWidth, simulationHeight);
-const fieldFreq = new FloatTexture(simulationWidth, simulationHeight);
-const fieldInvPermittivityX = new FloatTexture(simulationWidth, simulationHeight);
-const fieldInvPermittivityY = new FloatTexture(simulationWidth, simulationHeight);
-const fieldInvPermittivityZ = new FloatTexture(simulationWidth, simulationHeight);
-const fieldInvPermeabilityX = new FloatTexture(simulationWidth, simulationHeight);
-const fieldInvPermeabilityY = new FloatTexture(simulationWidth, simulationHeight);
-const fieldInvPermeabilityZ = new FloatTexture(simulationWidth, simulationHeight);
-const fieldConductivityX = new FloatTexture(simulationWidth, simulationHeight);
-const fieldConductivityY = new FloatTexture(simulationWidth, simulationHeight);
-const fieldConductivityZ = new FloatTexture(simulationWidth, simulationHeight);
 
-const stepProgram = new RenderPipeline(await fetch("./step.fsh").then(x => x.text()), simulationWidth, simulationHeight);
+const crankNicholsonIterCount = 4;
 
-const initialStateEX = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateEY = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateEZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateBX = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateBY = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateBZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateJX = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateJY = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateJZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const initialStateFreq = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const permittivityDataX = new Float32Array(simulationWidth * simulationHeight).fill(1);
-const permittivityDataY = new Float32Array(simulationWidth * simulationHeight).fill(1);
-const permittivityDataZ = new Float32Array(simulationWidth * simulationHeight).fill(1);
-const permeabilityDataX = new Float32Array(simulationWidth * simulationHeight).fill(1);
-const permeabilityDataY = new Float32Array(simulationWidth * simulationHeight).fill(1);
-const permeabilityDataZ = new Float32Array(simulationWidth * simulationHeight).fill(1);
-const conductivityDataX = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const conductivityDataY = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const conductivityDataZ = new Float32Array(simulationWidth * simulationHeight).fill(0);
-const chargeData = new Float32Array(simulationWidth * simulationHeight).fill(0);
+class SimulationInstance{
+  fieldDX;
+  fieldDY;
+  fieldDZ;
+  fieldBX;
+  fieldBY;
+  fieldBZ;
+  fieldCharge;
+  fieldJX;
+  fieldJY;
+  fieldJZ;
+  fieldFreq;
+  fieldInvPermittivityX;
+  fieldInvPermittivityY;
+  fieldInvPermittivityZ;
+  fieldInvPermeabilityX;
+  fieldInvPermeabilityY;
+  fieldInvPermeabilityZ;
+  fieldConductivityX;
+  fieldConductivityY;
+  fieldConductivityZ;
 
-function sqr(x){
-  return x * x;
-}
+  /** @type {number} */
+  width;
+  /** @type {number} */
+  height;
 
-// Unsupported Charge
+  ds;
+  dt;
+  boundaryDepth;
+  boundaryOpacity;
 
-// const charge_amount = 1;
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     const simXX = (x - simulationWidth * 0.5 + 0.5) * ds;
-//     const simYX = (y - simulationHeight * 0.5) * ds;
-//     const simXY = (x - simulationWidth * 0.5) * ds;
-//     const simYY = (y - simulationHeight * 0.5 + 0.5) * ds;
-//     initialStateEX[x + y * simulationWidth] = (simXX) / (sqr(simXX) + sqr(simYX)) * charge_amount;
-//     initialStateEY[x + y * simulationWidth] = (simYY) / (sqr(simXY) + sqr(simYY)) * charge_amount;
-//   }
-// }
+  time = 0;
 
-// Magnetic pulse
+  /** @type {RenderPipeline} */
+  displayProgramPipeline;
+  /** @type {RenderPipeline} */
+  stepProgram;
+  /** @type {RenderPipeline} */
+  displayDField;
+  /** @type {RenderPipeline} */
+  displayBField;
 
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     const distSqr = sqr(x-99.5) + sqr(y-99.5);
-//     if(distSqr <= 100){
-//       initialStateBZ[x + y * simulationWidth] = (100 - distSqr) * 0.01;
-//     }
-//   }
-// }
+  constructor(width, height){
+    this.width = width;
+    this.height = height;
 
-// Sharp magnetic pulse
+    this.ds = 0.1;
+    this.dt = 0.01;
 
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
-//     if(distSqr <= 100){
-//       initialStateBZ[x + y * simulationWidth] = 1.0;
-//     }
-//   }
-// }
+    this.boundaryDepth = 0.2;
+    this.boundaryOpacity = 10;
 
-// Emitter at the center
+    this.fieldDX = new Field(this.width, this.height);
+    this.fieldDY = new Field(this.width, this.height);
+    this.fieldDZ = new Field(this.width, this.height);
+    this.fieldBX = new Field(this.width, this.height);
+    this.fieldBY = new Field(this.width, this.height);
+    this.fieldBZ = new Field(this.width, this.height);
+    this.fieldCharge = new Field(this.width, this.height);
+    this.fieldJX = new FloatTexture(this.width, this.height);
+    this.fieldJY = new FloatTexture(this.width, this.height);
+    this.fieldJZ = new FloatTexture(this.width, this.height);
+    this.fieldFreq = new FloatTexture(this.width, this.height);
+    this.fieldInvPermittivityX = new FloatTexture(this.width, this.height);
+    this.fieldInvPermittivityY = new FloatTexture(this.width, this.height);
+    this.fieldInvPermittivityZ = new FloatTexture(this.width, this.height);
+    this.fieldInvPermeabilityX = new FloatTexture(this.width, this.height);
+    this.fieldInvPermeabilityY = new FloatTexture(this.width, this.height);
+    this.fieldInvPermeabilityZ = new FloatTexture(this.width, this.height);
+    this.fieldConductivityX = new FloatTexture(this.width, this.height);
+    this.fieldConductivityY = new FloatTexture(this.width, this.height);
+    this.fieldConductivityZ = new FloatTexture(this.width, this.height);
 
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     const distSqr = sqr(x - simulationWidth * 0.5) + sqr(y - simulationHeight * 0.5);
-//     if(distSqr <= 4){
-//       initialStateJZ[x + y * simulationWidth] = 500.0;
-//       initialStateFreq[x + y * simulationWidth] = 100.0;
-//     }
-//   }
-// }
 
-// Line Source
+    // Populate textures
 
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     if(y == 100){
-//       initialStateJZ[x + y * simulationWidth] = 5.0;
-//       initialStateFreq[x + y * simulationWidth] = 2.0;
-//     }
-//   }
-// }
+    const zeroesArray = new Float32Array(width * height).fill(0);
+    const onesArray = new Float32Array(width * height).fill(1);
 
-// Line Source (x current)
+    this.fieldDX.setData(zeroesArray);
+    this.fieldDY.setData(zeroesArray);
+    this.fieldDZ.setData(zeroesArray);
+    this.fieldBX.setData(zeroesArray);
+    this.fieldBY.setData(zeroesArray);
+    this.fieldBZ.setData(zeroesArray);
+    this.fieldCharge.setData(zeroesArray);
+    this.fieldJX.setData(zeroesArray);
+    this.fieldJY.setData(zeroesArray);
+    this.fieldJZ.setData(zeroesArray);
+    this.fieldFreq.setData(zeroesArray);
+    this.fieldInvPermittivityX.setData(onesArray);
+    this.fieldInvPermittivityY.setData(onesArray);
+    this.fieldInvPermittivityZ.setData(onesArray);
+    this.fieldInvPermeabilityX.setData(onesArray);
+    this.fieldInvPermeabilityY.setData(onesArray);
+    this.fieldInvPermeabilityZ.setData(onesArray);
+    this.fieldConductivityX.setData(zeroesArray);
+    this.fieldConductivityY.setData(zeroesArray);
+    this.fieldConductivityZ.setData(zeroesArray);
+  }
 
-const antenna_height = 0;
-const antenna_length = 4;
-const antenna_thickness = 0.5;
-const antenna_strength = 10;
-const antenna_frequency = 1;
-for(let x = 0; x < simulationWidth; x++){
-  for(let y = 0; y < simulationHeight; y++){
-    const simX = (x - simulationWidth * 0.5) * ds;
-    const simY = (y - simulationHeight * 0.5) * ds;
-    if(Math.abs(simX) < antenna_length * 0.5 && Math.abs(simY + antenna_height) < antenna_thickness * 0.5){
-      initialStateJX[x + y * simulationWidth] = antenna_strength;
-      initialStateFreq[x + y * simulationWidth] = antenna_frequency;
+  async init(){
+    this.displayProgramPipeline = new RenderPipeline(await fetch("./display.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
+    this.displayDField = new RenderPipeline(await fetch("./displayD.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
+    this.displayBField = new RenderPipeline(await fetch("./displayB.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
+    this.stepProgram = new RenderPipeline(await fetch("./step.fsh").then(x => x.text()), this.width, this.height);
+
+    display.width = width * 4;
+    display.height = height * 4;
+    display.hidden = false;
+  }
+
+  displayFields(){
+    switch(viewTypeSelector.value){
+      case "d":
+        this.displayDField.setSampler2D("d_x_tex", this.fieldDX.srcTexture);
+        this.displayDField.setSampler2D("d_y_tex", this.fieldDY.srcTexture);
+        this.displayDField.setSampler2D("d_z_tex", this.fieldDZ.srcTexture);
+        this.displayDField.setUniform1f("width", this.width * 4);
+        this.displayDField.setUniform1f("height", this.height * 4);
+        this.displayDField.setUniform1f("x", 0);
+        this.displayDField.setUniform1f("y", 0);
+        this.displayDField.execute();
+        break;
+
+      case "dx":
+        this.fieldDX.display(1, -1, this.displayProgramPipeline);
+        break;
+
+      case "dy":
+        this.fieldDY.display(-1, 1, this.displayProgramPipeline);
+        break;
+
+      case "dz":
+        this.fieldDZ.display(-1, -1, this.displayProgramPipeline);
+        break;
+      
+      case "b":
+        this.displayBField.setSampler2D("b_x_tex", this.fieldBX.srcTexture);
+        this.displayBField.setSampler2D("b_y_tex", this.fieldBY.srcTexture);
+        this.displayBField.setSampler2D("b_z_tex", this.fieldBZ.srcTexture);
+        this.displayBField.setUniform1f("width", this.width);
+        this.displayBField.setUniform1f("height", this.height);
+        this.displayBField.setUniform1f("x", 0);
+        this.displayBField.setUniform1f("y", 0);
+        this.displayBField.execute();
+        break;
+
+      case "bx":
+        this.fieldBX.display(-1, 1, this.displayProgramPipeline);
+        break;
+
+      case "by":
+        this.fieldBY.display(1, -1, this.displayProgramPipeline);
+        break;
+
+      case "bz":
+        this.fieldBZ.display(1, 1, this.displayProgramPipeline);
+        break;
+
+      case "charge":
+        this.fieldCharge.display(-1, -1, this.displayProgramPipeline);
+        break;
+
+      default:
+        alert("ERROR unimplemented view type!");
     }
   }
-}
 
-// Circular lens to the right of the center
-
-// for(let x = 0; x < simulationWidth * 2; x++){
-//   for(let y = 0; y < simulationHeight * 2; y++){
-//     const distSqr = sqr(x - simulationWidth * 1.5) + sqr(y - simulationHeight);
-//     if(distSqr <= 2500){
-//       permittivityData[x + y * simulationWidth * 2] = 0.9;
-//     }
-//   }
-// }
-
-// Circular lens in the center
-
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     const distSqr = sqr(x - simulationWidth) + sqr(y - simulationHeight);
-//     if(distSqr <= sqr(100)){
-//       permittivityDataX[x + y * simulationWidth * 2] = 0.9;
-//     }
-//   }
-// }
-
-// Perfect GRIN lens in the center
-
-// const focalDist = 10;
-// const depth = 1;
-// const maxIndex = 1.3;
-// const lensRadius = Math.sqrt(sqr(maxIndex * depth + focalDist - depth) - sqr(focalDist));
-// for(let x = 0; x < simulationWidth * 2; x++){
-//   for(let y = 0; y < simulationHeight * 2; y++){
-//     const simX = (x - simulationWidth) * ds * 0.5;
-//     const simY = (y - simulationHeight) * ds * 0.5;
-//     if(Math.abs(simY) <= depth * 0.5 && Math.abs(simX) < lensRadius){
-//       permittivityData[x + y * simulationWidth * 2] = sqr(depth / (focalDist + maxIndex * depth - Math.sqrt(sqr(focalDist) + sqr(simX))));
-//     }
-//   }
-// }
-
-// Conductive cube in the center
-
-// const cube_width = 4;
-// const cube_conductivity = 1;
-// for(let x = 0; x < simulationWidth * 2; x++){
-//   for(let y = 0; y < simulationHeight * 2; y++){
-//     const simX = (x - simulationWidth) * ds * 0.5;
-//     const simY = (y - simulationHeight) * ds * 0.5;
-//     if(Math.abs(simY) <= cube_width / 2 && Math.abs(simX) < cube_width / 2){
-//       conductivityData[x + y * simulationWidth * 2] = cube_conductivity;
-//     }
-//   }
-// }
-
-// Charge blob in center
-
-// const charge_size = 1;
-// const charge_strength = 5;
-// for(let x = 0; x < simulationWidth; x++){
-//   for(let y = 0; y < simulationHeight; y++){
-//     const simX = (x - simulationWidth * 0.5) * ds;
-//     const simY = (y - simulationHeight * 0.5) * ds;
-//     if(Math.abs(simY) <= charge_size / 2 && Math.abs(simX) < charge_size / 2){
-//       chargeData[x + y * simulationWidth] = charge_strength;
-//     }
-//   }
-// }
-
-const displayDField = new RenderPipeline(await fetch("./displayD.fsh").then(x => x.text()), displayWidth, displayHeight, null);
-const displayBField = new RenderPipeline(await fetch("./displayB.fsh").then(x => x.text()), displayWidth, displayHeight, null);
-
-fieldDX.setData(initialStateEX);
-fieldDY.setData(initialStateEY);
-fieldDZ.setData(initialStateEZ);
-fieldBX.setData(initialStateBX);
-fieldBY.setData(initialStateBY);
-fieldBZ.setData(initialStateBZ);
-fieldCharge.setData(chargeData);
-fieldJX.setData(initialStateJX);
-fieldJY.setData(initialStateJY);
-fieldJZ.setData(initialStateJZ);
-fieldFreq.setData(initialStateFreq);
-fieldInvPermittivityX.setData(permittivityDataX);
-fieldInvPermittivityY.setData(permittivityDataY);
-fieldInvPermittivityZ.setData(permittivityDataZ);
-fieldInvPermeabilityX.setData(permeabilityDataX);
-fieldInvPermeabilityY.setData(permeabilityDataY);
-fieldInvPermeabilityZ.setData(permeabilityDataZ);
-fieldConductivityX.setData(conductivityDataX);
-fieldConductivityY.setData(conductivityDataY);
-fieldConductivityZ.setData(conductivityDataZ);
-
-function displayFields(){
-  switch(viewTypeSelector.value){
-    case "d":
-      displayDField.setSampler2D("d_x_tex", fieldDX.srcTexture);
-      displayDField.setSampler2D("d_y_tex", fieldDY.srcTexture);
-      displayDField.setSampler2D("d_z_tex", fieldDZ.srcTexture);
-      displayDField.setUniform1f("width", displayWidth);
-      displayDField.setUniform1f("height", displayHeight);
-      displayDField.setUniform1f("x", 0);
-      displayDField.setUniform1f("y", 0);
-      displayDField.execute();
-      break;
-
-    case "dx":
-      fieldDX.display(1, -1);
-      break;
-
-    case "dy":
-      fieldDY.display(-1, 1);
-      break;
-
-    case "dz":
-      fieldDZ.display(-1, -1);
-      break;
-    
-    case "b":
-      displayBField.setSampler2D("b_x_tex", fieldBX.srcTexture);
-      displayBField.setSampler2D("b_y_tex", fieldBY.srcTexture);
-      displayBField.setSampler2D("b_z_tex", fieldBZ.srcTexture);
-      displayBField.setUniform1f("width", displayWidth);
-      displayBField.setUniform1f("height", displayHeight);
-      displayBField.setUniform1f("x", 0);
-      displayBField.setUniform1f("y", 0);
-      displayBField.execute();
-      break;
-
-    case "bx":
-      fieldBX.display(-1, 1);
-      break;
-
-    case "by":
-      fieldBY.display(1, -1);
-      break;
-
-    case "bz":
-      fieldBZ.display(1, 1);
-      break;
-
-    case "charge":
-      fieldCharge.display(-1, -1);
-      break;
-
-    default:
-      alert("ERROR unimplemented view type!");
-  }
-}
-
-let time = 0;
-const crankNicholsonIterCount = 4;
-function stepSimulation(){
+  stepSimulation(){
+    console.log(this.time);
     //Crank the Nicholson
     for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
       //Link everything
-      stepProgram.setSampler2D("d_x_tex", fieldDX.srcTexture);
-      stepProgram.setSampler2D("d_y_tex", fieldDY.srcTexture);
-      stepProgram.setSampler2D("d_z_tex", fieldDZ.srcTexture);
-      stepProgram.setSampler2D("b_x_tex", fieldBX.srcTexture);
-      stepProgram.setSampler2D("b_y_tex", fieldBY.srcTexture);
-      stepProgram.setSampler2D("b_z_tex", fieldBZ.srcTexture);
-      stepProgram.setSampler2D("charge_tex", fieldCharge.srcTexture);
-      stepProgram.setSampler2D("d_x_tex_soln", fieldDX.solnTexture);
-      stepProgram.setSampler2D("d_y_tex_soln", fieldDY.solnTexture);
-      stepProgram.setSampler2D("d_z_tex_soln", fieldDZ.solnTexture);
-      stepProgram.setSampler2D("b_x_tex_soln", fieldBX.solnTexture);
-      stepProgram.setSampler2D("b_y_tex_soln", fieldBY.solnTexture);
-      stepProgram.setSampler2D("b_z_tex_soln", fieldBZ.solnTexture);
-      stepProgram.setSampler2D("charge_tex_soln", fieldCharge.solnTexture);
-      stepProgram.setSampler2D("inv_permittivity_x_tex", fieldInvPermittivityX);
-      stepProgram.setSampler2D("inv_permittivity_y_tex", fieldInvPermittivityY);
-      stepProgram.setSampler2D("inv_permittivity_z_tex", fieldInvPermittivityZ);
-      stepProgram.setSampler2D("inv_permeability_x_tex", fieldInvPermeabilityX);
-      stepProgram.setSampler2D("inv_permeability_y_tex", fieldInvPermeabilityY);
-      stepProgram.setSampler2D("inv_permeability_z_tex", fieldInvPermeabilityZ);
-      stepProgram.setSampler2D("j_x_tex", fieldJX);
-      stepProgram.setSampler2D("j_y_tex", fieldJY);
-      stepProgram.setSampler2D("j_z_tex", fieldJZ);
-      stepProgram.setSampler2D("conductivity_x_tex", fieldConductivityX);
-      stepProgram.setSampler2D("conductivity_y_tex", fieldConductivityY);
-      stepProgram.setSampler2D("conductivity_z_tex", fieldConductivityZ);
-      stepProgram.setSampler2D("antenna_frequency", fieldFreq);
+      this.stepProgram.setSampler2D("d_x_tex", this.fieldDX.srcTexture);
+      this.stepProgram.setSampler2D("d_y_tex", this.fieldDY.srcTexture);
+      this.stepProgram.setSampler2D("d_z_tex", this.fieldDZ.srcTexture);
+      this.stepProgram.setSampler2D("b_x_tex", this.fieldBX.srcTexture);
+      this.stepProgram.setSampler2D("b_y_tex", this.fieldBY.srcTexture);
+      this.stepProgram.setSampler2D("b_z_tex", this.fieldBZ.srcTexture);
+      this.stepProgram.setSampler2D("charge_tex", this.fieldCharge.srcTexture);
+      this.stepProgram.setSampler2D("d_x_tex_soln", this.fieldDX.solnTexture);
+      this.stepProgram.setSampler2D("d_y_tex_soln", this.fieldDY.solnTexture);
+      this.stepProgram.setSampler2D("d_z_tex_soln", this.fieldDZ.solnTexture);
+      this.stepProgram.setSampler2D("b_x_tex_soln", this.fieldBX.solnTexture);
+      this.stepProgram.setSampler2D("b_y_tex_soln", this.fieldBY.solnTexture);
+      this.stepProgram.setSampler2D("b_z_tex_soln", this.fieldBZ.solnTexture);
+      this.stepProgram.setSampler2D("charge_tex_soln", this.fieldCharge.solnTexture);
+      this.stepProgram.setSampler2D("inv_permittivity_x_tex", this.fieldInvPermittivityX);
+      this.stepProgram.setSampler2D("inv_permittivity_y_tex", this.fieldInvPermittivityY);
+      this.stepProgram.setSampler2D("inv_permittivity_z_tex", this.fieldInvPermittivityZ);
+      this.stepProgram.setSampler2D("inv_permeability_x_tex", this.fieldInvPermeabilityX);
+      this.stepProgram.setSampler2D("inv_permeability_y_tex", this.fieldInvPermeabilityY);
+      this.stepProgram.setSampler2D("inv_permeability_z_tex", this.fieldInvPermeabilityZ);
+      this.stepProgram.setSampler2D("j_x_tex", this.fieldJX);
+      this.stepProgram.setSampler2D("j_y_tex", this.fieldJY);
+      this.stepProgram.setSampler2D("j_z_tex", this.fieldJZ);
+      this.stepProgram.setSampler2D("conductivity_x_tex", this.fieldConductivityX);
+      this.stepProgram.setSampler2D("conductivity_y_tex", this.fieldConductivityY);
+      this.stepProgram.setSampler2D("conductivity_z_tex", this.fieldConductivityZ);
+      this.stepProgram.setSampler2D("antenna_frequency", this.fieldFreq);
 
-      stepProgram.bindOutput("d_x_new", fieldDX.destTexture);
-      stepProgram.bindOutput("d_y_new", fieldDY.destTexture);
-      stepProgram.bindOutput("d_z_new", fieldDZ.destTexture);
-      stepProgram.bindOutput("b_x_new", fieldBX.destTexture);
-      stepProgram.bindOutput("b_y_new", fieldBY.destTexture);
-      stepProgram.bindOutput("b_z_new", fieldBZ.destTexture);
-      stepProgram.bindOutput("charge_new", fieldCharge.destTexture);
+      this.stepProgram.bindOutput("d_x_new", this.fieldDX.destTexture);
+      this.stepProgram.bindOutput("d_y_new", this.fieldDY.destTexture);
+      this.stepProgram.bindOutput("d_z_new", this.fieldDZ.destTexture);
+      this.stepProgram.bindOutput("b_x_new", this.fieldBX.destTexture);
+      this.stepProgram.bindOutput("b_y_new", this.fieldBY.destTexture);
+      this.stepProgram.bindOutput("b_z_new", this.fieldBZ.destTexture);
+      this.stepProgram.bindOutput("charge_new", this.fieldCharge.destTexture);
 
-      stepProgram.setUniform1f("width", simulationWidth);
-      stepProgram.setUniform1f("height", simulationHeight);
-      stepProgram.setUniform1f("dt", dt);
-      stepProgram.setUniform1f("ds_inv", 1 / ds);
-      stepProgram.setUniform1f("ds", ds);
-      stepProgram.setUniform1f("time", time);
-      stepProgram.setUniform1f("boundary_thickness", boundaryDepth / ds);
-      stepProgram.setUniform1f("boundary_opacity", 2 * boundaryOpacity * ds / boundaryDepth);
+      this.stepProgram.setUniform1f("width", this.width);
+      this.stepProgram.setUniform1f("height", this.height);
+      this.stepProgram.setUniform1f("dt", this.dt);
+      this.stepProgram.setUniform1f("ds_inv", 1 / this.ds);
+      this.stepProgram.setUniform1f("ds", this.ds);
+      this.stepProgram.setUniform1f("time", this.time);
+      this.stepProgram.setUniform1f("boundary_thickness", this.boundaryDepth / this.ds);
+      this.stepProgram.setUniform1f("boundary_opacity", 2 * this.boundaryOpacity * this.ds / this.boundaryDepth);
 
-      stepProgram.execute();
+      this.stepProgram.execute();
 
-      fieldDX.swapCNIter();
-      fieldDY.swapCNIter();
-      fieldDZ.swapCNIter();
-      fieldBX.swapCNIter();
-      fieldBY.swapCNIter();
-      fieldBZ.swapCNIter();
-      fieldCharge.swapCNIter();
+      this.fieldDX.swapCNIter();
+      this.fieldDY.swapCNIter();
+      this.fieldDZ.swapCNIter();
+      this.fieldBX.swapCNIter();
+      this.fieldBY.swapCNIter();
+      this.fieldBZ.swapCNIter();
+      this.fieldCharge.swapCNIter();
     }
-    fieldDX.swap();
-    fieldDY.swap();
-    fieldDZ.swap();
-    fieldBX.swap();
-    fieldBY.swap();
-    fieldBZ.swap();
-    fieldCharge.swap();
+    this.fieldDX.swap();
+    this.fieldDY.swap();
+    this.fieldDZ.swap();
+    this.fieldBX.swap();
+    this.fieldBY.swap();
+    this.fieldBZ.swap();
+    this.fieldCharge.swap();
+
+    this.time += this.dt;
+  }
 }
 
+const instance = new SimulationInstance(64, 64);
+await instance.init();
 while(true){
-  console.log(time);
   const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
   const timeA = Date.now();
 
-  displayFields();
+  instance.displayFields();
   if(running){
-    stepSimulation();
-    time += dt;
+    instance.stepSimulation();
   }
   gl.finish();
 
