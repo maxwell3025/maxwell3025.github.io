@@ -3,22 +3,43 @@
     <head>
         <meta charset="UTF-8">
         <title>maxwell3025's website</title>
-        <link rel="stylesheet" href="../style.css"/>
+        <link rel="stylesheet" href="./style.css"/>
         <script src="index.js" defer></script>
     </head>
     <body>
-        <select id="viewTypeSelector">
-            <option value="d">Electric Displacement Field</option>
-            <option value="dx">Electric Displacement Field X</option>
-            <option value="dy">Electric Displacement Field Y</option>
-            <option value="dz">Electric Displacement Field Z</option>
-            <option value="b">Magnetic Field</option>
-            <option value="bx">Magnetic Field X</option>
-            <option value="by">Magnetic Field Y</option>
-            <option value="bz">Magnetic Field Z</option>
-            <option value="charge">Charge Density</option>
-        </select>
-        <input type="range" min="1" max="1000" value="50" id="widthSlider">
-        <input type="range" min="1" max="1000" value="50" id="heightSlider">
+        <div id="controlPanel">
+            <div class="subMenu">
+                <label for="viewTypeSelector">View</label>
+                <select id="viewTypeSelector">
+                    <option value="d">Electric Displacement Field</option>
+                    <option value="dx">Electric Displacement Field X</option>
+                    <option value="dy">Electric Displacement Field Y</option>
+                    <option value="dz">Electric Displacement Field Z</option>
+                    <option value="b">Magnetic Field</option>
+                    <option value="bx">Magnetic Field X</option>
+                    <option value="by">Magnetic Field Y</option>
+                    <option value="bz">Magnetic Field Z</option>
+                    <option value="charge">Charge Density</option>
+                </select>
+            </div>
+            <div class="subMenu">
+                <label for="widthSlider">Width</label>
+                <input type="range" min="1" max="1000" value="50" id="widthSlider">
+                <label for="heightSlider">Height</label>
+                <input type="range" min="1" max="1000" value="50" id="heightSlider">
+            </div>
+            <div class="subMenu">
+                <label for="brushSelector">Select Brush Function</label>
+                <select id="brushSelector">
+                    <option value="none">None</option>
+                    <option value="currentSource">Current Source</option>
+                    <option value="linearSource">Linear Soruce</option>
+                    <option value="conductivity">Conductivity</option>
+                    <option value="permittivity">Electric Permittivity</option>
+                    <option value="permeability">Magnetic Permeability</option>
+                </select>
+
+            </div>
+        </div>
     </body>
 </html>

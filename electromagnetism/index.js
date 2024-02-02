@@ -272,7 +272,6 @@ class Field{
     displayProgramPipeline.execute();
   }
 }
-
 const fieldDX = new Field();
 const fieldDY = new Field();
 const fieldDZ = new Field();
