@@ -19,14 +19,15 @@
                     <option value="bx">Magnetic Field X</option>
                     <option value="by">Magnetic Field Y</option>
                     <option value="bz">Magnetic Field Z</option>
-                    <option value="charge">Charge Density</option>
+                    <option value="charge">Charge Density</option> 
+                    <option value="source">Current Sources</option> 
                 </select>
             </div>
             <div class="subMenu">
-                <label for="widthSlider">Width</label>
-                <input type="range" min="1" max="1000" value="50" id="widthSlider">
-                <label for="heightSlider">Height</label>
-                <input type="range" min="1" max="1000" value="50" id="heightSlider">
+                <label for="widthSlider">Width:</label>
+                <input type="text" value="50" id="widthSlider">
+                <label for="heightSlider">Height:</label>
+                <input type="text" value="50" id="heightSlider">
             </div>
             <div class="subMenu">
                 <label for="brushSelector">Select Brush Function</label>
@@ -38,8 +39,18 @@
                     <option value="permittivity">Electric Permittivity</option>
                     <option value="permeability">Magnetic Permeability</option>
                 </select>
-
+                <label for="brushValueInput">Value:</label>
+                <input type="text" value="0" id="brushValueInput">
+                <label for="brushXInput">X:</label>
+                <input type="text" value="0" id="brushXInput">
+                <label for="brushYInput">Y:</label>
+                <input type="text" value="0" id="brushYInput">
+                <label for="brushZInput">Z:</label>
+                <input type="text" value="0" id="brushZInput">
             </div>
+        </div>
+        <div id="debugMenu">
+            Time = <span id="timeLabel"></span>
         </div>
     </body>
 </html>

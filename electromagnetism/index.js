@@ -1,4 +1,44 @@
 (async () => {
+/**
+ * @type {HTMLSelectElement}
+ */
+const viewTypeSelector = document.getElementById("viewTypeSelector")
+
+/**
+ * @type {HTMLSelectElement}
+ */
+const brushSelector = document.getElementById("brushSelector")
+
+/**
+ * @type {HTMLSpanElement}
+ */
+const timeLabel = document.getElementById("timeLabel")
+
+/**
+ * @type {HTMLInputElement}
+ */
+const brushValueInput = document.getElementById("brushValueInput");
+
+/**
+ * @type {HTMLInputElement}
+ */
+const brushXInput = document.getElementById("brushXInput");
+
+/**
+ * @type {HTMLInputElement}
+ */
+const brushYInput = document.getElementById("brushYInput");
+
+/**
+ * @type {HTMLInputElement}
+ */
+const brushZInput = document.getElementById("brushZInput");
+
+/**
+ * @type {HTMLCanvasElement}
+ */
+const display = document.createElement("canvas");
+
 const frameDelay = 50;
 
 let running = false;
@@ -10,12 +50,6 @@ document.addEventListener("keydown", e => {
   }
 })
 
-/**
- * @type {HTMLSelectElement}
- */
-const viewTypeSelector = document.getElementById("viewTypeSelector")
-
-const display = document.createElement("canvas");
 display.style.imageRendering = "pixelated";
 display.hidden = true;
 document.body.appendChild(display);
@@ -133,8 +167,8 @@ class RenderPipeline{
   }
 }
 
-
 let currentBinding = 0;
+const drawRectbuffer = gl.createFramebuffer();
 class FloatTexture{
   texture;
   binding = currentBinding++;
@@ -215,6 +249,25 @@ class FloatTexture{
     program.setUniform1f("x", x);
     program.setUniform1f("y", y);
     program.execute();
+  }
+
+  setRect(x, y, width, height, value){
+    gl.finish();
+    gl.enable(gl.SCISSOR_TEST);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, drawRectbuffer);
+    gl.framebufferTexture2D(
+        gl.FRAMEBUFFER,
+        gl.COLOR_ATTACHMENT0,
+        gl.TEXTURE_2D,
+        this.texture,
+        0
+    );
+    gl.scissor(x, y, width, height);
+    gl.clearColor(value, 0, 0, 0);
+    gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.disable(gl.SCISSOR_TEST);
+    gl.finish();
   }
 }
 
@@ -301,6 +354,8 @@ class SimulationInstance{
   displayDField;
   /** @type {RenderPipeline} */
   displayBField;
+  /** @type {RenderPipeline} */
+  userDrawing;
 
   constructor(width, height){
     this.width = width;
@@ -366,9 +421,10 @@ class SimulationInstance{
     this.displayDField = new RenderPipeline(await fetch("./displayD.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
     this.displayBField = new RenderPipeline(await fetch("./displayB.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
     this.stepProgram = new RenderPipeline(await fetch("./step.fsh").then(x => x.text()), this.width, this.height);
+    this.userDrawing = new RenderPipeline(await fetch("./dummy.fsh").then(x => x.text()), this.width, this.height);
 
-    display.width = width * 4;
-    display.height = height * 4;
+    display.width = this.width * 4;
+    display.height = this.height * 4;
     display.hidden = false;
   }
 
@@ -401,8 +457,8 @@ class SimulationInstance{
         this.displayBField.setSampler2D("b_x_tex", this.fieldBX.srcTexture);
         this.displayBField.setSampler2D("b_y_tex", this.fieldBY.srcTexture);
         this.displayBField.setSampler2D("b_z_tex", this.fieldBZ.srcTexture);
-        this.displayBField.setUniform1f("width", this.width);
-        this.displayBField.setUniform1f("height", this.height);
+        this.displayBField.setUniform1f("width", this.width * 4);
+        this.displayBField.setUniform1f("height", this.height * 4);
         this.displayBField.setUniform1f("x", 0);
         this.displayBField.setUniform1f("y", 0);
         this.displayBField.execute();
@@ -424,13 +480,43 @@ class SimulationInstance{
         this.fieldCharge.display(-1, -1, this.displayProgramPipeline);
         break;
 
+      case "source":
+        this.displayDField.setSampler2D("d_x_tex", this.fieldJX);
+        this.displayDField.setSampler2D("d_y_tex", this.fieldJY);
+        this.displayDField.setSampler2D("d_z_tex", this.fieldJZ);
+        this.displayDField.setUniform1f("width", this.width * 4);
+        this.displayDField.setUniform1f("height", this.height * 4);
+        this.displayDField.setUniform1f("x", 0);
+        this.displayDField.setUniform1f("y", 0);
+        this.displayDField.execute();
+        break;
+
       default:
         alert("ERROR unimplemented view type!");
     }
   }
 
+  draw(gridX, gridY, radius){
+    const value = Number.parseFloat(brushValueInput.value);
+    const xValue = Number.parseFloat(brushXInput.value);
+    const yValue = Number.parseFloat(brushYInput.value);
+    const zValue = Number.parseFloat(brushZInput.value);
+    
+    switch(brushSelector.value){
+      case "none":
+        break;
+      case "currentSource":
+        this.fieldJX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, xValue);
+        this.fieldJY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, yValue);
+        this.fieldJZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, zValue);
+        break;
+      default:
+        alert("ERROR unimplemented brush type!");
+        brushSelector.value = "none";
+    }
+  }
+
   stepSimulation(){
-    console.log(this.time);
     //Crank the Nicholson
     for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
       //Link everything
@@ -501,20 +587,32 @@ class SimulationInstance{
   }
 }
 
-const instance = new SimulationInstance(64, 64);
+const instance = new SimulationInstance(16, 16);
 await instance.init();
+/** @type {MouseEvent[]} */
+const drawQueue = [];
+display.addEventListener("mousemove", e => drawQueue.push(e))
 while(true){
   const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
-  const timeA = Date.now();
-
   instance.displayFields();
   if(running){
     instance.stepSimulation();
   }
+  timeLabel.textContent = instance.time.toPrecision(4);
+  while(drawQueue.length > 0){
+    const event = drawQueue.pop();
+    if((event.buttons & 1) == 0){
+      continue
+    }
+    const boundingRect = display.getBoundingClientRect();
+    const normalizedX = (event.clientX - boundingRect.x) / boundingRect.width;
+    const normalizedY = 1 - (event.clientY - boundingRect.y) / boundingRect.height;
+    const gridX = normalizedX * instance.width;
+    const gridY = normalizedY * instance.height;
+    const radius = 1;
+    instance.draw(gridX, gridY, radius)
+  }
   gl.finish();
-
-  const timeB = Date.now();
-  console.log(timeB - timeA);
   await frameEnd;
 }
 })()
