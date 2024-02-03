@@ -22,6 +22,11 @@ const brushValueInput = document.getElementById("brushValueInput");
 /**
  * @type {HTMLInputElement}
  */
+const brushFrequencyInput = document.getElementById("brushFrequencyInput");
+
+/**
+ * @type {HTMLInputElement}
+ */
 const brushXInput = document.getElementById("brushXInput");
 
 /**
@@ -438,6 +443,8 @@ class SimulationInstance{
         this.displayDField.setUniform1f("height", this.height * 4);
         this.displayDField.setUniform1f("x", 0);
         this.displayDField.setUniform1f("y", 0);
+        this.displayDField.setUniform1f("min_value", -1);
+        this.displayDField.setUniform1f("max_value", 1);
         this.displayDField.execute();
         break;
 
@@ -461,6 +468,8 @@ class SimulationInstance{
         this.displayBField.setUniform1f("height", this.height * 4);
         this.displayBField.setUniform1f("x", 0);
         this.displayBField.setUniform1f("y", 0);
+        this.displayBField.setUniform1f("min_value", -1);
+        this.displayBField.setUniform1f("max_value", 1);
         this.displayBField.execute();
         break;
 
@@ -488,7 +497,48 @@ class SimulationInstance{
         this.displayDField.setUniform1f("height", this.height * 4);
         this.displayDField.setUniform1f("x", 0);
         this.displayDField.setUniform1f("y", 0);
+        this.displayDField.setUniform1f("min_value", -1);
+        this.displayDField.setUniform1f("max_value", 1);
         this.displayDField.execute();
+        break;
+
+      case "conductivity":
+        this.displayDField.setSampler2D("d_x_tex", this.fieldConductivityX);
+        this.displayDField.setSampler2D("d_y_tex", this.fieldConductivityY);
+        this.displayDField.setSampler2D("d_z_tex", this.fieldConductivityZ);
+        this.displayDField.setUniform1f("width", this.width * 4);
+        this.displayDField.setUniform1f("height", this.height * 4);
+        this.displayDField.setUniform1f("x", 0);
+        this.displayDField.setUniform1f("y", 0);
+        this.displayDField.setUniform1f("min_value", 0);
+        this.displayDField.setUniform1f("max_value", 1);
+        this.displayDField.execute();
+        break;
+
+      case "permittivity":
+        this.displayDField.setSampler2D("d_x_tex", this.fieldInvPermittivityX);
+        this.displayDField.setSampler2D("d_y_tex", this.fieldInvPermittivityY);
+        this.displayDField.setSampler2D("d_z_tex", this.fieldInvPermittivityZ);
+        this.displayDField.setUniform1f("width", this.width * 4);
+        this.displayDField.setUniform1f("height", this.height * 4);
+        this.displayDField.setUniform1f("x", 0);
+        this.displayDField.setUniform1f("y", 0);
+        this.displayDField.setUniform1f("min_value", 0);
+        this.displayDField.setUniform1f("max_value", 2);
+        this.displayDField.execute();
+        break;
+
+      case "permeability":
+        this.displayBField.setSampler2D("b_x_tex", this.fieldInvPermeabilityX);
+        this.displayBField.setSampler2D("b_y_tex", this.fieldInvPermeabilityY);
+        this.displayBField.setSampler2D("b_z_tex", this.fieldInvPermeabilityZ);
+        this.displayBField.setUniform1f("width", this.width * 4);
+        this.displayBField.setUniform1f("height", this.height * 4);
+        this.displayBField.setUniform1f("x", 0);
+        this.displayBField.setUniform1f("y", 0);
+        this.displayBField.setUniform1f("min_value", 0);
+        this.displayBField.setUniform1f("max_value", 2);
+        this.displayBField.execute();
         break;
 
       default:
@@ -498,6 +548,7 @@ class SimulationInstance{
 
   draw(gridX, gridY, radius){
     const value = Number.parseFloat(brushValueInput.value);
+    const frequency = Number.parseFloat(brushFrequencyInput.value);
     const xValue = Number.parseFloat(brushXInput.value);
     const yValue = Number.parseFloat(brushYInput.value);
     const zValue = Number.parseFloat(brushZInput.value);
@@ -505,11 +556,20 @@ class SimulationInstance{
     switch(brushSelector.value){
       case "none":
         break;
+
       case "currentSource":
         this.fieldJX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, xValue);
         this.fieldJY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, yValue);
         this.fieldJZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, zValue);
+        this.fieldFreq.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius - 1, 2 * radius + 3, 2 * radius + 3, frequency);
         break;
+
+      case "conductivity":
+        this.fieldConductivityX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, xValue);
+        this.fieldConductivityY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, yValue);
+        this.fieldConductivityZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, zValue);
+        break;
+
       default:
         alert("ERROR unimplemented brush type!");
         brushSelector.value = "none";
@@ -587,7 +647,7 @@ class SimulationInstance{
   }
 }
 
-const instance = new SimulationInstance(16, 16);
+const instance = new SimulationInstance(128, 128);
 await instance.init();
 /** @type {MouseEvent[]} */
 const drawQueue = [];

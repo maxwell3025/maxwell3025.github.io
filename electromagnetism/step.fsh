@@ -128,11 +128,7 @@ float charge(vec2 coord){
 * For semiconductors, TODO
 */
 float fermi_level_difference(vec2 coord){
-  float fldiff = charge(coord) * 0.01;
-  if(coord.x > width * 0.5){
-    fldiff += 1.0;
-  }
-  return fldiff;
+  return 0.0;
 }
 
 float j_x(vec2 coord){

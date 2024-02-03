@@ -3,6 +3,8 @@ precision highp float;
 uniform sampler2D d_x_tex;
 uniform sampler2D d_y_tex;
 uniform sampler2D d_z_tex;
+uniform float min_value;
+uniform float max_value;
 uniform float width;
 uniform float height;
 uniform float x;
@@ -38,9 +40,11 @@ vec3 linearToSRGB(vec3 linear){
 
 void main() {
   vec2 pos = gl_FragCoord.xy - vec2(x, y);
-  vec3 d = vec3(0.5, 0.5, 0.5);
-  d.x += readSampler(d_x_tex, pos - vec2( 1.0, -1.0));
-  d.y += readSampler(d_y_tex, pos - vec2(-1.0,  1.0));
-  d.z += readSampler(d_z_tex, pos - vec2(-1.0, -1.0));
-  fragColor = vec4(linearToSRGB(d), 1.0);
+  float m = 1.0 / (max_value - min_value);
+  float b = -min_value * m;
+  vec3 color = vec3(b, b, b);
+  color.x += readSampler(d_x_tex, pos - vec2( 1.0, -1.0)) * m;
+  color.y += readSampler(d_y_tex, pos - vec2(-1.0,  1.0)) * m;
+  color.z += readSampler(d_z_tex, pos - vec2(-1.0, -1.0)) * m;
+  fragColor = vec4(linearToSRGB(color), 1.0);
 }
