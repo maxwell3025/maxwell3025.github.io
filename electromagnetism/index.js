@@ -5,6 +5,16 @@
 const viewTypeSelector = document.getElementById("viewTypeSelector")
 
 /**
+ * @type {HTMLInputElement}
+ */
+const minInput = document.getElementById("minInput")
+
+/**
+ * @type {HTMLInputElement}
+ */
+const maxInput = document.getElementById("maxInput")
+
+/**
  * @type {HTMLSelectElement}
  */
 const brushSelector = document.getElementById("brushSelector")
@@ -434,6 +444,8 @@ class SimulationInstance{
   }
 
   displayFields(){
+    const minValue = Number.parseFloat(minInput.value)
+    const maxValue = Number.parseFloat(maxInput.value)
     switch(viewTypeSelector.value){
       case "d":
         this.displayDField.setSampler2D("d_x_tex", this.fieldDX.srcTexture);
@@ -443,8 +455,8 @@ class SimulationInstance{
         this.displayDField.setUniform1f("height", this.height * 4);
         this.displayDField.setUniform1f("x", 0);
         this.displayDField.setUniform1f("y", 0);
-        this.displayDField.setUniform1f("min_value", -1);
-        this.displayDField.setUniform1f("max_value", 1);
+        this.displayDField.setUniform1f("min_value", minValue);
+        this.displayDField.setUniform1f("max_value", maxValue);
         this.displayDField.execute();
         break;
 
@@ -468,8 +480,8 @@ class SimulationInstance{
         this.displayBField.setUniform1f("height", this.height * 4);
         this.displayBField.setUniform1f("x", 0);
         this.displayBField.setUniform1f("y", 0);
-        this.displayBField.setUniform1f("min_value", -1);
-        this.displayBField.setUniform1f("max_value", 1);
+        this.displayBField.setUniform1f("min_value", minValue);
+        this.displayBField.setUniform1f("max_value", maxValue);
         this.displayBField.execute();
         break;
 
@@ -497,8 +509,8 @@ class SimulationInstance{
         this.displayDField.setUniform1f("height", this.height * 4);
         this.displayDField.setUniform1f("x", 0);
         this.displayDField.setUniform1f("y", 0);
-        this.displayDField.setUniform1f("min_value", -1);
-        this.displayDField.setUniform1f("max_value", 1);
+        this.displayDField.setUniform1f("min_value", minValue);
+        this.displayDField.setUniform1f("max_value", maxValue);
         this.displayDField.execute();
         break;
 
@@ -510,8 +522,8 @@ class SimulationInstance{
         this.displayDField.setUniform1f("height", this.height * 4);
         this.displayDField.setUniform1f("x", 0);
         this.displayDField.setUniform1f("y", 0);
-        this.displayDField.setUniform1f("min_value", 0);
-        this.displayDField.setUniform1f("max_value", 1);
+        this.displayDField.setUniform1f("min_value", minValue);
+        this.displayDField.setUniform1f("max_value", maxValue);
         this.displayDField.execute();
         break;
 
@@ -523,8 +535,8 @@ class SimulationInstance{
         this.displayDField.setUniform1f("height", this.height * 4);
         this.displayDField.setUniform1f("x", 0);
         this.displayDField.setUniform1f("y", 0);
-        this.displayDField.setUniform1f("min_value", 0);
-        this.displayDField.setUniform1f("max_value", 2);
+        this.displayDField.setUniform1f("min_value", minValue);
+        this.displayDField.setUniform1f("max_value", maxValue);
         this.displayDField.execute();
         break;
 
@@ -536,8 +548,8 @@ class SimulationInstance{
         this.displayBField.setUniform1f("height", this.height * 4);
         this.displayBField.setUniform1f("x", 0);
         this.displayBField.setUniform1f("y", 0);
-        this.displayBField.setUniform1f("min_value", 0);
-        this.displayBField.setUniform1f("max_value", 2);
+        this.displayBField.setUniform1f("min_value", minValue);
+        this.displayBField.setUniform1f("max_value", maxValue);
         this.displayBField.execute();
         break;
 
