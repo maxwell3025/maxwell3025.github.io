@@ -25,6 +25,11 @@ const brushSelector = document.getElementById("brushSelector")
 const timeLabel = document.getElementById("timeLabel")
 
 /**
+ * @type {HTMLDivElement}
+ */
+const brushMenu = document.getElementById("brushMenu");
+
+/**
  * @type {HTMLInputElement}
  */
 const brushValueInput = document.getElementById("brushValueInput");
@@ -33,6 +38,11 @@ const brushValueInput = document.getElementById("brushValueInput");
  * @type {HTMLInputElement}
  */
 const brushFrequencyInput = document.getElementById("brushFrequencyInput");
+
+/**
+ * @type {HTMLInputElement}
+ */
+const brushInternalResistanceInput = document.getElementById("brushInternalResistanceInput");
 
 /**
  * @type {HTMLInputElement}
@@ -54,6 +64,10 @@ const brushZInput = document.getElementById("brushZInput");
  */
 const display = document.createElement("canvas");
 
+display.style.imageRendering = "pixelated";
+display.hidden = true;
+document.body.appendChild(display);
+
 const frameDelay = 50;
 
 let running = false;
@@ -65,9 +79,53 @@ document.addEventListener("keydown", e => {
   }
 })
 
-display.style.imageRendering = "pixelated";
-display.hidden = true;
-document.body.appendChild(display);
+brushValueInput.addEventListener("input", e => {
+  brushXInput.value = brushValueInput.value;
+  brushYInput.value = brushValueInput.value;
+  brushZInput.value = brushValueInput.value;
+})
+
+function hideAllBrushOptions(){
+  for(const child of brushMenu.children){
+    child.hidden = true;
+  }
+  brushSelector.hidden = false;
+  brushSelector.labels.forEach(label => label.hidden = false);
+}
+hideAllBrushOptions();
+
+brushSelector.addEventListener("change", e => {
+  function show(id){
+    /** @type {HTMLInputElement} */
+    const elem = document.getElementById(id);
+    elem.labels.forEach(label => label.hidden = false);
+    elem.hidden = false;
+  }
+  hideAllBrushOptions();
+  switch(brushSelector.value){
+    case "none":
+      break;
+    case "currentSource":
+      show("brushFrequencyInput");
+      show("brushXInput");
+      show("brushYInput");
+      show("brushZInput");
+      break;
+    case "linearSource":
+      show("brushFrequencyInput");
+      show("brushInternalResistanceInput");
+      show("brushXInput");
+      show("brushYInput");
+      show("brushZInput");
+      break;
+    case "conductivity":
+      show("brushValueInput");
+      show("brushXInput");
+      show("brushYInput");
+      show("brushZInput");
+      break;
+  }
+})
 
 const gl = display.getContext("webgl2", {powerPreference: "high-performance"})
 if(gl == null){
@@ -560,6 +618,7 @@ class SimulationInstance{
 
   draw(gridX, gridY, radius){
     const value = Number.parseFloat(brushValueInput.value);
+    const internalResistance = Number.parseFloat(brushInternalResistanceInput.value);
     const frequency = Number.parseFloat(brushFrequencyInput.value);
     const xValue = Number.parseFloat(brushXInput.value);
     const yValue = Number.parseFloat(brushYInput.value);
@@ -573,6 +632,20 @@ class SimulationInstance{
         this.fieldJX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, xValue);
         this.fieldJY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, yValue);
         this.fieldJZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, zValue);
+        this.fieldFreq.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius - 1, 2 * radius + 3, 2 * radius + 3, frequency);
+        break;
+
+      case "linearSource":
+        if(internalResistance == 0){
+          alert("Internal resistance cannot be 0!");
+        }
+        const internalConductivity = 1.0 / internalResistance;
+        this.fieldJX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, xValue * internalConductivity);
+        this.fieldJY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, yValue * internalConductivity);
+        this.fieldJZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, zValue * internalConductivity);
+        this.fieldConductivityX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, internalConductivity);
+        this.fieldConductivityY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, internalConductivity);
+        this.fieldConductivityZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, internalConductivity);
         this.fieldFreq.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius - 1, 2 * radius + 3, 2 * radius + 3, frequency);
         break;
 
