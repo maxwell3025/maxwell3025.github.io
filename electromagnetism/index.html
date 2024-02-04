@@ -36,6 +36,12 @@
                 <label for="heightSlider">Height:</label>
                 <input type="text" value="50" id="heightSlider">
             </div>
+            <div class="subMenu">
+                <label for="borderDissipationInput">Border Strength:</label>
+                <input type="text" value="10" id="borderDissipationInput">
+                <label for="borderDepthInput">Border Depth:</label>
+                <input type="text" value="0.1" id="borderDepthInput">
+            </div>
             <div class="subMenu" id="brushMenu">
                 <label for="brushSelector">Select Brush Function</label>
                 <select id="brushSelector">
@@ -61,7 +67,9 @@
             </div>
         </div>
         <div id="debugMenu">
-            Time = <span id="timeLabel"></span>
+            Time = <span id="timeLabel"></span><br/>
+            Width = <span id="widthLabel"></span><br/>
+            Height = <span id="heightLabel"></span><br/>
         </div>
     </body>
 </html>

@@ -1,67 +1,53 @@
 (async () => {
-/**
- * @type {HTMLSelectElement}
- */
+/** @type {HTMLSelectElement} */
 const viewTypeSelector = document.getElementById("viewTypeSelector")
 
-/**
- * @type {HTMLInputElement}
- */
+/** @type {HTMLInputElement} */
 const minInput = document.getElementById("minInput")
 
-/**
- * @type {HTMLInputElement}
- */
+/** @type {HTMLInputElement} */
 const maxInput = document.getElementById("maxInput")
 
-/**
- * @type {HTMLSelectElement}
- */
-const brushSelector = document.getElementById("brushSelector")
+/** @type {HTMLInputElement} */
+const borderDissipationInput = document.getElementById("borderDissipationInput");
 
-/**
- * @type {HTMLSpanElement}
- */
-const timeLabel = document.getElementById("timeLabel")
+/** @type {HTMLInputElement} */
+const borderDepthInput = document.getElementById("borderDepthInput");
 
-/**
- * @type {HTMLDivElement}
- */
+/** @type {HTMLDivElement} */
 const brushMenu = document.getElementById("brushMenu");
 
-/**
- * @type {HTMLInputElement}
- */
+/** @type {HTMLSelectElement} */
+const brushSelector = document.getElementById("brushSelector")
+
+/** @type {HTMLInputElement} */
 const brushValueInput = document.getElementById("brushValueInput");
 
-/**
- * @type {HTMLInputElement}
- */
+/** @type {HTMLInputElement} */
 const brushFrequencyInput = document.getElementById("brushFrequencyInput");
 
-/**
- * @type {HTMLInputElement}
- */
+/** @type {HTMLInputElement} */
 const brushInternalResistanceInput = document.getElementById("brushInternalResistanceInput");
 
-/**
- * @type {HTMLInputElement}
- */
+/** @type {HTMLInputElement} */
 const brushXInput = document.getElementById("brushXInput");
 
-/**
- * @type {HTMLInputElement}
- */
+/** @type {HTMLInputElement} */
 const brushYInput = document.getElementById("brushYInput");
 
-/**
- * @type {HTMLInputElement}
- */
+/** @type {HTMLInputElement} */
 const brushZInput = document.getElementById("brushZInput");
 
-/**
- * @type {HTMLCanvasElement}
- */
+/** @type {HTMLSpanElement} */
+const timeLabel = document.getElementById("timeLabel")
+
+/** @type {HTMLSpanElement} */
+const widthLabel = document.getElementById("widthLabel")
+
+/** @type {HTMLSpanElement} */
+const heightLabel = document.getElementById("heightLabel")
+
+/** @type {HTMLCanvasElement} */
 const display = document.createElement("canvas");
 
 display.style.imageRendering = "pixelated";
@@ -414,8 +400,6 @@ class SimulationInstance{
 
   ds;
   dt;
-  boundaryDepth;
-  boundaryOpacity;
 
   time = 0;
 
@@ -436,9 +420,6 @@ class SimulationInstance{
 
     this.ds = 0.1;
     this.dt = 0.01;
-
-    this.boundaryDepth = 0.2;
-    this.boundaryOpacity = 10;
 
     this.fieldDX = new Field(this.width, this.height);
     this.fieldDY = new Field(this.width, this.height);
@@ -707,8 +688,8 @@ class SimulationInstance{
       this.stepProgram.setUniform1f("ds_inv", 1 / this.ds);
       this.stepProgram.setUniform1f("ds", this.ds);
       this.stepProgram.setUniform1f("time", this.time);
-      this.stepProgram.setUniform1f("boundary_thickness", this.boundaryDepth / this.ds);
-      this.stepProgram.setUniform1f("boundary_opacity", 2 * this.boundaryOpacity * this.ds / this.boundaryDepth);
+      this.stepProgram.setUniform1f("boundary_thickness", Number.parseFloat(borderDepthInput.value) / this.ds);
+      this.stepProgram.setUniform1f("boundary_opacity", 2 * Number.parseFloat(borderDissipationInput.value) * this.ds / Number.parseFloat(borderDepthInput.value));
 
       this.stepProgram.execute();
 
@@ -744,6 +725,8 @@ while(true){
     instance.stepSimulation();
   }
   timeLabel.textContent = instance.time.toPrecision(4);
+  widthLabel.textContent = (instance.width * instance.ds).toPrecision(4);
+  heightLabel.textContent = (instance.height * instance.ds).toPrecision(4);
   while(drawQueue.length > 0){
     const event = drawQueue.pop();
     if((event.buttons & 1) == 0){
