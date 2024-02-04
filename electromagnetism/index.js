@@ -1,4 +1,5 @@
 (async () => {
+// Mapping to HTML content
 /** @type {HTMLSelectElement} */
 const viewTypeSelector = document.getElementById("viewTypeSelector")
 
@@ -7,6 +8,15 @@ const minInput = document.getElementById("minInput")
 
 /** @type {HTMLInputElement} */
 const maxInput = document.getElementById("maxInput")
+
+/** @type {HTMLInputElement} */
+const widthInput = document.getElementById("widthInput")
+
+/** @type {HTMLInputElement} */
+const heightInput = document.getElementById("heightInput")
+
+/** @type {HTMLButtonElement} */
+const resetButton = document.getElementById("resetButton")
 
 /** @type {HTMLInputElement} */
 const borderDissipationInput = document.getElementById("borderDissipationInput");
@@ -50,6 +60,7 @@ const heightLabel = document.getElementById("heightLabel")
 /** @type {HTMLCanvasElement} */
 const display = document.createElement("canvas");
 
+// Setup display interactions
 display.style.imageRendering = "pixelated";
 display.hidden = true;
 document.body.appendChild(display);
@@ -63,6 +74,11 @@ document.addEventListener("keydown", e => {
     running = !running;
     e.preventDefault();
   }
+})
+
+let resetFlag = false;
+resetButton.addEventListener("click", () => {
+  resetFlag = true;
 })
 
 brushValueInput.addEventListener("input", e => {
@@ -113,6 +129,7 @@ brushSelector.addEventListener("change", e => {
   }
 })
 
+// Opengl Setup
 const gl = display.getContext("webgl2", {powerPreference: "high-performance"})
 if(gl == null){
     console.log("Could not create a display context")
@@ -226,11 +243,11 @@ class RenderPipeline{
   }
 }
 
-let currentBinding = 0;
 const drawRectbuffer = gl.createFramebuffer();
+const textureBindings = []
 class FloatTexture{
   texture;
-  binding = currentBinding++;
+  binding;
   width;
   height;
 
@@ -238,6 +255,12 @@ class FloatTexture{
     this.width = width;
     this.height = height;
     this.texture = gl.createTexture();
+    this.binding = textureBindings.indexOf(null);
+    if(this.binding === -1){
+      this.binding = textureBindings.length;
+    }
+    textureBindings[this.binding] = this;
+    
     gl.activeTexture(gl.TEXTURE0 + this.binding);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
     const data = new Float32Array(this.width * this.height).fill(0);
@@ -328,6 +351,10 @@ class FloatTexture{
     gl.disable(gl.SCISSOR_TEST);
     gl.finish();
   }
+
+  delete(){
+    textureBindings[this.binding] = null;
+  }
 }
 
 class Field{
@@ -366,6 +393,12 @@ class Field{
     program.setUniform1f("x", x);
     program.setUniform1f("y", y);
     program.execute();
+  }
+  
+  delete(){
+    this.srcTexture.delete();
+    this.destTexture.delete();
+    this.solnTexture.delete();
   }
 }
 
@@ -711,36 +744,63 @@ class SimulationInstance{
 
     this.time += this.dt;
   }
+
+  delete(){
+    this.fieldDX.delete();
+    this.fieldDY.delete();
+    this.fieldDZ.delete();
+    this.fieldBX.delete();
+    this.fieldBY.delete();
+    this.fieldBZ.delete();
+    this.fieldCharge.delete();
+    this.fieldJX.delete();
+    this.fieldJY.delete();
+    this.fieldJZ.delete();
+    this.fieldFreq.delete();
+    this.fieldInvPermittivityX.delete();
+    this.fieldInvPermittivityY.delete();
+    this.fieldInvPermittivityZ.delete();
+    this.fieldInvPermeabilityX.delete();
+    this.fieldInvPermeabilityY.delete();
+    this.fieldInvPermeabilityZ.delete();
+    this.fieldConductivityX.delete();
+    this.fieldConductivityY.delete();
+    this.fieldConductivityZ.delete();
+  }
 }
 
-const instance = new SimulationInstance(128, 128);
-await instance.init();
-/** @type {MouseEvent[]} */
-const drawQueue = [];
-display.addEventListener("mousemove", e => drawQueue.push(e))
 while(true){
-  const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
-  instance.displayFields();
-  if(running){
-    instance.stepSimulation();
-  }
-  timeLabel.textContent = instance.time.toPrecision(4);
-  widthLabel.textContent = (instance.width * instance.ds).toPrecision(4);
-  heightLabel.textContent = (instance.height * instance.ds).toPrecision(4);
-  while(drawQueue.length > 0){
-    const event = drawQueue.pop();
-    if((event.buttons & 1) == 0){
-      continue
+  const instance = new SimulationInstance(Number.parseInt(widthInput.value), Number.parseInt(heightInput.value));
+  await instance.init();
+  /** @type {MouseEvent[]} */
+  const drawQueue = [];
+  display.addEventListener("mousemove", e => drawQueue.push(e))
+  resetFlag = false;
+  while(!resetFlag){
+    const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
+    instance.displayFields();
+    if(running){
+      instance.stepSimulation();
     }
-    const boundingRect = display.getBoundingClientRect();
-    const normalizedX = (event.clientX - boundingRect.x) / boundingRect.width;
-    const normalizedY = 1 - (event.clientY - boundingRect.y) / boundingRect.height;
-    const gridX = normalizedX * instance.width;
-    const gridY = normalizedY * instance.height;
-    const radius = 1;
-    instance.draw(gridX, gridY, radius)
+    timeLabel.textContent = instance.time.toPrecision(4);
+    widthLabel.textContent = (instance.width * instance.ds).toPrecision(4);
+    heightLabel.textContent = (instance.height * instance.ds).toPrecision(4);
+    while(drawQueue.length > 0){
+      const event = drawQueue.pop();
+      if((event.buttons & 1) == 0){
+        continue
+      }
+      const boundingRect = display.getBoundingClientRect();
+      const normalizedX = (event.clientX - boundingRect.x) / boundingRect.width;
+      const normalizedY = 1 - (event.clientY - boundingRect.y) / boundingRect.height;
+      const gridX = normalizedX * instance.width;
+      const gridY = normalizedY * instance.height;
+      const radius = 1;
+      instance.draw(gridX, gridY, radius)
+    }
+    gl.finish();
+    await frameEnd;
   }
-  gl.finish();
-  await frameEnd;
+  instance.delete()
 }
 })()
