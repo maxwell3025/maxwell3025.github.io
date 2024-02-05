@@ -24,6 +24,12 @@ const borderDissipationInput = document.getElementById("borderDissipationInput")
 /** @type {HTMLInputElement} */
 const borderDepthInput = document.getElementById("borderDepthInput");
 
+/** @type {HTMLInputElement} */
+const dtInput = document.getElementById("dtInput");
+
+/** @type {HTMLInputElement} */
+const dsInput = document.getElementById("dsInput");
+
 /** @type {HTMLDivElement} */
 const brushMenu = document.getElementById("brushMenu");
 
@@ -431,9 +437,6 @@ class SimulationInstance{
   /** @type {number} */
   height;
 
-  ds;
-  dt;
-
   time = 0;
 
   /** @type {RenderPipeline} */
@@ -676,6 +679,8 @@ class SimulationInstance{
   }
 
   stepSimulation(){
+    const ds = Number.parseFloat(dsInput.value);
+    const dt = Number.parseFloat(dtInput.value);
     //Crank the Nicholson
     for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
       //Link everything
@@ -717,12 +722,12 @@ class SimulationInstance{
 
       this.stepProgram.setUniform1f("width", this.width);
       this.stepProgram.setUniform1f("height", this.height);
-      this.stepProgram.setUniform1f("dt", this.dt);
-      this.stepProgram.setUniform1f("ds_inv", 1 / this.ds);
-      this.stepProgram.setUniform1f("ds", this.ds);
+      this.stepProgram.setUniform1f("dt", dt);
+      this.stepProgram.setUniform1f("ds_inv", 1 / ds);
+      this.stepProgram.setUniform1f("ds", ds);
       this.stepProgram.setUniform1f("time", this.time);
-      this.stepProgram.setUniform1f("boundary_thickness", Number.parseFloat(borderDepthInput.value) / this.ds);
-      this.stepProgram.setUniform1f("boundary_opacity", 2 * Number.parseFloat(borderDissipationInput.value) * this.ds / Number.parseFloat(borderDepthInput.value));
+      this.stepProgram.setUniform1f("boundary_thickness", Number.parseFloat(borderDepthInput.value) / ds);
+      this.stepProgram.setUniform1f("boundary_opacity", 2 * Number.parseFloat(borderDissipationInput.value) * ds / Number.parseFloat(borderDepthInput.value));
 
       this.stepProgram.execute();
 
@@ -742,7 +747,7 @@ class SimulationInstance{
     this.fieldBZ.swap();
     this.fieldCharge.swap();
 
-    this.time += this.dt;
+    this.time += dt;
   }
 
   delete(){
@@ -782,9 +787,10 @@ while(true){
     if(running){
       instance.stepSimulation();
     }
+    const ds = Number.parseFloat(dsInput.value);
     timeLabel.textContent = instance.time.toPrecision(4);
-    widthLabel.textContent = (instance.width * instance.ds).toPrecision(4);
-    heightLabel.textContent = (instance.height * instance.ds).toPrecision(4);
+    widthLabel.textContent = (instance.width * ds).toPrecision(4);
+    heightLabel.textContent = (instance.height * ds).toPrecision(4);
     while(drawQueue.length > 0){
       const event = drawQueue.pop();
       if((event.buttons & 1) == 0){
