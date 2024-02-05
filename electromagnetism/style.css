@@ -1,0 +1,21 @@
+
+body{
+    color: #d0d0d0;
+    background-color: #000;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0%;
+}
+
+canvas{
+    width: 100%;
+}
+
+#controlPanel{
+    display: flex;
+    justify-content: space-evenly;
+}
+
+.subMenu{
+    display: flex;
+    flex-flow: column;
+}
