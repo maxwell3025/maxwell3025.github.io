@@ -1,84 +1,37 @@
-(async () => {
-// Mapping to HTML content
-/** @type {HTMLSelectElement} */
-const viewTypeSelector = document.getElementById("viewTypeSelector")
-
-/** @type {HTMLInputElement} */
-const minInput = document.getElementById("minInput")
-
-/** @type {HTMLInputElement} */
-const maxInput = document.getElementById("maxInput")
-
-/** @type {HTMLInputElement} */
-const widthInput = document.getElementById("widthInput")
-
-/** @type {HTMLInputElement} */
-const heightInput = document.getElementById("heightInput")
-
-/** @type {HTMLButtonElement} */
-const resetButton = document.getElementById("resetButton")
-
-/** @type {HTMLInputElement} */
-const borderDissipationInput = document.getElementById("borderDissipationInput");
-
-/** @type {HTMLInputElement} */
-const borderDepthInput = document.getElementById("borderDepthInput");
-
-/** @type {HTMLInputElement} */
-const dtInput = document.getElementById("dtInput");
-
-/** @type {HTMLInputElement} */
-const dsInput = document.getElementById("dsInput");
-
-/** @type {HTMLDivElement} */
-const brushMenu = document.getElementById("brushMenu");
-
-/** @type {HTMLSelectElement} */
-const brushSelector = document.getElementById("brushSelector")
-
-/** @type {HTMLInputElement} */
-const brushValueInput = document.getElementById("brushValueInput");
-
-/** @type {HTMLInputElement} */
-const brushFrequencyInput = document.getElementById("brushFrequencyInput");
-
-/** @type {HTMLInputElement} */
-const brushInternalResistanceInput = document.getElementById("brushInternalResistanceInput");
-
-/** @type {HTMLInputElement} */
-const brushXInput = document.getElementById("brushXInput");
-
-/** @type {HTMLInputElement} */
-const brushYInput = document.getElementById("brushYInput");
-
-/** @type {HTMLInputElement} */
-const brushZInput = document.getElementById("brushZInput");
-
-/** @type {HTMLSpanElement} */
-const timeLabel = document.getElementById("timeLabel")
-
-/** @type {HTMLSpanElement} */
-const widthLabel = document.getElementById("widthLabel")
-
-/** @type {HTMLSpanElement} */
-const heightLabel = document.getElementById("heightLabel")
-
-/** @type {HTMLCanvasElement} */
-const display = document.createElement("canvas");
-
-// Setup display interactions
-display.style.imageRendering = "pixelated";
-display.hidden = true;
-document.body.appendChild(display);
+import {
+  viewTypeSelector,
+  minInput,
+  maxInput,
+  widthInput,
+  heightInput,
+  resetButton,
+  borderDissipationInput,
+  borderDepthInput,
+  dtInput,
+  dsInput,
+  brushMenu,
+  brushSelector,
+  brushValueInput,
+  brushFrequencyInput,
+  brushInternalResistanceInput,
+  brushXInput,
+  brushYInput,
+  brushZInput,
+  timeLabel,
+  widthLabel,
+  heightLabel,
+  display
+} from "./domContent.js";
+import { Field, FloatTexture, RenderPipeline, glFinish } from "./webGlFunctions.js";
 
 const frameDelay = 50;
 
 let running = false;
 
 document.addEventListener("keydown", e => {
-  if(e.key === " "){
-    running = !running;
+  if (e.key === " ") {
     e.preventDefault();
+    running = !running;
   }
 })
 
@@ -93,8 +46,8 @@ brushValueInput.addEventListener("input", e => {
   brushZInput.value = brushValueInput.value;
 })
 
-function hideAllBrushOptions(){
-  for(const child of brushMenu.children){
+function hideAllBrushOptions() {
+  for (const child of brushMenu.children) {
     child.hidden = true;
   }
   brushSelector.hidden = false;
@@ -103,14 +56,14 @@ function hideAllBrushOptions(){
 hideAllBrushOptions();
 
 brushSelector.addEventListener("change", e => {
-  function show(id){
+  function show(id) {
     /** @type {HTMLInputElement} */
     const elem = document.getElementById(id);
     elem.labels.forEach(label => label.hidden = false);
     elem.hidden = false;
   }
   hideAllBrushOptions();
-  switch(brushSelector.value){
+  switch (brushSelector.value) {
     case "none":
       break;
     case "currentSource":
@@ -135,282 +88,9 @@ brushSelector.addEventListener("change", e => {
   }
 })
 
-// Opengl Setup
-const gl = display.getContext("webgl2", {powerPreference: "high-performance"})
-if(gl == null){
-    console.log("Could not create a display context")
-}
-
-const floatExtension = gl.getExtension("EXT_color_buffer_float");
-if (floatExtension === null) {
-  console.error("Extension EXT_color_buffer_float not supported");
-}
-
-function loadShader(type, source) {
-  const shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.log(source)
-    alert(
-      `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`
-    );
-    gl.deleteShader(shader);
-    return null;
-  }
-  return shader;
-}
-
-const vertexPassthroughCode = await fetch("./passthrough.vsh").then(x => x.text());
-const vertexPassthroughShader = loadShader(gl.VERTEX_SHADER, vertexPassthroughCode)
-
-const meshData = new Float32Array([-1, -1, -1, 1, 1, -1, 1, 1]);
-const positionBuffer = gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, meshData, gl.STATIC_DRAW, 0);
-
-/**
- * Represents a shader program and an output
- */
-class RenderPipeline{
-  program;
-  framebuffer;
-  viewport;
-  outputWidth;
-  outputHeight;
-  bufs = new Array(gl.getParameter(gl.MAX_COLOR_ATTACHMENTS)).fill(gl.NONE);
-
-  constructor(source, outputWidth, outputHeight, framebuffer = gl.createFramebuffer()){
-    const fragShader = loadShader(gl.FRAGMENT_SHADER, source);
-    this.program = gl.createProgram();
-    gl.attachShader(this.program, fragShader);
-    gl.attachShader(this.program, vertexPassthroughShader);
-    gl.linkProgram(this.program);
-
-    this.framebuffer = framebuffer;
-
-    this.outputWidth = outputWidth;
-    this.outputHeight = outputHeight;
-
-    this.viewport = [0, 0, this.outputWidth, this.outputHeight];
-    
-    if(framebuffer === null){
-      this.bufs = [gl.BACK];
-    }
-  }
-
-  setUniform1f(name, value){
-    gl.useProgram(this.program);
-    const uniformLocation = gl.getUniformLocation(this.program, name);
-    gl.uniform1f(uniformLocation, value);
-  }
-
-  setSampler2D(name, texture){
-    gl.useProgram(this.program);
-    const texUniformLocation = gl.getUniformLocation(this.program, name);
-    gl.uniform1i(texUniformLocation, texture.binding);
-  }
-
-  bindOutput(name, texture){
-    if(this.framebuffer === null) throw new Error("Cannot bind outptu when targeting default framebuffer")
-    const outputIndex = gl.getFragDataLocation(this.program, name); //-1 if name is not an output variable
-    if(outputIndex === -1) throw new Error(`${name} is not a fragment shader output variable in this program`);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        gl.COLOR_ATTACHMENT0 + outputIndex,
-        gl.TEXTURE_2D,
-        texture.texture,
-        0
-    );
-    this.bufs[outputIndex] = gl.COLOR_ATTACHMENT0 + outputIndex;
-  }
-
-  unbindOutput(name){
-    const outputIndex = gl.getFragDataLocation(this.program, name); //-1 if name is not an output variable
-    if(outputIndex === -1) throw new Error(`${name} is not a fragment shader output variable in this program`);
-    this.bufs[outputIndex] = gl.NONE;
-  }
-
-  setViewport(x, y, width, height){
-    this.viewport = [x, y, width, height]
-  }
-
-  execute(){
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
-    gl.viewport(...this.viewport);
-    gl.useProgram(this.program);
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    const aVertexPosition = gl.getAttribLocation(this.program, "vertex_position");
-    gl.vertexAttribPointer(aVertexPosition, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(aVertexPosition);
-    gl.drawBuffers(this.bufs);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-  }
-}
-
-const drawRectbuffer = gl.createFramebuffer();
-const textureBindings = []
-class FloatTexture{
-  texture;
-  binding;
-  width;
-  height;
-
-  constructor(width, height){
-    this.width = width;
-    this.height = height;
-    this.texture = gl.createTexture();
-    this.binding = textureBindings.indexOf(null);
-    if(this.binding === -1){
-      this.binding = textureBindings.length;
-    }
-    textureBindings[this.binding] = this;
-    
-    gl.activeTexture(gl.TEXTURE0 + this.binding);
-    gl.bindTexture(gl.TEXTURE_2D, this.texture);
-    const data = new Float32Array(this.width * this.height).fill(0);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.R32F,
-      this.width,
-      this.height,
-      0,
-      gl.RED,
-      gl.FLOAT,
-      data
-    );
-  }
-
-  setData(data){
-    gl.activeTexture(gl.TEXTURE0 + this.binding);
-    gl.texImage2D(
-      gl.TEXTURE_2D,
-      0,
-      gl.R32F,
-      this.width,
-      this.height,
-      0,
-      gl.RED,
-      gl.FLOAT,
-      data
-    );
-  }
-
-  /**
-   * 
-   * @param {string} src 
-   * @param {(x: [number, number, number, number]) => number} transformation 
-   */
-  async setDataFromImage(src, transformation){
-    const image = new Image();
-    image.src = src;
-    const canvas = document.createElement("canvas");
-    canvas.width = this.width;
-    canvas.height = this.height;
-    const context = canvas.getContext("2d");
-    await new Promise(r => image.onload = r);
-    context.drawImage(image, 0, 0, this.width, this.height);
-    const imageData = Array.from(context.getImageData(0, 0, this.width, this.height).data);
-    const fieldData = [];
-    while(imageData.length > 0){
-      fieldData.push(transformation(imageData.splice(0, 4)));
-    }
-    this.setData(fieldData);
-  }
-
-  link(program, name){
-    gl.useProgram(program);
-    const texUniformLocation = gl.getUniformLocation(program, name);
-    gl.uniform1i(texUniformLocation, this.binding);
-  }
-
-  display(x, y, program){
-    program.setSampler2D("tex0", this);
-    program.setUniform1f("width", this.width * 4);
-    program.setUniform1f("height", this.height * 4);
-    program.setUniform1f("x", x);
-    program.setUniform1f("y", y);
-    program.execute();
-  }
-
-  setRect(x, y, width, height, value){
-    gl.finish();
-    gl.enable(gl.SCISSOR_TEST);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, drawRectbuffer);
-    gl.framebufferTexture2D(
-        gl.FRAMEBUFFER,
-        gl.COLOR_ATTACHMENT0,
-        gl.TEXTURE_2D,
-        this.texture,
-        0
-    );
-    gl.scissor(x, y, width, height);
-    gl.clearColor(value, 0, 0, 0);
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-    gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.disable(gl.SCISSOR_TEST);
-    gl.finish();
-  }
-
-  delete(){
-    textureBindings[this.binding] = null;
-  }
-}
-
-class Field{
-  srcTexture;
-  destTexture;
-  solnTexture;
-  width;
-  height;
-
-  constructor(width, height){
-    this.srcTexture = new FloatTexture(width, height);
-    this.destTexture = new FloatTexture(width, height);
-    this.solnTexture = new FloatTexture(width, height);
-    this.width = width;
-    this.height = height;
-  }
-
-  setData(data){
-    this.srcTexture.setData(data);
-    this.solnTexture.setData(data);
-  }
-
-  swap() {
-    [this.srcTexture, this.destTexture] = [this.destTexture, this.srcTexture];
-  }
-
-  // when using Crank-Nicholson with fixed point, we can use this
-  swapCNIter() {
-    [this.solnTexture, this.destTexture] = [this.destTexture, this.solnTexture];
-  }
-
-  display(x, y, program){
-    program.setSampler2D("tex0", this.srcTexture);
-    program.setUniform1f("width", this.width * 4);
-    program.setUniform1f("height", this.height * 4);
-    program.setUniform1f("x", x);
-    program.setUniform1f("y", y);
-    program.execute();
-  }
-  
-  delete(){
-    this.srcTexture.delete();
-    this.destTexture.delete();
-    this.solnTexture.delete();
-  }
-}
-
 const crankNicholsonIterCount = 4;
 
-class SimulationInstance{
+class SimulationInstance {
   fieldDX;
   fieldDY;
   fieldDZ;
@@ -450,7 +130,7 @@ class SimulationInstance{
   /** @type {RenderPipeline} */
   userDrawing;
 
-  constructor(width, height){
+  constructor(width, height) {
     this.width = width;
     this.height = height;
 
@@ -506,7 +186,7 @@ class SimulationInstance{
     this.fieldConductivityZ.setData(zeroesArray);
   }
 
-  async init(){
+  async init() {
     this.displayProgramPipeline = new RenderPipeline(await fetch("./display.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
     this.displayDField = new RenderPipeline(await fetch("./displayD.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
     this.displayBField = new RenderPipeline(await fetch("./displayB.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
@@ -518,10 +198,10 @@ class SimulationInstance{
     display.hidden = false;
   }
 
-  displayFields(){
+  displayFields() {
     const minValue = Number.parseFloat(minInput.value)
     const maxValue = Number.parseFloat(maxInput.value)
-    switch(viewTypeSelector.value){
+    switch (viewTypeSelector.value) {
       case "d":
         this.displayDField.setSampler2D("d_x_tex", this.fieldDX.srcTexture);
         this.displayDField.setSampler2D("d_y_tex", this.fieldDY.srcTexture);
@@ -546,7 +226,7 @@ class SimulationInstance{
       case "dz":
         this.fieldDZ.display(-1, -1, this.displayProgramPipeline);
         break;
-      
+
       case "b":
         this.displayBField.setSampler2D("b_x_tex", this.fieldBX.srcTexture);
         this.displayBField.setSampler2D("b_y_tex", this.fieldBY.srcTexture);
@@ -633,15 +313,15 @@ class SimulationInstance{
     }
   }
 
-  draw(gridX, gridY, radius){
+  draw(gridX, gridY, radius) {
     const value = Number.parseFloat(brushValueInput.value);
     const internalResistance = Number.parseFloat(brushInternalResistanceInput.value);
     const frequency = Number.parseFloat(brushFrequencyInput.value);
     const xValue = Number.parseFloat(brushXInput.value);
     const yValue = Number.parseFloat(brushYInput.value);
     const zValue = Number.parseFloat(brushZInput.value);
-    
-    switch(brushSelector.value){
+
+    switch (brushSelector.value) {
       case "none":
         break;
 
@@ -653,7 +333,7 @@ class SimulationInstance{
         break;
 
       case "linearSource":
-        if(internalResistance == 0){
+        if (internalResistance == 0) {
           alert("Internal resistance cannot be 0!");
         }
         const internalConductivity = 1.0 / internalResistance;
@@ -678,11 +358,11 @@ class SimulationInstance{
     }
   }
 
-  stepSimulation(){
+  stepSimulation() {
     const ds = Number.parseFloat(dsInput.value);
     const dt = Number.parseFloat(dtInput.value);
     //Crank the Nicholson
-    for(let iteration = 0; iteration < crankNicholsonIterCount; iteration++){
+    for (let iteration = 0; iteration < crankNicholsonIterCount; iteration++) {
       //Link everything
       this.stepProgram.setSampler2D("d_x_tex", this.fieldDX.srcTexture);
       this.stepProgram.setSampler2D("d_y_tex", this.fieldDY.srcTexture);
@@ -750,7 +430,7 @@ class SimulationInstance{
     this.time += dt;
   }
 
-  delete(){
+  delete() {
     this.fieldDX.delete();
     this.fieldDY.delete();
     this.fieldDZ.delete();
@@ -774,26 +454,26 @@ class SimulationInstance{
   }
 }
 
-while(true){
+while (true) {
   const instance = new SimulationInstance(Number.parseInt(widthInput.value), Number.parseInt(heightInput.value));
   await instance.init();
   /** @type {MouseEvent[]} */
   const drawQueue = [];
   display.addEventListener("mousemove", e => drawQueue.push(e))
   resetFlag = false;
-  while(!resetFlag){
+  while (!resetFlag) {
     const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
     instance.displayFields();
-    if(running){
+    if (running) {
       instance.stepSimulation();
     }
     const ds = Number.parseFloat(dsInput.value);
     timeLabel.textContent = instance.time.toPrecision(4);
     widthLabel.textContent = (instance.width * ds).toPrecision(4);
     heightLabel.textContent = (instance.height * ds).toPrecision(4);
-    while(drawQueue.length > 0){
+    while (drawQueue.length > 0) {
       const event = drawQueue.pop();
-      if((event.buttons & 1) == 0){
+      if ((event.buttons & 1) == 0) {
         continue
       }
       const boundingRect = display.getBoundingClientRect();
@@ -804,9 +484,8 @@ while(true){
       const radius = 1;
       instance.draw(gridX, gridY, radius)
     }
-    gl.finish();
+    glFinish();
     await frameEnd;
   }
   instance.delete()
 }
-})()
