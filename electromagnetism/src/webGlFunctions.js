@@ -42,7 +42,7 @@ gl.bufferData(gl.ARRAY_BUFFER, meshData, gl.STATIC_DRAW, 0);
 /**
  * Represents a shader program and an output
  */
-export class RenderPipeline {
+export class Pipeline {
   program;
   framebuffer;
   viewport;
@@ -50,23 +50,17 @@ export class RenderPipeline {
   outputHeight;
   outputBuffers = new Array(gl.getParameter(gl.MAX_COLOR_ATTACHMENTS)).fill(gl.NONE);
 
-  constructor(source, outputWidth, outputHeight, framebuffer = gl.createFramebuffer()) {
+  constructor(source, outputWidth, outputHeight) {
     const fragShader = loadShader(gl.FRAGMENT_SHADER, source);
     this.program = gl.createProgram();
     gl.attachShader(this.program, fragShader);
     gl.attachShader(this.program, vertexPassthroughShader);
     gl.linkProgram(this.program);
 
-    this.framebuffer = framebuffer;
-
     this.outputWidth = outputWidth;
     this.outputHeight = outputHeight;
 
     this.viewport = [0, 0, this.outputWidth, this.outputHeight];
-
-    if (framebuffer === null) {
-      this.outputBuffers = [gl.BACK];
-    }
   }
 
   setUniform1f(name, value) {
@@ -116,6 +110,41 @@ export class RenderPipeline {
     gl.enableVertexAttribArray(aVertexPosition);
     gl.drawBuffers(this.outputBuffers);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  }
+}
+
+export class PingPongPipeline extends Pipeline{
+  constructor(source, outputWidth, outputHeight) {
+    super(source, outputWidth, outputHeight);
+    this.framebuffer = gl.createFramebuffer()
+  }
+
+  bindOutput(name, texture) {
+    const outputIndex = gl.getFragDataLocation(this.program, name); //-1 if name is not an output variable
+    if (outputIndex === -1) throw new Error(`${name} is not a fragment shader output variable in this program`);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+    gl.framebufferTexture2D(
+      gl.FRAMEBUFFER,
+      gl.COLOR_ATTACHMENT0 + outputIndex,
+      gl.TEXTURE_2D,
+      texture.texture,
+      0
+    );
+    this.outputBuffers[outputIndex] = gl.COLOR_ATTACHMENT0 + outputIndex;
+  }
+
+  unbindOutput(name) {
+    const outputIndex = gl.getFragDataLocation(this.program, name); //-1 if name is not an output variable
+    if (outputIndex === -1) throw new Error(`${name} is not a fragment shader output variable in this program`);
+    this.outputBuffers[outputIndex] = gl.NONE;
+  }
+}
+
+export class RenderPipeline extends Pipeline{
+  constructor(source, outputWidth, outputHeight) {
+    super(source, outputWidth, outputHeight);
+    this.framebuffer = null;
+    this.outputBuffers = [gl.BACK];
   }
 }
 
