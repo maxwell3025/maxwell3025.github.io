@@ -22,7 +22,7 @@ import {
   heightLabel,
   display
 } from "./domContent.js";
-import { Field, FloatTexture, RenderPipeline, glFinish } from "./webGlFunctions.js";
+import { Field, FloatTexture, PingPongPipeline, RenderPipeline, glFinish } from "./webGlFunctions.js";
 
 const frameDelay = 50;
 
@@ -121,13 +121,13 @@ class SimulationInstance {
 
   /** @type {RenderPipeline} */
   displayProgramPipeline;
-  /** @type {RenderPipeline} */
+  /** @type {PingPongPipeline} */
   stepProgram;
   /** @type {RenderPipeline} */
   displayDField;
   /** @type {RenderPipeline} */
   displayBField;
-  /** @type {RenderPipeline} */
+  /** @type {PingPongPipeline} */
   userDrawing;
 
   constructor(width, height) {
@@ -190,8 +190,8 @@ class SimulationInstance {
     this.displayProgramPipeline = new RenderPipeline(await fetch("./display.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
     this.displayDField = new RenderPipeline(await fetch("./displayD.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
     this.displayBField = new RenderPipeline(await fetch("./displayB.fsh").then(x => x.text()), this.width * 4, this.height * 4, null);
-    this.stepProgram = new RenderPipeline(await fetch("./step.fsh").then(x => x.text()), this.width, this.height);
-    this.userDrawing = new RenderPipeline(await fetch("./dummy.fsh").then(x => x.text()), this.width, this.height);
+    this.stepProgram = new PingPongPipeline(await fetch("./step.fsh").then(x => x.text()), this.width, this.height);
+    this.userDrawing = new PingPongPipeline(await fetch("./dummy.fsh").then(x => x.text()), this.width, this.height);
 
     display.width = this.width * 4;
     display.height = this.height * 4;
