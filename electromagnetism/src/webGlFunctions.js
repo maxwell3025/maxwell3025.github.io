@@ -46,8 +46,6 @@ export class Pipeline {
   program;
   framebuffer;
   viewport;
-  outputWidth;
-  outputHeight;
   outputBuffers = new Array(gl.getParameter(gl.MAX_COLOR_ATTACHMENTS)).fill(gl.NONE);
 
   constructor(source, outputWidth, outputHeight) {
@@ -57,10 +55,7 @@ export class Pipeline {
     gl.attachShader(this.program, vertexPassthroughShader);
     gl.linkProgram(this.program);
 
-    this.outputWidth = outputWidth;
-    this.outputHeight = outputHeight;
-
-    this.viewport = [0, 0, this.outputWidth, this.outputHeight];
+    this.viewport = [0, 0, outputWidth, outputHeight];
   }
 
   setUniform1f(name, value) {
@@ -150,6 +145,8 @@ export class RenderPipeline extends Pipeline{
 
 const drawRectBuffer = gl.createFramebuffer();
 const textureBindings = [];
+
+const drawProgram = new PingPongPipeline((await fetch("./draw.fsh").then(res => res.text())), 0, 0);
 export class FloatTexture {
   texture;
   binding;
@@ -171,8 +168,8 @@ export class FloatTexture {
     const data = new Float32Array(this.width * this.height).fill(0);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
     gl.texImage2D(
       gl.TEXTURE_2D,
       0,
@@ -237,21 +234,27 @@ export class FloatTexture {
     program.execute();
   }
 
-  setRect(x, y, width, height, value) {
+  setSegment(x1, y1, x2, y2, radius, value) {
+    if(radius < 0) throw new Error("Negative radius passed to setSegment");
     gl.finish();
     gl.enable(gl.SCISSOR_TEST);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, drawRectBuffer);
-    gl.framebufferTexture2D(
-      gl.FRAMEBUFFER,
-      gl.COLOR_ATTACHMENT0,
-      gl.TEXTURE_2D,
-      this.texture,
-      0
-    );
-    gl.scissor(x, y, width, height);
-    gl.clearColor(value, 0, 0, 0);
-    gl.drawBuffers([gl.COLOR_ATTACHMENT0]);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    drawProgram.setViewport(0, 0, this.width, this.height);
+    drawProgram.bindOutput("color", this);
+
+    const minX = Math.floor(Math.min(x1, x2) - radius);
+    const minY = Math.floor(Math.min(y1, y2) - radius);
+    const maxX = Math.ceil(Math.max(x1, x2) + radius);
+    const maxY = Math.ceil(Math.max(y1, y2) + radius);
+    gl.scissor(minX, minY, maxX - minX, maxY - minY);
+
+    drawProgram.setUniform1f("x1", x1);
+    drawProgram.setUniform1f("y1", y1);
+    drawProgram.setUniform1f("x2", x2);
+    drawProgram.setUniform1f("y2", y2);
+    drawProgram.setUniform1f("radius", radius);
+    drawProgram.setUniform1f("value", value);
+
+    drawProgram.execute();
     gl.disable(gl.SCISSOR_TEST);
     gl.finish();
   }

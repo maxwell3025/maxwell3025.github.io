@@ -36,6 +36,9 @@ export const brushMenu = document.getElementById("brushMenu");
 export const brushSelector = document.getElementById("brushSelector")
 
 /** @type {HTMLInputElement} */
+export const brushRadiusInput = document.getElementById("brushRadiusInput");
+
+/** @type {HTMLInputElement} */
 export const brushValueInput = document.getElementById("brushValueInput");
 
 /** @type {HTMLInputElement} */

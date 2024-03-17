@@ -20,7 +20,8 @@ import {
   timeLabel,
   widthLabel,
   heightLabel,
-  display
+  display,
+  brushRadiusInput
 } from "./domContent.js";
 import { Field, FloatTexture, PingPongPipeline, RenderPipeline, glFinish } from "./webGlFunctions.js";
 
@@ -46,44 +47,46 @@ brushValueInput.addEventListener("input", e => {
   brushZInput.value = brushValueInput.value;
 })
 
+function showElement(id) {
+  /** @type {HTMLInputElement} */
+  const elem = document.getElementById(id);
+  elem.labels.forEach(label => label.hidden = false);
+  elem.hidden = false;
+}
+
 function hideAllBrushOptions() {
   for (const child of brushMenu.children) {
     child.hidden = true;
   }
-  brushSelector.hidden = false;
-  brushSelector.labels.forEach(label => label.hidden = false);
+  showElement("brushSelector");
+  showElement("brushRadiusInput");
 }
+
 hideAllBrushOptions();
 
 brushSelector.addEventListener("change", e => {
-  function show(id) {
-    /** @type {HTMLInputElement} */
-    const elem = document.getElementById(id);
-    elem.labels.forEach(label => label.hidden = false);
-    elem.hidden = false;
-  }
   hideAllBrushOptions();
   switch (brushSelector.value) {
     case "none":
       break;
     case "currentSource":
-      show("brushFrequencyInput");
-      show("brushXInput");
-      show("brushYInput");
-      show("brushZInput");
+      showElement("brushFrequencyInput");
+      showElement("brushXInput");
+      showElement("brushYInput");
+      showElement("brushZInput");
       break;
     case "linearSource":
-      show("brushFrequencyInput");
-      show("brushInternalResistanceInput");
-      show("brushXInput");
-      show("brushYInput");
-      show("brushZInput");
+      showElement("brushFrequencyInput");
+      showElement("brushInternalResistanceInput");
+      showElement("brushXInput");
+      showElement("brushYInput");
+      showElement("brushZInput");
       break;
     case "conductivity":
-      show("brushValueInput");
-      show("brushXInput");
-      show("brushYInput");
-      show("brushZInput");
+      showElement("brushValueInput");
+      showElement("brushXInput");
+      showElement("brushYInput");
+      showElement("brushZInput");
       break;
   }
 })
@@ -313,7 +316,7 @@ class SimulationInstance {
     }
   }
 
-  draw(gridX, gridY, radius) {
+  drawSegment(x1, y1, x2, y2, radius) {
     const value = Number.parseFloat(brushValueInput.value);
     const internalResistance = Number.parseFloat(brushInternalResistanceInput.value);
     const frequency = Number.parseFloat(brushFrequencyInput.value);
@@ -326,10 +329,10 @@ class SimulationInstance {
         break;
 
       case "currentSource":
-        this.fieldJX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, xValue);
-        this.fieldJY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, yValue);
-        this.fieldJZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, zValue);
-        this.fieldFreq.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius - 1, 2 * radius + 3, 2 * radius + 3, frequency);
+        this.fieldJX.setSegment(x1, y1, x2, y2, radius, xValue);
+        this.fieldJY.setSegment(x1, y1, x2, y2, radius, yValue);
+        this.fieldJZ.setSegment(x1, y1, x2, y2, radius, zValue);
+        this.fieldFreq.setSegment(x1, y1, x2, y2, radius, frequency);
         break;
 
       case "linearSource":
@@ -337,19 +340,19 @@ class SimulationInstance {
           alert("Internal resistance cannot be 0!");
         }
         const internalConductivity = 1.0 / internalResistance;
-        this.fieldJX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, xValue * internalConductivity);
-        this.fieldJY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, yValue * internalConductivity);
-        this.fieldJZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, zValue * internalConductivity);
-        this.fieldConductivityX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, internalConductivity);
-        this.fieldConductivityY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, internalConductivity);
-        this.fieldConductivityZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, internalConductivity);
-        this.fieldFreq.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius - 1, 2 * radius + 3, 2 * radius + 3, frequency);
+        this.fieldJX.setSegment(x1, y1, x2, y2, radius, xValue * internalConductivity);
+        this.fieldJY.setSegment(x1, y1, x2, y2, radius, yValue * internalConductivity);
+        this.fieldJZ.setSegment(x1, y1, x2, y2, radius, zValue * internalConductivity);
+        this.fieldConductivityX.setSegment(x1, y1, x2, y2, radius, internalConductivity);
+        this.fieldConductivityY.setSegment(x1, y1, x2, y2, radius, internalConductivity);
+        this.fieldConductivityZ.setSegment(x1, y1, x2, y2, radius, internalConductivity);
+        this.fieldFreq.setSegment(x1, y1, x2, y2, radius, frequency);
         break;
 
       case "conductivity":
-        this.fieldConductivityX.setRect(Math.floor(gridX - 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, xValue);
-        this.fieldConductivityY.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY - 0.25) - radius, 2 * radius + 1, 2 * radius + 1, yValue);
-        this.fieldConductivityZ.setRect(Math.floor(gridX + 0.25) - radius, Math.floor(gridY + 0.25) - radius, 2 * radius + 1, 2 * radius + 1, zValue);
+        this.fieldConductivityX.setSegment(x1, y1, x2, y2, radius, xValue);
+        this.fieldConductivityY.setSegment(x1, y1, x2, y2, radius, yValue);
+        this.fieldConductivityZ.setSegment(x1, y1, x2, y2, radius, zValue);
         break;
 
       default:
@@ -407,7 +410,11 @@ class SimulationInstance {
       this.stepProgram.setUniform1f("ds", ds);
       this.stepProgram.setUniform1f("time", this.time);
       this.stepProgram.setUniform1f("boundary_thickness", Number.parseFloat(borderDepthInput.value) / ds);
-      this.stepProgram.setUniform1f("boundary_opacity", 2 * Number.parseFloat(borderDissipationInput.value) * ds / Number.parseFloat(borderDepthInput.value));
+      if(Number.parseFloat(borderDepthInput.value) === 0){
+        this.stepProgram.setUniform1f("boundary_opacity", 0);
+      } else {
+        this.stepProgram.setUniform1f("boundary_opacity", 2 * Number.parseFloat(borderDissipationInput.value) * ds / Number.parseFloat(borderDepthInput.value));
+      }
 
       this.stepProgram.execute();
 
@@ -454,12 +461,38 @@ class SimulationInstance {
   }
 }
 
+let prevX = null;
+let prevY = null;
+/**
+ * @param {MouseEvent} evt 
+ * @param {SimulationInstance} instance 
+ */
+function handleDrawCall(evt, instance){
+  if ((evt.buttons & 1) == 0) {
+    prevX = null;
+    prevY = null;
+    return;
+  }
+  const boundingRect = display.getBoundingClientRect();
+  const normalizedX = (evt.clientX - boundingRect.x) / boundingRect.width;
+  const normalizedY = 1 - (evt.clientY - boundingRect.y) / boundingRect.height;
+  const gridX = normalizedX * instance.width;
+  const gridY = normalizedY * instance.height;
+  prevX ??= gridX;
+  prevY ??= gridY;
+  const radius = Number.parseFloat(brushRadiusInput.value);
+  if(Number.isNaN(radius) || radius < 0) throw new Error("Invalid Radius!");
+  instance.drawSegment(prevX, prevY, gridX, gridY, radius);
+  prevX = gridX;
+  prevY = gridY;
+}
+
 while (true) {
   const instance = new SimulationInstance(Number.parseInt(widthInput.value), Number.parseInt(heightInput.value));
   await instance.init();
   /** @type {MouseEvent[]} */
   const drawQueue = [];
-  display.addEventListener("mousemove", e => drawQueue.push(e))
+  display.addEventListener("mousemove", e => drawQueue.unshift(e))
   resetFlag = false;
   while (!resetFlag) {
     const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
@@ -471,19 +504,11 @@ while (true) {
     timeLabel.textContent = instance.time.toPrecision(4);
     widthLabel.textContent = (instance.width * ds).toPrecision(4);
     heightLabel.textContent = (instance.height * ds).toPrecision(4);
+
     while (drawQueue.length > 0) {
-      const event = drawQueue.pop();
-      if ((event.buttons & 1) == 0) {
-        continue
-      }
-      const boundingRect = display.getBoundingClientRect();
-      const normalizedX = (event.clientX - boundingRect.x) / boundingRect.width;
-      const normalizedY = 1 - (event.clientY - boundingRect.y) / boundingRect.height;
-      const gridX = normalizedX * instance.width;
-      const gridY = normalizedY * instance.height;
-      const radius = 1;
-      instance.draw(gridX, gridY, radius)
+      handleDrawCall(drawQueue.pop(), instance);
     }
+
     glFinish();
     await frameEnd;
   }
