@@ -21,11 +21,11 @@ import {
   widthLabel,
   heightLabel,
   display,
-  brushRadiusInput
+  brushRadiusInput,
+  fpsInput,
+  fpsLabel
 } from "./domContent.js";
 import { Field, FloatTexture, PingPongPipeline, RenderPipeline, glFinish } from "./webGlFunctions.js";
-
-const frameDelay = 50;
 
 let running = false;
 
@@ -487,6 +487,7 @@ function handleDrawCall(evt, instance){
   prevY = gridY;
 }
 
+const startTimeMS = Date.now();
 while (true) {
   const instance = new SimulationInstance(Number.parseInt(widthInput.value), Number.parseInt(heightInput.value));
   await instance.init();
@@ -494,8 +495,19 @@ while (true) {
   const drawQueue = [];
   display.addEventListener("mousemove", e => drawQueue.unshift(e))
   resetFlag = false;
+  let fps = Number.parseFloat(fpsInput.value);
+  let timeMS = Date.now() - startTimeMS;
   while (!resetFlag) {
-    const frameEnd = new Promise((r) => setTimeout(r, frameDelay));
+    const frameDelay = 1000 / Number.parseFloat(fpsInput.value);
+    const frameEnd = new Promise((r) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+      setTimeout(() => {
+        controller.abort();
+        r();
+      }, frameDelay);
+      fpsInput.addEventListener("change", r, {once: true, signal: signal})
+    });
     instance.displayFields();
     if (running) {
       instance.stepSimulation();
@@ -510,7 +522,13 @@ while (true) {
     }
 
     glFinish();
+
     await frameEnd;
+    const currentTimeMS = Date.now() - startTimeMS;
+    fps *= Math.exp(-0.001 * (currentTimeMS - timeMS));
+    timeMS = currentTimeMS;
+    fpsLabel.textContent = fps.toPrecision(4)
+    fps++;
   }
   instance.delete()
 }
