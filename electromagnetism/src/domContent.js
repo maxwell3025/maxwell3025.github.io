@@ -29,6 +29,9 @@ export const dtInput = document.getElementById("dtInput");
 /** @type {HTMLInputElement} */
 export const dsInput = document.getElementById("dsInput");
 
+/** @type {HTMLInputElement} */
+export const fpsInput = document.getElementById("fpsInput");
+
 /** @type {HTMLDivElement} */
 export const brushMenu = document.getElementById("brushMenu");
 
@@ -64,6 +67,9 @@ export const widthLabel = document.getElementById("widthLabel")
 
 /** @type {HTMLSpanElement} */
 export const heightLabel = document.getElementById("heightLabel")
+
+/** @type {HTMLSpanElement} */
+export const fpsLabel = document.getElementById("fpsLabel")
 
 /** @type {HTMLCanvasElement} */
 export const display = document.createElement("canvas");
