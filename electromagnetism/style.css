@@ -19,3 +19,28 @@ canvas{
     display: flex;
     flex-flow: column;
 }
+
+input, button, select{
+    border: 2px solid white;
+    border-radius: 0px;
+    outline: none;
+    background: none;
+    color: white;
+}
+
+input{
+    cursor: text;
+}
+
+button{
+    cursor: pointer;
+}
+
+select{
+    cursor: pointer;
+}
+
+button:hover{
+    background: white;
+    color: black;
+}
