@@ -17,6 +17,12 @@ export const heightInput = document.getElementById("heightInput")
 /** @type {HTMLButtonElement} */
 export const resetButton = document.getElementById("resetButton")
 
+/** @type {HTMLButtonElement} */
+export const loadButton = document.getElementById("loadButton")
+
+/** @type {HTMLButtonElement} */
+export const saveButton = document.getElementById("saveButton")
+
 /** @type {HTMLInputElement} */
 export const borderDissipationInput = document.getElementById("borderDissipationInput");
 

@@ -198,6 +198,19 @@ export class FloatTexture {
     );
   }
 
+  getData(){
+    const readBuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, readBuffer);
+    gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+    const destination = new Float32Array(this.width * this.height * 4);
+    const output = new Float32Array(this.width * this.height);
+    gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.FLOAT, destination);
+    for(let i = 0; i < this.width * this.height; i++){
+      output[i] = destination[i * 4];
+    }
+    return output;
+  }
+
   /**
    * @param {string} src 
    * @param {(x: [number, number, number, number]) => number} transformation 
