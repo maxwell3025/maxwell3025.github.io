@@ -315,7 +315,7 @@ export class SimulationInstance {
       this.stepProgram.setSampler2D("conductivity_y_tex", this.fieldConductivityY);
       this.stepProgram.setSampler2D("conductivity_z_tex", this.fieldConductivityZ);
       this.stepProgram.setSampler2D("antenna_frequency", this.fieldFreq);
-      this.stepProgram.setSampler2D("material_type", this.fieldMaterial);
+      this.stepProgram.setSampler2D("material_tex", this.fieldMaterial);
 
       this.stepProgram.bindOutput("d_x_new", this.fieldDX.destTexture);
       this.stepProgram.bindOutput("d_y_new", this.fieldDY.destTexture);

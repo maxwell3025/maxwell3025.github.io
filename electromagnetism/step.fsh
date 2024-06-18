@@ -30,6 +30,7 @@ uniform sampler2D j_z_tex;
 uniform sampler2D conductivity_x_tex;
 uniform sampler2D conductivity_y_tex;
 uniform sampler2D conductivity_z_tex;
+uniform sampler2D material_tex;
 
 uniform float width;
 uniform float height;
@@ -128,6 +129,14 @@ float charge(vec2 coord){
 * For semiconductors, TODO
 */
 float fermi_level_difference(vec2 coord){
+  int material = int(read_texture(material_tex, coord));
+  float charge_density = charge(coord);
+  switch(material){
+    case 0:
+      return 0.0;
+    case 1:
+      return charge_density * 0.1;
+  }
   return 0.0;
 }
 
