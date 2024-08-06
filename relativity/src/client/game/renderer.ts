@@ -13,15 +13,22 @@ camera.position.z = 1;
 
 function getRenderPosition(currentPosition: Coord, player: Player): Coord | undefined{
     function isPast(otherPosition: Coord): boolean {
-        if(otherPosition.t < currentPosition.t){
+        if(otherPosition.t > currentPosition.t){
             return false;
         }
         return (currentPosition.x - otherPosition.x) * (currentPosition.x - otherPosition.x) +
         (currentPosition.y - otherPosition.y) * (currentPosition.y - otherPosition.y) <
         (currentPosition.t - otherPosition.t) * (currentPosition.t - otherPosition.t)
     }
-    if(isPast(player.nextPosition)) return undefined
-    let minTime = 0;
+    if(isPast(player.finalPosition)) return undefined
+
+    let minTime = -1;
+    let minTimePosition = getSpacetimePosition(player, minTime)
+    while(minTimePosition && !isPast(minTimePosition)){
+        minTime *= 2
+        minTimePosition = getSpacetimePosition(player, minTime)
+    }
+
     let maxTime = 1;
     let maxTimePosition = getSpacetimePosition(player, maxTime)
     while(maxTimePosition && isPast(maxTimePosition)){
@@ -51,9 +58,11 @@ function renderLoop(instance: ClientInstance) {
     const currentPlayer = instance.getCurrentPlayer()
     let numRenderedPlayers = 0;
     for(const player of instance.state.players){
-        const renderPosition = getRenderPosition(currentPlayer.currentPosition, player)
-        if(!renderPosition)
-            throw new Error(`Client received player data for non-visible player with id = ${player.id}`)
+        const renderPosition = getRenderPosition(currentPlayer.clientPosition, player)
+        if(!renderPosition){
+            console.warn(`Client received player data for non-visible player with id = ${player.id}`)
+            continue
+        }
         const playerGeometry = new THREE.CircleGeometry(0.01);
         const playerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
         const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);

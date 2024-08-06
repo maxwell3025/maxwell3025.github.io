@@ -1,9 +1,10 @@
 import { build } from "vite";
 import ServerInstance from "./ServerInstance";
 import path from 'path'
-import { NewPlayerRequest, NewPlayerResponse, Player } from "../common/common";
+import { Player } from "../common/common";
 import { Server } from "bun";
 import fs from 'fs'
+import { NewPlayerRequest, NewPlayerResponse } from "../common/api";
 
 const rootURI = path.resolve(__dirname, '..', '..')
 
@@ -25,11 +26,9 @@ const routes: Record<string, Record<string, (req: Request, server: Server) => Pr
             const playerId = "test"
             const newPlayer: Player = {
                 id: playerId,
-                currentPosition: newPlayerRequest.starting,
-                nextPosition: newPlayerRequest.starting,
-                history: [{
-                    position: newPlayerRequest.starting,
-                }],
+                clientPosition: newPlayerRequest.starting,
+                finalPosition: newPlayerRequest.starting,
+                history:[],
                 matter: 100,
                 antimatter: 100,
             }
@@ -62,6 +61,10 @@ Bun.serve({
         return handler(req, server)
     },
     websocket: {
+        async open(ws){
+            ws.subscribe("new-turn")
+            console.log("hi")
+        },
         async message(ws, message){
             const data = JSON.parse(message.toString())
             ws.send(JSON.stringify(data))

@@ -1,5 +1,5 @@
 import ClientInstance from './ClientInstance';
-import { NewPlayerRequest, NewPlayerResponse } from '../../common/common';
+import { NewPlayerRequest, NewPlayerResponse } from '../../common/api';
 import { render } from './renderer';
 
 const params = new URLSearchParams(window.location.search);
