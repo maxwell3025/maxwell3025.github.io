@@ -22,6 +22,11 @@ if(!await Bun.file(path.join(rootURI, 'package.json')).exists())
 const routes: Record<string, Record<string, (req: Request, server: Server) => Promise<Response>>> = {
 }
 
+let currentUser = 0
+function getUsername(){
+    return currentUser++ + ""
+}
+
 const server = Bun.serve({
     port: 8080,
     async fetch(req, server) {
@@ -43,9 +48,11 @@ const server = Bun.serve({
     websocket: {
         async open(ws){
             ws.subscribe("newTurn")
+
             const initialPosition: Coord = {t: 0, x: Math.random() * 2 - 1, y: Math.random() * 2 - 1}
+            const username = getUsername()
             instance.addPlayer({
-                id: 'ExamplePlayer',
+                id: username,
                 antimatter: 1,
                 matter: 1,
                 history: [],
@@ -54,7 +61,7 @@ const server = Bun.serve({
             })
             const newPlayerPacket: NewPlayerPacket = {
                 messageType: 'newPlayer',
-                id: 'ExamplePlayer',
+                id: username,
                 initialState: instance.state
             }
             ws.send(JSON.stringify(newPlayerPacket))
