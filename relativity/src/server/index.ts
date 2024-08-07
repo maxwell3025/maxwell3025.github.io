@@ -1,10 +1,10 @@
 import { build } from "vite";
 import ServerInstance from "./ServerInstance";
 import path from 'path'
-import { Player } from "../common/common";
+import { Coord, Player } from "../common/common";
 import { Server } from "bun";
 import fs from 'fs'
-import { NewPlayerRequest, NewPlayerResponse } from "../common/api";
+import { NewPlayerPacket } from "../common/api";
 
 const rootURI = path.resolve(__dirname, '..', '..')
 
@@ -20,26 +20,6 @@ if(!await Bun.file(path.join(rootURI, 'package.json')).exists())
     throw new Error(`package.json not found at ${rootURI}. Location resolution is incorrect.`)
 
 const routes: Record<string, Record<string, (req: Request, server: Server) => Promise<Response>>> = {
-    POST: {
-        async "/api/newPlayer"(req, server){
-            const newPlayerRequest: NewPlayerRequest = await req.json()
-            const playerId = "test"
-            const newPlayer: Player = {
-                id: playerId,
-                clientPosition: newPlayerRequest.starting,
-                finalPosition: newPlayerRequest.starting,
-                history:[],
-                matter: 100,
-                antimatter: 100,
-            }
-            instance.addPlayer(newPlayer)
-            const newPlayerResponse: NewPlayerResponse = {
-                id: playerId,
-                initialState: instance.state
-            }
-            return new Response(JSON.stringify(newPlayerResponse))
-        }
-    }
 }
 
 const server = Bun.serve({
@@ -63,6 +43,21 @@ const server = Bun.serve({
     websocket: {
         async open(ws){
             ws.subscribe("newTurn")
+            const initialPosition: Coord = {t: 0, x: Math.random() * 2 - 1, y: Math.random() * 2 - 1}
+            instance.addPlayer({
+                id: 'ExamplePlayer',
+                antimatter: 1,
+                matter: 1,
+                history: [],
+                clientPosition: initialPosition,
+                finalPosition: initialPosition,
+            })
+            const newPlayerPacket: NewPlayerPacket = {
+                messageType: 'newPlayer',
+                id: 'ExamplePlayer',
+                initialState: instance.state
+            }
+            ws.send(JSON.stringify(newPlayerPacket))
         },
         async message(ws, message){
             const data = JSON.parse(message.toString())
