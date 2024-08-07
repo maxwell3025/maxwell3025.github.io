@@ -57,7 +57,16 @@ function getRenderPosition(currentPosition: Coord, player: Player): Coord | unde
         }
     }
     const intersectionLocation = getSpacetimePosition(player, minTime)
-    return intersectionLocation
+    if(intersectionLocation){
+        return {
+            t: intersectionLocation.t - currentPosition.t,
+            x: intersectionLocation.x - currentPosition.x,
+            y: intersectionLocation.y - currentPosition.y
+        }
+    } else {
+        console.warn("This branch of execution should never occur")
+        return undefined
+    }
 }
 
 function renderLoop(instance: ClientInstance) {
