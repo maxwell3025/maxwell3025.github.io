@@ -6,6 +6,8 @@ const params = new URLSearchParams(window.location.search);
 
 const instance = new ClientInstance();
 
+const socket = new WebSocket("ws://localhost:8080");
+
 await init();
 
 console.log('initialized')

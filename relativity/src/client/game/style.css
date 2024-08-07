@@ -3,8 +3,23 @@ body{
     padding: 0px;
 }
 
+#rendererDom{
+    position: absolute;
+    inset: 0;
+}
+
+#labelRendererDom{
+    position: absolute;
+    inset: 0;
+}
+
 #gui{
     color: white;
     position: absolute;
     inset: 0;
+}
+
+.label{
+    font-family: monospace;
+    color: white;
 }

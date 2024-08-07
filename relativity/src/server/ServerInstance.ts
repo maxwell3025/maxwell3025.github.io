@@ -8,4 +8,7 @@ export default class ServerInstance {
     addPlayer(player: Player) {
         this.state.players.push(player)
     }
+    evaluateTurn() {
+        console.log("Evaluating new turn")
+    }
 }

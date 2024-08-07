@@ -42,7 +42,7 @@ const routes: Record<string, Record<string, (req: Request, server: Server) => Pr
     }
 }
 
-Bun.serve({
+const server = Bun.serve({
     port: 8080,
     async fetch(req, server) {
         if(server.upgrade(req)){
@@ -62,8 +62,7 @@ Bun.serve({
     },
     websocket: {
         async open(ws){
-            ws.subscribe("new-turn")
-            console.log("hi")
+            ws.subscribe("newTurn")
         },
         async message(ws, message){
             const data = JSON.parse(message.toString())
@@ -71,3 +70,9 @@ Bun.serve({
         }
     }
 })
+
+while(true){
+    await new Promise(resolve => setTimeout(resolve, 10000))
+    instance.evaluateTurn();
+    server.publish("newTurn", JSON.stringify(instance.state))
+}
