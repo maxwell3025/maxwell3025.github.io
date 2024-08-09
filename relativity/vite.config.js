@@ -1,5 +1,5 @@
-import { defineConfig } from "vite"
-import path from 'path'
+import { defineConfig } from "vite";
+import path from 'path';
 
 export default defineConfig({
     root: path.join(__dirname, 'src'),
@@ -11,8 +11,8 @@ export default defineConfig({
         rollupOptions: {
             input: {
                 main: path.join(__dirname, 'src/client/index.html'),
-                game: path.join(__dirname, 'src/client/game/index.html')
-            }
-        }
-    }
-})
+                game: path.join(__dirname, 'src/client/game/index.html'),
+            },
+        },
+    },
+});
