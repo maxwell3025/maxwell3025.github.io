@@ -1,4 +1,4 @@
-import { Coord, GameState } from "./common"
+import { GameState } from "./common"
 
 export type NewPlayerPacket = {
     messageType: "newPlayer"

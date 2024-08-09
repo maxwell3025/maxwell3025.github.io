@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import ClientInstance from './ClientInstance';
-import { Coord, getSpacetimePosition, Player } from '../../common/common';
+import { getSpacetimePosition, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
+import { Coord } from '../../common/geometry';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);

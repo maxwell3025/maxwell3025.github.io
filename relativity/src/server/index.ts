@@ -1,10 +1,11 @@
 import { build } from "vite";
 import ServerInstance from "./ServerInstance";
 import path from 'path'
-import { Coord, Player } from "../common/common";
+import { getDefaultAction, Player } from "../common/common";
 import { Server } from "bun";
 import fs from 'fs'
 import { NewPlayerPacket } from "../common/api";
+import { Coord } from "../common/geometry";
 
 const rootURI = path.resolve(__dirname, '..', '..')
 
@@ -48,6 +49,7 @@ const server = Bun.serve({
     websocket: {
         async open(ws){
             ws.subscribe("newTurn")
+            ws.subscribe("mapUpdate")
 
             const initialPosition: Coord = {t: 0, x: Math.random() * 2 - 1, y: Math.random() * 2 - 1}
             const username = getUsername()
@@ -58,6 +60,7 @@ const server = Bun.serve({
                 history: [],
                 clientPosition: initialPosition,
                 finalPosition: initialPosition,
+                currentAction: getDefaultAction(),
             })
             const newPlayerPacket: NewPlayerPacket = {
                 messageType: 'newPlayer',

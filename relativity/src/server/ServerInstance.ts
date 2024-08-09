@@ -1,4 +1,5 @@
-import type { Coord, GameState, Player } from "../common/common";
+import type { GameState, Player } from "../common/common";
+import { Coord } from "../common/geometry";
 
 export default class ServerInstance {
     state: GameState = { players: [] }

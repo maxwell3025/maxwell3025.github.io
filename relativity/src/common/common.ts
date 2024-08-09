@@ -1,24 +1,20 @@
-export type Coord = {
-    x: number
-    y: number
-    t: number
-}
+import { Coord, LorentzTransform } from "./geometry"
 
 /**
  * A starting position and action(thrust, fire, etc.)
  */
 export type HistoryEntry = {
     position: Coord
+    /** velocity and orientation */
+    transform: LorentzTransform
     action: Action
 }
 
-export type Action =
-    ThrustAction |
-    NukeAction |
-    LaserAction
-
+// Light-like thrust action
 export type ThrustAction = {
     type: "thrust"
+    x: number
+    y: number
 }
 
 export type NukeAction = {
@@ -27,6 +23,19 @@ export type NukeAction = {
 
 export type LaserAction = {
     type: "laser"
+}
+
+export type Action =
+    ThrustAction |
+    NukeAction |
+    LaserAction
+
+export function getDefaultAction(): Action {
+    return {
+        type: 'thrust',
+        x: 0,
+        y: 0,
+    }
 }
 
 export type Player = {
@@ -41,11 +50,13 @@ export type Player = {
     finalPosition: Coord
     /** A full timeline of player actions including final uncertain action */
     history: HistoryEntry[]
+    /** The action currently scheduled to be taken after `finalPosition` */
+    currentAction: Action
     matter: number
     antimatter: number
 }
 
-export function getSpacetimePosition(player: Player, time: number): Coord | undefined{
+export function getSpacetimePosition(player: Player, time: number): Coord | undefined {
     const index = Math.floor(time)
     const fracTime = time - Math.floor(time)
     const historyEntry = player.history[index]
