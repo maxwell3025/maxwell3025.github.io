@@ -10,10 +10,34 @@ export type HistoryEntry = {
     action: Action
 };
 
+/**
+ * Gets the entry after the current history entry assuming default action
+ * @param entry current history entry
+ * TODO
+ */
+export function getNextEntry(entry: HistoryEntry): HistoryEntry{
+    let accelerationX = 0;
+    let accelerationY = 0;
+    if(entry.action.type === "thrust"){
+        accelerationX = entry.action.x;
+        accelerationY = entry.action.y;
+    }
+    const position = structuredClone(entry.position);
+    const transform = structuredClone(entry.transform);
+    
+    return {
+        position,
+        transform,
+        action: getDefaultAction(),
+    };
+}
+
 // Light-like thrust action
 export type ThrustAction = {
     type: "thrust"
+    // x acceleration in player FOR
     x: number
+    // y acceleration in player FOR
     y: number
 };
 
