@@ -1,4 +1,4 @@
-import { Coord, LorentzTransform } from "./geometry";
+import { Coord, Matrix } from "./geometry";
 
 /**
  * A starting position and action(thrust, fire, etc.)
@@ -6,7 +6,7 @@ import { Coord, LorentzTransform } from "./geometry";
 export type HistoryEntry = {
     position: Coord
     /** velocity and orientation */
-    transform: LorentzTransform
+    transform: Matrix
     action: Action
 };
 
