@@ -1,4 +1,4 @@
-import { Vector, Matrix } from "./geometry";
+import { Vector, Matrix, getIdentity } from "./geometry";
 
 /**
  * A starting position and action(thrust, fire, etc.)
@@ -47,7 +47,7 @@ export type Player = {
      * The orientation and velocity corresponding to `clientPosition`.
      * The forward transform should be used to find energy-momentum from rest vector and the backward transform should be used to rendering.
      */
-    transform: Matrix
+    finalTransform: Matrix
     /**
      * The final position of the player assuming no interference.
      * This is what we use to calculate uncertainty regions.
@@ -87,6 +87,24 @@ export function getSpacetimePosition(player: Player, time: number): Vector | und
             y: historyEntry.position.y,
             t: time,
         };
+    }
+    if(time === player.history.length){
+        return player.finalPosition;
+    }
+}
+
+export function getTransform(player: Player, time: number): Matrix | undefined {
+    const index = Math.floor(time);
+    const fracTime = time - Math.floor(time);
+    const historyEntry = player.history[index];
+    if(time < 0){
+        return getIdentity();
+    }
+    if(historyEntry){
+        return historyEntry.transform;
+    }
+    if(time === player.history.length){
+        return player.finalTransform;
     }
 }
 

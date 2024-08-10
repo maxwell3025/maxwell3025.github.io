@@ -7,6 +7,7 @@ import { Server } from "bun";
 import fs from 'fs';
 import { NewPlayerPacket } from "../common/api";
 import { getIdentity, Vector } from "../common/geometry";
+import { processMessage } from "./net";
 
 const rootURI = path.resolve(__dirname, '..', '..');
 
@@ -62,7 +63,7 @@ const server = Bun.serve({
                 clientPosition: initialPosition,
                 finalPosition: initialPosition,
                 currentAction: getDefaultAction(),
-                transform: getIdentity(),
+                finalTransform: getIdentity(),
             });
             const newPlayerPacket: NewPlayerPacket = {
                 messageType: 'newPlayer',
@@ -72,8 +73,7 @@ const server = Bun.serve({
             ws.send(JSON.stringify(newPlayerPacket));
         },
         async message(ws, message){
-            const data = JSON.parse(message.toString());
-            ws.send(JSON.stringify(data));
+            processMessage(message as string);
         },
     },
 });

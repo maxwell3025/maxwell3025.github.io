@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import ClientInstance from './ClientInstance';
-import { getSpacetimePosition, Player } from '../../common/common';
+import { getSpacetimePosition, getTransform, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 import { getGenerator, invert, Matrix, mul, Vector } from '../../common/geometry';
 
@@ -71,19 +71,19 @@ function getRenderPosition(currentPosition: Vector, player: Player, currentTrans
     }
 }
 
-const boost = getGenerator([
-    0, 1, 0,
-    1, 0, 0,
-    0, 0, 0,
-]);
-let time = 0;
 function renderLoop(instance: ClientInstance) {
-    time += 0.01;
     scene.clear();
     const currentPlayer = instance.getCurrentPlayer();
+    const currentPosition = getSpacetimePosition(currentPlayer, instance.clientProperTime);
+    const currentTransform = getTransform(currentPlayer, instance.clientProperTime);
+    if(!currentPosition || !currentTransform){
+        console.warn(`Invalid proper time ${instance.clientProperTime}`);
+        console.warn(currentPlayer);
+        return;
+    }
     let numRenderedPlayers = 0;
     for(const player of instance.state.players){
-        const renderPosition = getRenderPosition(currentPlayer.clientPosition, player, boost(time));
+        const renderPosition = getRenderPosition(currentPosition, player, currentTransform);
         if(!renderPosition){
             console.warn(`Client received player data for non-visible player with id = ${player.id}`);
             continue;

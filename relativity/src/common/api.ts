@@ -14,3 +14,11 @@ export type TestPacket = {
 export type WsServerToClient =
     NewPlayerPacket | TestPacket;
 
+export type ChangeActionPacket = {
+    messageType: "changeAction"
+    playerId: string
+
+};
+
+export type WsClientToServer =
+    ChangeActionPacket;
