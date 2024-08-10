@@ -1,3 +1,4 @@
+console.log("hi");
 import { build } from "vite";
 import ServerInstance from "./ServerInstance";
 import path from 'path';
@@ -5,7 +6,7 @@ import { getDefaultAction, Player } from "../common/common";
 import { Server } from "bun";
 import fs from 'fs';
 import { NewPlayerPacket } from "../common/api";
-import { Vector } from "../common/geometry";
+import { getIdentity, Vector } from "../common/geometry";
 
 const rootURI = path.resolve(__dirname, '..', '..');
 
@@ -61,6 +62,7 @@ const server = Bun.serve({
                 clientPosition: initialPosition,
                 finalPosition: initialPosition,
                 currentAction: getDefaultAction(),
+                transform: getIdentity(),
             });
             const newPlayerPacket: NewPlayerPacket = {
                 messageType: 'newPlayer',

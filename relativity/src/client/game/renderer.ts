@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import ClientInstance from './ClientInstance';
 import { getSpacetimePosition, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
-import { Vector } from '../../common/geometry';
+import { getGenerator, invert, Matrix, mul, Vector } from '../../common/geometry';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -19,7 +19,8 @@ document.body.appendChild(labelRenderer.domElement);
 
 camera.position.z = 1;
 
-function getRenderPosition(currentPosition: Vector, player: Player): Vector | undefined{
+function getRenderPosition(currentPosition: Vector, player: Player, currentTransform: Matrix): Vector | undefined{
+    const inverseMatrix = invert(currentTransform);
     function isPast(otherPosition: Vector): boolean {
         if(otherPosition.t > currentPosition.t){
             return false;
@@ -59,23 +60,30 @@ function getRenderPosition(currentPosition: Vector, player: Player): Vector | un
     }
     const intersectionLocation = getSpacetimePosition(player, minTime);
     if(intersectionLocation){
-        return {
+        return mul(inverseMatrix, {
             t: intersectionLocation.t - currentPosition.t,
             x: intersectionLocation.x - currentPosition.x,
             y: intersectionLocation.y - currentPosition.y,
-        };
+        });
     } else {
         console.warn("This branch of execution should never occur");
         return undefined;
     }
 }
 
+const boost = getGenerator([
+    0, 1, 0,
+    1, 0, 0,
+    0, 0, 0,
+]);
+let time = 0;
 function renderLoop(instance: ClientInstance) {
+    time += 0.01;
     scene.clear();
     const currentPlayer = instance.getCurrentPlayer();
     let numRenderedPlayers = 0;
     for(const player of instance.state.players){
-        const renderPosition = getRenderPosition(currentPlayer.clientPosition, player);
+        const renderPosition = getRenderPosition(currentPlayer.clientPosition, player, boost(time));
         if(!renderPosition){
             console.warn(`Client received player data for non-visible player with id = ${player.id}`);
             continue;

@@ -44,6 +44,11 @@ export type Player = {
     /** The final certain position of the player and what we show the client */
     clientPosition: Vector
     /**
+     * The orientation and velocity corresponding to `clientPosition`.
+     * The forward transform should be used to find energy-momentum from rest vector and the backward transform should be used to rendering.
+     */
+    transform: Matrix
+    /**
      * The final position of the player assuming no interference.
      * This is what we use to calculate uncertainty regions.
      */
