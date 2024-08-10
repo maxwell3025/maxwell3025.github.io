@@ -1,10 +1,10 @@
-import { Coord, Matrix } from "./geometry";
+import { Vector, Matrix } from "./geometry";
 
 /**
  * A starting position and action(thrust, fire, etc.)
  */
 export type HistoryEntry = {
-    position: Coord
+    position: Vector
     /** velocity and orientation */
     transform: Matrix
     action: Action
@@ -42,12 +42,12 @@ export type Player = {
     /** A unique identifier for the player within the game */
     id: string
     /** The final certain position of the player and what we show the client */
-    clientPosition: Coord
+    clientPosition: Vector
     /**
      * The final position of the player assuming no interference.
      * This is what we use to calculate uncertainty regions.
      */
-    finalPosition: Coord
+    finalPosition: Vector
     /** A full timeline of player actions including final uncertain action */
     history: HistoryEntry[]
     /** The action currently scheduled to be taken after `finalPosition` */
@@ -56,7 +56,7 @@ export type Player = {
     antimatter: number
 };
 
-export function getSpacetimePosition(player: Player, time: number): Coord | undefined {
+export function getSpacetimePosition(player: Player, time: number): Vector | undefined {
     const index = Math.floor(time);
     const fracTime = time - Math.floor(time);
     const historyEntry = player.history[index];

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import ClientInstance from './ClientInstance';
 import { getSpacetimePosition, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
-import { Coord } from '../../common/geometry';
+import { Vector } from '../../common/geometry';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -19,8 +19,8 @@ document.body.appendChild(labelRenderer.domElement);
 
 camera.position.z = 1;
 
-function getRenderPosition(currentPosition: Coord, player: Player): Coord | undefined{
-    function isPast(otherPosition: Coord): boolean {
+function getRenderPosition(currentPosition: Vector, player: Player): Vector | undefined{
+    function isPast(otherPosition: Vector): boolean {
         if(otherPosition.t > currentPosition.t){
             return false;
         }

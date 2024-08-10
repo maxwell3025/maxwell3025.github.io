@@ -5,7 +5,7 @@ import { getDefaultAction, Player } from "../common/common";
 import { Server } from "bun";
 import fs from 'fs';
 import { NewPlayerPacket } from "../common/api";
-import { Coord } from "../common/geometry";
+import { Vector } from "../common/geometry";
 
 const rootURI = path.resolve(__dirname, '..', '..');
 
@@ -51,7 +51,7 @@ const server = Bun.serve({
             ws.subscribe("newTurn");
             ws.subscribe("mapUpdate");
 
-            const initialPosition: Coord = {t: 0, x: Math.random() * 2 - 1, y: Math.random() * 2 - 1};
+            const initialPosition: Vector = {t: 0, x: Math.random() * 2 - 1, y: Math.random() * 2 - 1};
             const username = getUsername();
             instance.addPlayer({
                 id: username,

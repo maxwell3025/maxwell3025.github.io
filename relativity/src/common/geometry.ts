@@ -1,4 +1,4 @@
-export type Coord = {
+export type Vector = {
     t: number
     x: number
     y: number
@@ -10,15 +10,15 @@ export type Matrix = [
     number, number, number,
 ];
 
-function isCoord(value: Coord | Matrix | number): value is Coord{
+function isCoord(value: Vector | Matrix | number): value is Vector{
     return !Array.isArray(value) && typeof value ==='object';
 }
 
-function isMatrix(value: Coord | Matrix | number): value is Matrix{
+function isMatrix(value: Vector | Matrix | number): value is Matrix{
     return Array.isArray(value);
 }
 
-function isNumber(value: Coord | Matrix | number): value is number{
+function isNumber(value: Vector | Matrix | number): value is number{
     return typeof value === 'number';
 }
 
@@ -107,7 +107,7 @@ export function invert(matrix: Matrix): Matrix{
     return right;
 }
 
-function mulMatVec(lhs: Matrix, rhs: Coord){
+function mulMatVec(lhs: Matrix, rhs: Vector){
     return {
         t: rhs.t * lhs[0] + rhs.x * lhs[1] + rhs.y * lhs[2],
         x: rhs.t * lhs[3] + rhs.x * lhs[4] + rhs.y * lhs[5],
@@ -130,12 +130,12 @@ function mulMatMat(lhs: Matrix, rhs: Matrix): Matrix{
 }
 
 export function mul(lhs: Matrix, rhs: Matrix): Matrix;
-export function mul(lhs: Matrix, rhs: Coord): Coord;
+export function mul(lhs: Matrix, rhs: Vector): Vector;
 export function mul(lhs: Matrix, rhs: number): Matrix;
 export function mul(lhs: number, rhs: Matrix): Matrix;
-export function mul(lhs: Coord, rhs: number): Coord;
-export function mul(lhs: number, rhs: Coord): Coord;
-export function mul(lhs: Matrix | Coord | number, rhs: Matrix | Coord | number): Matrix | Coord {
+export function mul(lhs: Vector, rhs: number): Vector;
+export function mul(lhs: number, rhs: Vector): Vector;
+export function mul(lhs: Matrix | Vector | number, rhs: Matrix | Vector | number): Matrix | Vector {
     if(isMatrix(lhs) && isMatrix(rhs)){
         return mulMatMat(lhs, rhs);
     } else if (isMatrix(lhs) && isCoord(rhs)){
@@ -161,8 +161,8 @@ export function mul(lhs: Matrix | Coord | number, rhs: Matrix | Coord | number):
 }
 
 export function add(lhs: Matrix, rhs: Matrix): Matrix;
-export function add(lhs: Coord, rhs: Coord): Coord;
-export function add(lhs: Matrix | Coord, rhs: Matrix | Coord) : Matrix | Coord{
+export function add(lhs: Vector, rhs: Vector): Vector;
+export function add(lhs: Matrix | Vector, rhs: Matrix | Vector) : Matrix | Vector{
     if(isMatrix(lhs) && isMatrix(rhs)){
         return lhs.map((value, index) => value + rhs[index]) as Matrix;
     } else if(isCoord(lhs) && isCoord(rhs)){

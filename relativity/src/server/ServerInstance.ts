@@ -1,9 +1,9 @@
 import type { GameState, Player } from "../common/common";
-import { Coord } from "../common/geometry";
+import { Vector } from "../common/geometry";
 
 export default class ServerInstance {
     state: GameState = { players: [] };
-    censor(position: Coord): GameState {
+    censor(position: Vector): GameState {
         return structuredClone(this.state);
     }
     addPlayer(player: Player) {
