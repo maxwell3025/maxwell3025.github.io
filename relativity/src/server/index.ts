@@ -1,21 +1,15 @@
-console.log("hi");
 import { build } from "vite";
 import ServerInstance from "./ServerInstance";
 import path from 'path';
 import { getDefaultAction } from "../common/common";
 import { Server } from "bun";
-import fs from 'fs';
 import { NewPlayerPacket } from "../common/api";
 import { getIdentity, Vector } from "../common/geometry";
 import { processMessage } from "./net";
 
 const rootURI = path.resolve(__dirname, '..', '..');
 
-fs.watch(path.join(rootURI, 'src'), {recursive: true}, async () => {
-    await build();
-});
-
-const viteBuildResult = await build();
+await build();
 
 const instance = new ServerInstance();
 
@@ -78,8 +72,10 @@ const server = Bun.serve({
     },
 });
 
-while(true){
-    await new Promise(resolve => setTimeout(resolve, 10000));
+process.stdout.write('> ');
+for await (const line of console){
     instance.evaluateTurn();
+
     server.publish("newTurn", JSON.stringify(instance.state));
+    process.stdout.write('> ');
 }
