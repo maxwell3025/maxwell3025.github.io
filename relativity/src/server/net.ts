@@ -1,6 +1,5 @@
 import { WsClientToServer } from "../common/api";
 
-const socket = new WebSocket("ws://localhost:8080");
 const wsMessageQueues: Record<string, WsClientToServer[]> = { };
 const wsMessageListeners: (() => boolean)[] = [];
 export async function awaitWebSocketMessage<T extends WsClientToServer['messageType']>(messageType: T): Promise<Extract<WsClientToServer, {messageType: T}>>{

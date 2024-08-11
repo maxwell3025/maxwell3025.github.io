@@ -18,7 +18,7 @@ export type HistoryEntry = {
 export function getNextEntry(entry: HistoryEntry): HistoryEntry{
     let accelerationX = 0;
     let accelerationY = 0;
-    if(entry.action.type === "thrust"){
+    if(entry.action.actionType === "thrust"){
         accelerationX = entry.action.x;
         accelerationY = entry.action.y;
     }
@@ -34,7 +34,7 @@ export function getNextEntry(entry: HistoryEntry): HistoryEntry{
 
 // Light-like thrust action
 export type ThrustAction = {
-    type: "thrust"
+    actionType: "thrust"
     // x acceleration in player FOR
     x: number
     // y acceleration in player FOR
@@ -42,11 +42,11 @@ export type ThrustAction = {
 };
 
 export type NukeAction = {
-    type: "nuke"
+    actionType: "nuke"
 };
 
 export type LaserAction = {
-    type: "laser"
+    actionType: "laser"
 };
 
 export type Action =
@@ -54,9 +54,11 @@ export type Action =
     NukeAction |
     LaserAction;
 
+export type ActionType = Action['actionType'];
+
 export function getDefaultAction(): Action {
     return {
-        type: 'thrust',
+        actionType: 'thrust',
         x: 0,
         y: 0,
     };

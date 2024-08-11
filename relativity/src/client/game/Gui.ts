@@ -1,12 +1,12 @@
-import { Action } from "../../common/common";
+import { ActionType } from "../../common/common";
 import ClientInstance from "./ClientInstance";
 
 export default class Gui{
     mousePos = {x: 0, y: 0};
 
     currentActionIndex = 0;
-    currentAction: Action['type'] = 'thrust';
-    actionList: Action['type'][] = ['thrust', 'laser', 'nuke'];
+    currentAction: ActionType = 'thrust';
+    actionList: ActionType[] = ['thrust', 'laser', 'nuke'];
 
     selectAction(index: number){
         this.currentActionIndex = (index % this.actionList.length + this.actionList.length) % this.actionList.length;
@@ -30,7 +30,7 @@ export default class Gui{
         element.addEventListener('click', event => {
             if(this.currentAction === 'thrust'){
                 clientInstance.setAction({
-                    type: 'thrust',
+                    actionType: 'thrust',
                     x: this.mousePos.x,
                     y: this.mousePos.y,
                 });

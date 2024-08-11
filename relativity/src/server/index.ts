@@ -2,7 +2,7 @@ console.log("hi");
 import { build } from "vite";
 import ServerInstance from "./ServerInstance";
 import path from 'path';
-import { getDefaultAction, Player } from "../common/common";
+import { getDefaultAction } from "../common/common";
 import { Server } from "bun";
 import fs from 'fs';
 import { NewPlayerPacket } from "../common/api";

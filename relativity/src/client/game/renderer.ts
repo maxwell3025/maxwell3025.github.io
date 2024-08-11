@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import ClientInstance from './ClientInstance';
 import { getSpacetimePosition, getTransform, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
-import { getGenerator, invert, Matrix, mul, Vector } from '../../common/geometry';
+import { invert, Matrix, mul, Vector } from '../../common/geometry';
 import Gui from './Gui';
 
 const scene = new THREE.Scene();
@@ -119,7 +119,7 @@ function renderGui(instance: ClientInstance, gui: Gui){
         scene.add( arrowHelper );
     }
     const action = instance.getCurrentPlayer().currentAction;
-    if(action.type === 'thrust'){
+    if(action.actionType === 'thrust'){
         const dir = new THREE.Vector3( action.x, action.y, 0 );
         dir.normalize();
 
