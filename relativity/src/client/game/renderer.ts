@@ -3,19 +3,18 @@ import ClientInstance from './ClientInstance';
 import { getSpacetimePosition, getTransform, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 import { getGenerator, invert, Matrix, mul, Vector } from '../../common/geometry';
+import Gui from './Gui';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-const renderer = new THREE.WebGLRenderer();
+const rendererDom = document.getElementById("rendererDom") as HTMLCanvasElement;
+const renderer = new THREE.WebGLRenderer({ canvas: rendererDom });
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.domElement.id = 'rendererDom';
-document.body.appendChild(renderer.domElement);
 
-const labelRenderer = new CSS2DRenderer();
+const labelRendererDom = document.getElementById("labelRendererDom") as HTMLDivElement;
+const labelRenderer = new CSS2DRenderer({ element: labelRendererDom });
 labelRenderer.setSize(window.innerWidth, window.innerHeight);
-labelRenderer.domElement.id = 'labelRendererDom';
-document.body.appendChild(labelRenderer.domElement);
 
 camera.position.z = 1;
 
@@ -71,8 +70,7 @@ function getRenderPosition(currentPosition: Vector, player: Player, currentTrans
     }
 }
 
-function renderLoop(instance: ClientInstance) {
-    scene.clear();
+function renderPlayers(instance: ClientInstance){
     const currentPlayer = instance.getCurrentPlayer();
     const currentPosition = getSpacetimePosition(currentPlayer, instance.clientProperTime);
     const currentTransform = getTransform(currentPlayer, instance.clientProperTime);
@@ -106,11 +104,42 @@ function renderLoop(instance: ClientInstance) {
 
         numRenderedPlayers++;
     }
-    console.log(`Rendered ${numRenderedPlayers} players`);
+}
+
+function renderGui(instance: ClientInstance, gui: Gui){
+    if(gui.currentAction === 'thrust'){
+        const dir = new THREE.Vector3( gui.mousePos.x, gui.mousePos.y, 0 );
+        dir.normalize();
+
+        const origin = new THREE.Vector3( 0, 0, 0 );
+        const length = Math.sqrt(gui.mousePos.x * gui.mousePos.x + gui.mousePos.y * gui.mousePos.y);
+        const hex = 0xff0000;
+
+        const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, 0.02, 0.03);
+        scene.add( arrowHelper );
+    }
+    const action = instance.getCurrentPlayer().currentAction;
+    if(action.type === 'thrust'){
+        const dir = new THREE.Vector3( action.x, action.y, 0 );
+        dir.normalize();
+
+        const origin = new THREE.Vector3( 0, 0, 0 );
+        const length = Math.sqrt(action.x * action.x + action.y * action.y);
+        const hex = 0x00ff00;
+
+        const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, 0.02, 0.03);
+        scene.add( arrowHelper );
+    }
+}
+
+function renderLoop(instance: ClientInstance, gui: Gui) {
+    scene.clear();
+    renderPlayers(instance);
+    renderGui(instance, gui);
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);
 }
 
-export function render(instance: ClientInstance) {
-    renderer.setAnimationLoop(() => renderLoop(instance));
+export function render(instance: ClientInstance, gui: Gui) {
+    renderer.setAnimationLoop(() => renderLoop(instance, gui));
 }
