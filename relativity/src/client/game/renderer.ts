@@ -7,6 +7,7 @@ import Gui from './Gui';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.z = 1;
 
 const rendererDom = document.getElementById("rendererDom") as HTMLCanvasElement;
 const renderer = new THREE.WebGLRenderer({ canvas: rendererDom });
@@ -16,7 +17,17 @@ const labelRendererDom = document.getElementById("labelRendererDom") as HTMLDivE
 const labelRenderer = new CSS2DRenderer({ element: labelRendererDom });
 labelRenderer.setSize(window.innerWidth, window.innerHeight);
 
-camera.position.z = 1;
+const pathRendererDom = document.getElementById("pathRenderer") as HTMLCanvasElement;
+const pathRenderer = new THREE.WebGLRenderer({ canvas: pathRendererDom, alpha: true });
+pathRenderer.setSize(400, 400);
+const pathRendererCamera = new THREE.OrthographicCamera();
+pathRendererCamera.position.z = 100;
+const pathScene = new THREE.Scene();
+pathScene.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(
+    new THREE.Vector3(0, 1, 1).normalize(),
+    Math.PI,
+));
+
 
 function getRenderPosition(currentTransform: Matrix, player: Player): Vector | undefined{
     const inverseMatrix = invert(currentTransform);
@@ -133,12 +144,42 @@ function renderGui(instance: ClientInstance, gui: Gui){
     }
 }
 
+function renderPaths(instance: ClientInstance){
+    const currentPlayer = instance.getCurrentPlayer();
+    const currentTransform = getPlayerTransform(currentPlayer, instance.clientProperTime);
+    if(!currentTransform) return;
+    pathScene.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.01));
+    for(const player of instance.state.players){
+        const material = new THREE.LineBasicMaterial( { color: 0xffffff } );
+        const points = [];
+        let currentCoords: Vector | undefined;
+        let currentProperTime = 0;
+        while(currentCoords = getPlayerPosition(player, currentProperTime)){
+            const currentCoordsRelative = mul(invert(currentTransform), currentCoords);
+            points.push(new THREE.Vector3(
+                currentCoordsRelative.x,
+                currentCoordsRelative.y,
+                currentCoordsRelative.t,
+            ));
+            currentProperTime += 0.1;
+        }
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const line = new THREE.Line(geometry, material);
+        pathScene.add(line);
+    }
+}
+
 function renderLoop(instance: ClientInstance, gui: Gui) {
     scene.clear();
+    pathScene.clear();
+
     renderPlayers(instance);
     renderGui(instance, gui);
+    renderPaths(instance);
+
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);
+    pathRenderer.render(pathScene, pathRendererCamera);
 }
 
 export function render(instance: ClientInstance, gui: Gui) {
