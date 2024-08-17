@@ -1,4 +1,4 @@
-import type { GameState, Player } from "../common/common";
+import { getNextEntry, type GameState, type HistoryEntry, type Player } from "../common/common";
 import { Vector } from "../common/geometry";
 
 export default class ServerInstance {
@@ -10,6 +10,18 @@ export default class ServerInstance {
         this.state.players.push(player);
     }
     evaluateTurn() {
+        // TODO filter to only apply rules to players that can move ahead
+        this.state.players.forEach(player => {
+            const currentEntry: HistoryEntry = {
+                transform: player.finalTransform,
+                action: player.currentAction,
+            };
+            const dataNext = getNextEntry(currentEntry);
+            player.history.push(currentEntry);
+            player.finalTransform = dataNext.transform;
+            player.clientTransform = dataNext.transform;
+            player.currentAction = dataNext.action;
+        });
         console.log("Evaluating new turn");
     }
 }

@@ -19,9 +19,9 @@ async function init() {
     console.log(initialState);
 }
 
-console.log("hi");
 while(true) {
     const packet = await awaitWebSocketMessage("newTurn");
     console.log("Applying new turn data");
     instance.loadState(packet.newState);
+    instance.clientProperTime++;
 }
