@@ -23,6 +23,10 @@ function isNumber(value: Vector | Matrix | number): value is number{
     return typeof value === 'number';
 }
 
+export function getOrigin(): Vector {
+    return {t: 0, x: 0, y: 0};
+}
+
 export function getIdentity(): Matrix {
     return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 }

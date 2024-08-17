@@ -1,4 +1,4 @@
-import { Vector, Matrix, getIdentity, getExponential, mul } from "./geometry";
+import { Vector, Matrix, getIdentity, getExponential, mul, getOrigin } from "./geometry";
 
 // TODO add exponential function caching
 /**
@@ -139,7 +139,7 @@ export function getPlayerTransform(player: Player, time: number): Matrix | undef
 
 export function getPlayerPosition(player: Player, time: number): Vector | undefined {
     const transform = getPlayerTransform(player, time);
-    if(transform) return mul(transform, {t: 0, x: 0, y: 0});
+    if(transform) return mul(transform, getOrigin());
 }
 
 export type GameState = {

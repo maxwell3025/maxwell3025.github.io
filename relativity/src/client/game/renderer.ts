@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import ClientInstance from './ClientInstance';
 import { getPlayerPosition, getPlayerTransform, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
-import { invert, Matrix, mul, Vector } from '../../common/geometry';
+import { getOrigin, invert, Matrix, mul, Vector } from '../../common/geometry';
 import Gui from './Gui';
 
 const scene = new THREE.Scene();
@@ -29,7 +29,7 @@ function getRenderPosition(currentTransform: Matrix, player: Player): Vector | u
         return inverted.t * inverted.t - PAST_EPSILON > inverted.x * inverted.x + inverted.y * inverted.y;
     }
 
-    const playerFinalPosition = mul(player.finalTransform, {t: 0, x: 0, y: 0});
+    const playerFinalPosition = mul(player.finalTransform, getOrigin());
     if(isPast(playerFinalPosition)) return undefined;
 
     let minTime = -1;
