@@ -20,12 +20,13 @@ camera.position.z = 1;
 
 function getRenderPosition(currentTransform: Matrix, player: Player): Vector | undefined{
     const inverseMatrix = invert(currentTransform);
+    const PAST_EPSILON = 0.1;
     function isPast(otherPosition: Vector): boolean {
         const inverted = mul(inverseMatrix, otherPosition);
-        if(inverted.t > 0){
+        if(inverted.t > -PAST_EPSILON){
             return false;
         }
-        return inverted.t * inverted.t > inverted.x * inverted.x + inverted.y * inverted.y;
+        return inverted.t * inverted.t - PAST_EPSILON > inverted.x * inverted.x + inverted.y * inverted.y;
     }
 
     const playerFinalPosition = mul(player.finalTransform, {t: 0, x: 0, y: 0});
@@ -83,13 +84,16 @@ function renderPlayers(instance: ClientInstance){
             console.warn(`Client received player data for non-visible player with id = ${player.id}`);
             continue;
         }
+        const absolutePosition = mul(currentTransform, renderPosition);
 
         const positionDiv = document.createElement('div');
         positionDiv.className = 'label';
-        positionDiv.innerText = `${renderPosition.t.toFixed(3)}, ${renderPosition.x.toFixed(3)}, ${renderPosition.y.toFixed(3)}`;
+        positionDiv.innerText = `t=${absolutePosition.t.toFixed(3)}
+x=${absolutePosition.x.toFixed(3)}
+y=${absolutePosition.y.toFixed(3)}`;
         const positionLabel = new CSS2DObject(positionDiv);
         positionLabel.position.x = renderPosition.x;
-        positionLabel.position.y = renderPosition.y + 0.03;
+        positionLabel.position.y = renderPosition.y + 0.05;
         scene.add(positionLabel);
 
         const playerGeometry = new THREE.CircleGeometry(0.01);

@@ -23,5 +23,10 @@ while(true) {
     const packet = await awaitWebSocketMessage("newTurn");
     console.log("Applying new turn data");
     instance.loadState(packet.newState);
-    instance.clientProperTime++;
+    for(let i = 0; i < 100; i++){
+        console.log(instance.clientProperTime);
+        instance.clientProperTime += 0.01;
+        await new Promise(resolve => setTimeout(resolve, 10));
+    }
+    instance.clientProperTime = Math.round(instance.clientProperTime);
 }

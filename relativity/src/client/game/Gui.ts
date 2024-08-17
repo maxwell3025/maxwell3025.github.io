@@ -8,6 +8,8 @@ export default class Gui{
     currentAction: ActionType = 'thrust';
     actionList: ActionType[] = ['thrust', 'laser', 'nuke'];
 
+    timeSlider = document.getElementById("timeSlider") as HTMLInputElement;
+
     selectAction(index: number){
         this.currentActionIndex = (index % this.actionList.length + this.actionList.length) % this.actionList.length;
         this.currentAction = this.actionList[this.currentActionIndex];
@@ -35,6 +37,11 @@ export default class Gui{
                     y: this.mousePos.y,
                 });
             }
+        });
+
+        this.timeSlider.addEventListener("input", () => {
+            clientInstance.clientProperTime = parseFloat(this.timeSlider.value);
+            console.log(this.timeSlider.value);
         });
     }
 }

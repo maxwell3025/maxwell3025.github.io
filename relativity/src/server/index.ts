@@ -92,6 +92,8 @@ const server = Bun.serve({
 
 process.stdout.write('> ');
 for await (const line of console){
+    console.log("Initiating new turn in 3 seconds...");
+    await new Promise(resolve => setTimeout(resolve, 3000));
     instance.evaluateTurn();
 
     const packet: NewTurnPacket = {

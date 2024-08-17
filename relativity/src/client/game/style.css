@@ -23,3 +23,7 @@ body{
     font-family: monospace;
     color: white;
 }
+
+input[type="range"] {
+    width: 600px;
+}

@@ -137,13 +137,48 @@ export function getSpacetimePosition(player: Player, time: number): Vector | und
 
 export function getTransform(player: Player, time: number): Matrix | undefined {
     const index = Math.floor(time);
-    const fracTime = time - Math.floor(time);
+    const fracTime = time - index;
     const historyEntry = player.history[index];
     if(time < 0){
-        return getIdentity();
+        if(player.history.length > 0){
+            return mul(player.history[0].transform, [
+                1, 0, 0, time,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1,
+            ]);
+        }
+        else{
+            return mul(player.finalTransform, [
+                1, 0, 0, time,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1,
+            ]);
+        }
     }
     if(historyEntry){
-        return historyEntry.transform;
+        let accelerationX = 0;
+        let accelerationY = 0;
+        if(historyEntry.action.actionType === "thrust"){
+            accelerationX = historyEntry.action.x;
+            accelerationY = historyEntry.action.y;
+        }
+
+        const accelerationGenerator: Matrix = [
+            0, accelerationX, accelerationY, 1,
+            accelerationX, 0, 0, 0,
+            accelerationY, 0, 0, 0,
+            0, 0, 0, 0,
+        ];
+
+        const accelerationExponential = getExponential(accelerationGenerator);
+
+        const roundedTransform = historyEntry.transform;
+        const partialTransform = accelerationExponential(fracTime);
+
+        const totalTransform = mul(roundedTransform, partialTransform);
+        return totalTransform;
     }
     if(time === player.history.length){
         return player.finalTransform;
