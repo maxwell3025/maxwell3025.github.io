@@ -5,9 +5,10 @@ export type Vector = {
 };
 
 export type Matrix = [
-    number, number, number,
-    number, number, number,
-    number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
 ];
 
 function isCoord(value: Vector | Matrix | number): value is Vector{
@@ -23,11 +24,11 @@ function isNumber(value: Vector | Matrix | number): value is number{
 }
 
 export function getIdentity(): Matrix {
-    return [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 }
 
 export function getZero(): Matrix {
-    return [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 }
 
 const MAX_EXPONENT = 16;
@@ -65,7 +66,7 @@ export function getGenerator(matrix: Matrix): (exponent: number) => Matrix {
 
 export function invert(matrix: Matrix): Matrix{
     const left = structuredClone(matrix);
-    const right: Matrix = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
+    const right: Matrix = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ];
     /**
      * multiply and add into a row
      * @param src source row
@@ -73,16 +74,16 @@ export function invert(matrix: Matrix): Matrix{
      * @param factor factor
      */
     function madd(src: number, dest: number, factor: number){
-        for(let col = 0; col < 3; col++){
-            left[dest * 3 + col] += left[src * 3 + col] * factor;
-            right[dest * 3 + col] += right[src * 3 + col] * factor;
+        for(let col = 0; col < 4; col++){
+            left[dest * 4 + col] += left[src * 4 + col] * factor;
+            right[dest * 4 + col] += right[src * 4 + col] * factor;
         }
     }
     // Triangulation
-    for(let col = 0; col < 3; col++){
+    for(let col = 0; col < 4; col++){
         let nonZero = false;
-        for(let row = col; row < 3; row++){
-            if(left[row * 3 + col] !== 0) {
+        for(let row = col; row < 4; row++){
+            if(left[row * 4 + col] !== 0) {
                 madd(row, col, 1);
                 nonZero = true;
                 break;
@@ -90,17 +91,17 @@ export function invert(matrix: Matrix): Matrix{
         }
         if(!nonZero) throw new Error('Non-invertible matrix passed');
 
-        madd(col, col, 1 / left[col * 4] - 1);
+        madd(col, col, 1 / left[col * 5] - 1);
 
-        for(let row = col + 1; row < 3; row++){
-            madd(col, row, -left[row * 3 + col]);
+        for(let row = col + 1; row < 4; row++){
+            madd(col, row, -left[row * 4 + col]);
         }
     }
 
     // Eliminate upper left
-    for(let col = 1; col < 3; col++){
+    for(let col = 1; col < 4; col++){
         for(let row = 0; row < col; row++){
-            madd(col, row, -left[row * 3 + col]);
+            madd(col, row, -left[row * 4 + col]);
         }
     }
 
@@ -109,23 +110,30 @@ export function invert(matrix: Matrix): Matrix{
 
 function mulMatVec(lhs: Matrix, rhs: Vector){
     return {
-        t: rhs.t * lhs[0] + rhs.x * lhs[1] + rhs.y * lhs[2],
-        x: rhs.t * lhs[3] + rhs.x * lhs[4] + rhs.y * lhs[5],
-        y: rhs.t * lhs[6] + rhs.x * lhs[7] + rhs.y * lhs[8],
+        t: rhs.t * lhs[0] + rhs.x * lhs[1] + rhs.y * lhs[2] + lhs[3],
+        x: rhs.t * lhs[4] + rhs.x * lhs[5] + rhs.y * lhs[6] + lhs[7],
+        y: rhs.t * lhs[8] + rhs.x * lhs[9] + rhs.y * lhs[10] + lhs[11],
     };
 }
 
 function mulMatMat(lhs: Matrix, rhs: Matrix): Matrix{
     return [
-        (lhs[0] * rhs[0]) + (lhs[1] * rhs[3]) + (lhs[2] * rhs[6]),
-        (lhs[0] * rhs[1]) + (lhs[1] * rhs[4]) + (lhs[2] * rhs[7]),
-        (lhs[0] * rhs[2]) + (lhs[1] * rhs[5]) + (lhs[2] * rhs[8]),
-        (lhs[3] * rhs[0]) + (lhs[4] * rhs[3]) + (lhs[5] * rhs[6]),
-        (lhs[3] * rhs[1]) + (lhs[4] * rhs[4]) + (lhs[5] * rhs[7]),
-        (lhs[3] * rhs[2]) + (lhs[4] * rhs[5]) + (lhs[5] * rhs[8]),
-        (lhs[6] * rhs[0]) + (lhs[7] * rhs[3]) + (lhs[8] * rhs[6]),
-        (lhs[6] * rhs[1]) + (lhs[7] * rhs[4]) + (lhs[8] * rhs[7]),
-        (lhs[6] * rhs[2]) + (lhs[7] * rhs[5]) + (lhs[8] * rhs[8]),
+        (lhs[0] * rhs[0]) + (lhs[1] * rhs[4]) + (lhs[2] * rhs[8]) + (lhs[3] * rhs[12]),
+        (lhs[0] * rhs[1]) + (lhs[1] * rhs[5]) + (lhs[2] * rhs[9]) + (lhs[3] * rhs[13]),
+        (lhs[0] * rhs[2]) + (lhs[1] * rhs[6]) + (lhs[2] * rhs[10]) + (lhs[3] * rhs[14]),
+        (lhs[0] * rhs[3]) + (lhs[1] * rhs[7]) + (lhs[2] * rhs[11]) + (lhs[3] * rhs[15]),
+        (lhs[4] * rhs[0]) + (lhs[5] * rhs[4]) + (lhs[6] * rhs[8]) + (lhs[7] * rhs[12]),
+        (lhs[4] * rhs[1]) + (lhs[5] * rhs[5]) + (lhs[6] * rhs[9]) + (lhs[7] * rhs[13]),
+        (lhs[4] * rhs[2]) + (lhs[5] * rhs[6]) + (lhs[6] * rhs[10]) + (lhs[7] * rhs[14]),
+        (lhs[4] * rhs[3]) + (lhs[5] * rhs[7]) + (lhs[6] * rhs[11]) + (lhs[7] * rhs[15]),
+        (lhs[8] * rhs[0]) + (lhs[9] * rhs[4]) + (lhs[10] * rhs[8]) + (lhs[11] * rhs[12]),
+        (lhs[8] * rhs[1]) + (lhs[9] * rhs[5]) + (lhs[10] * rhs[9]) + (lhs[11] * rhs[13]),
+        (lhs[8] * rhs[2]) + (lhs[9] * rhs[6]) + (lhs[10] * rhs[10]) + (lhs[11] * rhs[14]),
+        (lhs[8] * rhs[3]) + (lhs[9] * rhs[7]) + (lhs[10] * rhs[11]) + (lhs[11] * rhs[15]),
+        (lhs[12] * rhs[0]) + (lhs[13] * rhs[4]) + (lhs[14] * rhs[8]) + (lhs[15] * rhs[12]),
+        (lhs[12] * rhs[1]) + (lhs[13] * rhs[5]) + (lhs[14] * rhs[9]) + (lhs[15] * rhs[13]),
+        (lhs[12] * rhs[2]) + (lhs[13] * rhs[6]) + (lhs[14] * rhs[10]) + (lhs[15] * rhs[14]),
+        (lhs[12] * rhs[3]) + (lhs[13] * rhs[7]) + (lhs[14] * rhs[11]) + (lhs[15] * rhs[15]),
     ];
 }
 
