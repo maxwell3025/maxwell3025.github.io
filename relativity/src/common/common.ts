@@ -1,5 +1,6 @@
 import { Vector, Matrix, getIdentity, getExponential, mul } from "./geometry";
 
+// TODO add exponential function caching
 /**
  * A starting position and action(thrust, fire, etc.)
  */
@@ -12,7 +13,6 @@ export type HistoryEntry = {
 /**
  * Gets the entry after the current history entry assuming default action
  * @param entry current history entry
- * TODO
  */
 export function getNextEntry(entry: HistoryEntry): HistoryEntry{
     let accelerationX = 0;
