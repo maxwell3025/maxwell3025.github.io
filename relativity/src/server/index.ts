@@ -4,7 +4,7 @@ import path from 'path';
 import { getDefaultAction } from "../common/common";
 import { Server } from "bun";
 import { NewPlayerPacket } from "../common/api";
-import { getIdentity, Vector } from "../common/geometry";
+import { getIdentity, Matrix, Vector } from "../common/geometry";
 import { processMessage } from "./net";
 
 const rootURI = path.resolve(__dirname, '..', '..');
@@ -47,17 +47,21 @@ const server = Bun.serve({
             ws.subscribe("newTurn");
             ws.subscribe("mapUpdate");
 
-            const initialPosition: Vector = {t: 0, x: Math.random() * 2 - 1, y: Math.random() * 2 - 1};
+            const initialTransform: Matrix = [
+                1, 0, 0, 0,
+                0, 1, 0, Math.random() * 2 - 1,
+                0, 0, 1, Math.random() * 2 - 1,
+                0, 0, 0, 1,
+            ];
             const username = getUsername();
             instance.addPlayer({
                 id: username,
                 antimatter: 1,
                 matter: 1,
                 history: [],
-                clientPosition: initialPosition,
-                finalPosition: initialPosition,
+                clientTransform: initialTransform,
+                finalTransform: initialTransform,
                 currentAction: getDefaultAction(),
-                finalTransform: getIdentity(),
             });
             const newPlayerPacket: NewPlayerPacket = {
                 messageType: 'newPlayer',

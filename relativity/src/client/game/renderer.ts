@@ -18,17 +18,18 @@ labelRenderer.setSize(window.innerWidth, window.innerHeight);
 
 camera.position.z = 1;
 
-function getRenderPosition(currentPosition: Vector, player: Player, currentTransform: Matrix): Vector | undefined{
+function getRenderPosition(currentTransform: Matrix, player: Player): Vector | undefined{
     const inverseMatrix = invert(currentTransform);
     function isPast(otherPosition: Vector): boolean {
-        if(otherPosition.t > currentPosition.t){
+        const inverted = mul(inverseMatrix, otherPosition);
+        if(inverted.t > 0){
             return false;
         }
-        return (currentPosition.x - otherPosition.x) * (currentPosition.x - otherPosition.x) +
-        (currentPosition.y - otherPosition.y) * (currentPosition.y - otherPosition.y) <
-        (currentPosition.t - otherPosition.t) * (currentPosition.t - otherPosition.t);
+        return inverted.t * inverted.t > inverted.x * inverted.x + inverted.y * inverted.y;
     }
-    if(isPast(player.finalPosition)) return undefined;
+
+    const playerFinalPosition = mul(player.finalTransform, {t: 0, x: 0, y: 0});
+    if(isPast(playerFinalPosition)) return undefined;
 
     let minTime = -1;
     let minTimePosition = getSpacetimePosition(player, minTime);
@@ -59,11 +60,7 @@ function getRenderPosition(currentPosition: Vector, player: Player, currentTrans
     }
     const intersectionLocation = getSpacetimePosition(player, minTime);
     if(intersectionLocation){
-        return mul(inverseMatrix, {
-            t: intersectionLocation.t - currentPosition.t,
-            x: intersectionLocation.x - currentPosition.x,
-            y: intersectionLocation.y - currentPosition.y,
-        });
+        return mul(inverseMatrix, intersectionLocation);
     } else {
         console.warn("This branch of execution should never occur");
         return undefined;
@@ -81,7 +78,7 @@ function renderPlayers(instance: ClientInstance){
     }
     let numRenderedPlayers = 0;
     for(const player of instance.state.players){
-        const renderPosition = getRenderPosition(currentPosition, player, currentTransform);
+        const renderPosition = getRenderPosition(currentTransform, player);
         if(!renderPosition){
             console.warn(`Client received player data for non-visible player with id = ${player.id}`);
             continue;

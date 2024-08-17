@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { getGenerator, invert, Matrix } from './geometry';
+import { getExponential, invert, Matrix } from './geometry';
 
 function expectMatricesToBeClose(lhs: Matrix, rhs: Matrix) {
     for(let i = 0; i < 16; i++){
@@ -24,7 +24,7 @@ test("invert basic", () => {
 });
 
 test("getGenerator basic", () => {
-    const generator = getGenerator([
+    const generator = getExponential([
         0, 1, 0, 0,
         -1, 0, 0, 0,
         0, 0, 0, 0,
@@ -42,7 +42,7 @@ test("getGenerator basic", () => {
 });
 
 test("getGenerator large values", () => {
-    const generator = getGenerator([
+    const generator = getExponential([
         0, 1, 0, 0,
         -1, 0, 0, 0,
         0, 0, 0, 0,
@@ -60,7 +60,7 @@ test("getGenerator large values", () => {
 });
 
 test("getGenerator large negatives", () => {
-    const generator = getGenerator([
+    const generator = getExponential([
         0, 1, 0, 0,
         -1, 0, 0, 0,
         0, 0, 0, 0,

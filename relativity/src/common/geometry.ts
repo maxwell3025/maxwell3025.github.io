@@ -31,8 +31,17 @@ export function getZero(): Matrix {
     return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 }
 
+export function getTimeGenerator(): Matrix {
+    return [
+        0, 0, 0, 1,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 0,
+    ];
+}
+
 const MAX_EXPONENT = 16;
-export function getGenerator(matrix: Matrix): (exponent: number) => Matrix {
+export function getExponential(matrix: Matrix): (exponent: number) => Matrix {
     const powers: Matrix[] = [];
     // Current power divided by factorial
     let currentPower: Matrix = getIdentity();

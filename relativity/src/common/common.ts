@@ -1,11 +1,10 @@
-import { Vector, Matrix, getIdentity } from "./geometry";
+import { Vector, Matrix, getIdentity, getExponential, mul } from "./geometry";
 
 /**
  * A starting position and action(thrust, fire, etc.)
  */
 export type HistoryEntry = {
-    position: Vector
-    /** velocity and orientation */
+    /** position, velocity, orientation */
     transform: Matrix
     action: Action
 };
@@ -22,12 +21,18 @@ export function getNextEntry(entry: HistoryEntry): HistoryEntry{
         accelerationX = entry.action.x;
         accelerationY = entry.action.y;
     }
-    const position = structuredClone(entry.position);
-    const transform = structuredClone(entry.transform);
+
+    const accelerationGenerator: Matrix = [
+        0, accelerationX, accelerationY, 1,
+        accelerationX, 0, 0, 0,
+        accelerationY, 0, 0, 0,
+        0, 0, 0, 0,
+    ];
+
+    const accelerationExponential = getExponential(accelerationGenerator);
     
     return {
-        position,
-        transform,
+        transform: mul(entry.transform, accelerationExponential(1)),
         action: getDefaultAction(),
     };
 }
@@ -68,20 +73,15 @@ export type Player = {
     /** A unique identifier for the player within the game */
     id: string
     /** The final certain position of the player and what we show the client */
-    clientPosition: Vector
+    clientTransform: Matrix
     /**
-     * The orientation and velocity corresponding to `clientPosition`.
+     * The position, orientation, and velocity of the player
      * The forward transform should be used to find energy-momentum from rest vector and the backward transform should be used to rendering.
      */
     finalTransform: Matrix
-    /**
-     * The final position of the player assuming no interference.
-     * This is what we use to calculate uncertainty regions.
-     */
-    finalPosition: Vector
     /** A full timeline of player actions including final uncertain action */
     history: HistoryEntry[]
-    /** The action currently scheduled to be taken after `finalPosition` */
+    /** The action currently scheduled to be taken after `finalTransform` */
     currentAction: Action
     matter: number
     antimatter: number
@@ -89,33 +89,49 @@ export type Player = {
 
 export function getSpacetimePosition(player: Player, time: number): Vector | undefined {
     const index = Math.floor(time);
-    const fracTime = time - Math.floor(time);
+    const fracTime = time - index;
     const historyEntry = player.history[index];
     if(time < 0){
         if(player.history.length > 0){
             return {
-                x: player.history[0].position.x,
-                y: player.history[0].position.y,
+                x: player.history[0].transform[7],
+                y: player.history[0].transform[11],
                 t: time,
             };
         }
         else{
             return {
-                x: player.finalPosition.x,
-                y: player.finalPosition.y,
+                x: player.finalTransform[7],
+                y: player.finalTransform[11],
                 t: time,
             };
         }
     }
     if(historyEntry){
-        return {
-            x: historyEntry.position.x,
-            y: historyEntry.position.y,
-            t: time,
-        };
+        let accelerationX = 0;
+        let accelerationY = 0;
+        if(historyEntry.action.actionType === "thrust"){
+            accelerationX = historyEntry.action.x;
+            accelerationY = historyEntry.action.y;
+        }
+
+        const accelerationGenerator: Matrix = [
+            0, accelerationX, accelerationY, 1,
+            accelerationX, 0, 0, 0,
+            accelerationY, 0, 0, 0,
+            0, 0, 0, 0,
+        ];
+
+        const accelerationExponential = getExponential(accelerationGenerator);
+
+        const roundedTransform = historyEntry.transform;
+        const partialTransform = accelerationExponential(fracTime);
+
+        const totalTransform = mul(roundedTransform, partialTransform);
+        return mul(totalTransform, {t: 0, x: 0, y: 0});
     }
     if(time === player.history.length){
-        return player.finalPosition;
+        return mul(player.finalTransform, {t: 0, x: 0, y: 0});
     }
 }
 
