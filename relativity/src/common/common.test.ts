@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { getDefaultAction, getNextEntry, getSpacetimePosition, HistoryEntry, Player } from "./common";
+import { getDefaultAction, getNextEntry, getPlayerPosition, HistoryEntry, Player } from "./common";
 import { Matrix, mul, Vector } from './geometry';
 
 test("getNextEntry basic", () => {
@@ -77,7 +77,7 @@ test("getSpacetimePosition basic", () => {
         currentAction: getDefaultAction(),
     };
 
-    const position = getSpacetimePosition(examplePlayer, 1.50);
+    const position = getPlayerPosition(examplePlayer, 1.50);
 
     expect(position).toBeDefined();
     expect(position!.t).toBeCloseTo(1.542);

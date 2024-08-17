@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import ClientInstance from './ClientInstance';
-import { getSpacetimePosition, getTransform, Player } from '../../common/common';
+import { getPlayerPosition, getPlayerTransform, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
 import { invert, Matrix, mul, Vector } from '../../common/geometry';
 import Gui from './Gui';
@@ -33,22 +33,22 @@ function getRenderPosition(currentTransform: Matrix, player: Player): Vector | u
     if(isPast(playerFinalPosition)) return undefined;
 
     let minTime = -1;
-    let minTimePosition = getSpacetimePosition(player, minTime);
+    let minTimePosition = getPlayerPosition(player, minTime);
     while(minTimePosition && !isPast(minTimePosition)){
         minTime *= 2;
-        minTimePosition = getSpacetimePosition(player, minTime);
+        minTimePosition = getPlayerPosition(player, minTime);
     }
 
     let maxTime = 1;
-    let maxTimePosition = getSpacetimePosition(player, maxTime);
+    let maxTimePosition = getPlayerPosition(player, maxTime);
     while(maxTimePosition && isPast(maxTimePosition)){
         maxTime *= 2;
-        maxTimePosition = getSpacetimePosition(player, maxTime);
+        maxTimePosition = getPlayerPosition(player, maxTime);
     }
 
     while(maxTime - minTime > 0.0001){
         const middleTime = (minTime + maxTime) * 0.5;
-        const middleTimePosition = getSpacetimePosition(player, middleTime);
+        const middleTimePosition = getPlayerPosition(player, middleTime);
         if(!middleTimePosition) {
             maxTime = middleTime;
             continue;
@@ -59,7 +59,7 @@ function getRenderPosition(currentTransform: Matrix, player: Player): Vector | u
             maxTime = middleTime;
         }
     }
-    const intersectionLocation = getSpacetimePosition(player, minTime);
+    const intersectionLocation = getPlayerPosition(player, minTime);
     if(intersectionLocation){
         return mul(inverseMatrix, intersectionLocation);
     } else {
@@ -70,8 +70,8 @@ function getRenderPosition(currentTransform: Matrix, player: Player): Vector | u
 
 function renderPlayers(instance: ClientInstance){
     const currentPlayer = instance.getCurrentPlayer();
-    const currentPosition = getSpacetimePosition(currentPlayer, instance.clientProperTime);
-    const currentTransform = getTransform(currentPlayer, instance.clientProperTime);
+    const currentPosition = getPlayerPosition(currentPlayer, instance.clientProperTime);
+    const currentTransform = getPlayerTransform(currentPlayer, instance.clientProperTime);
     if(!currentPosition || !currentTransform){
         console.warn(`Invalid proper time ${instance.clientProperTime}`);
         console.warn(currentPlayer);
