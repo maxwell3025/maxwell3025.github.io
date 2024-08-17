@@ -3,9 +3,9 @@ import ServerInstance from "./ServerInstance";
 import path from 'path';
 import { getDefaultAction } from "../common/common";
 import { Server } from "bun";
-import { NewPlayerPacket } from "../common/api";
+import { NewPlayerPacket, NewTurnPacket } from "../common/api";
 import { getIdentity, Matrix, Vector } from "../common/geometry";
-import { processMessage } from "./net";
+import { awaitWebSocketMessage, processMessage } from "./net";
 
 const rootURI = path.resolve(__dirname, '..', '..');
 
@@ -76,10 +76,28 @@ const server = Bun.serve({
     },
 });
 
+// Handle change action packets
+(async () => {
+    while(true){
+        const packet = await awaitWebSocketMessage("changeAction");
+        console.log("Received changeAction packet");
+        const player = instance.state.players.find(p => p.id === packet.playerId);
+        if(!player){
+            console.warn(`No player with id ${packet.playerId} found`);
+            continue;
+        }
+        player.currentAction = packet.newAction;
+    }
+})();
+
 process.stdout.write('> ');
 for await (const line of console){
     instance.evaluateTurn();
 
-    server.publish("newTurn", JSON.stringify(instance.state));
+    const packet: NewTurnPacket = {
+        messageType: "newTurn",
+        newState: instance.state,
+    };
+    server.publish("newTurn", JSON.stringify(packet));
     process.stdout.write('> ');
 }

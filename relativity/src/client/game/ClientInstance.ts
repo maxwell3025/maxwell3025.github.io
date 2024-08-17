@@ -1,4 +1,5 @@
 import { Action, GameState, Player } from "../../common/common";
+import { sendWebSocketMessage } from "./net";
 
 export default class ClientInstance {
     state: GameState = { players: [] };
@@ -7,6 +8,11 @@ export default class ClientInstance {
 
     setAction(action: Action) {
         this.getCurrentPlayer().currentAction = action;
+        sendWebSocketMessage({
+            messageType: "changeAction",
+            playerId: this.currentPlayerId,
+            newAction: action,
+        });
     }
 
     loadState(newState: GameState) {

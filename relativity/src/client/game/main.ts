@@ -18,3 +18,10 @@ async function init() {
     instance.currentPlayerId = id;
     console.log(initialState);
 }
+
+console.log("hi");
+while(true) {
+    const packet = await awaitWebSocketMessage("newTurn");
+    console.log("Applying new turn data");
+    instance.loadState(packet.newState);
+}

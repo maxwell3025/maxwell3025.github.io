@@ -22,6 +22,9 @@ export async function awaitWebSocketMessage<T extends WsClientToServer['messageT
     });
 }
 
+/**
+ * This function takes a raw WebSocket message and routes it to the correct message queue depending on the message type
+ */
 export function processMessage(messageData: string){
     const message: WsClientToServer = JSON.parse(messageData);
     wsMessageQueues[message.messageType] ??= [];

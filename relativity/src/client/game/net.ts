@@ -1,4 +1,4 @@
-import { WsServerToClient } from "../../common/api";
+import { WsClientToServer, WsServerToClient } from "../../common/api";
 
 const socket = new WebSocket("ws://localhost:8080");
 const wsMessageQueues: Record<string, WsServerToClient[]> = { };
@@ -21,6 +21,10 @@ export async function awaitWebSocketMessage<T extends WsServerToClient['messageT
             wsMessageListeners.push(messageListener);
         }
     });
+}
+
+export function sendWebSocketMessage(message: WsClientToServer){
+    socket.send(JSON.stringify(message));
 }
 socket.addEventListener("message", event => {
     const message: WsServerToClient = JSON.parse(event.data);
