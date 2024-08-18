@@ -23,18 +23,20 @@ pathRenderer.setSize(400, 400);
 const pathRendererCamera = new THREE.OrthographicCamera();
 pathRendererCamera.position.z = 100;
 const pathScene = new THREE.Scene();
-pathScene.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(
+
+const swapYZ = new THREE.Quaternion().setFromAxisAngle(
     new THREE.Vector3(0, 1, 1).normalize(),
     Math.PI,
-));
+);
 
+const constantRotation = new THREE.Quaternion();
 
 function getRenderPosition(currentTransform: Matrix, player: Player): Vector | undefined{
     const inverseMatrix = invert(currentTransform);
-    const PAST_EPSILON = 0.1;
+    const PAST_EPSILON = 0.0001;
     function isPast(otherPosition: Vector): boolean {
         const inverted = mul(inverseMatrix, otherPosition);
-        if(inverted.t > -PAST_EPSILON){
+        if(inverted.t > 0){
             return false;
         }
         return inverted.t * inverted.t - PAST_EPSILON > inverted.x * inverted.x + inverted.y * inverted.y;
@@ -148,7 +150,9 @@ function renderPaths(instance: ClientInstance){
     const currentPlayer = instance.getCurrentPlayer();
     const currentTransform = getPlayerTransform(currentPlayer, instance.clientProperTime);
     if(!currentTransform) return;
-    pathScene.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.01));
+    constantRotation.multiply(
+        new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.01),
+    );
     for(const player of instance.state.players){
         const material = new THREE.LineBasicMaterial( { color: 0xffffff } );
         const points = [];
@@ -169,13 +173,36 @@ function renderPaths(instance: ClientInstance){
     }
 }
 
+function renderCones(){
+    const geometry = new THREE.ConeGeometry( 1, 1, 32, 1, true);
+    const material = new THREE.LineBasicMaterial({color: 0xffffff});
+    const wireframe = new THREE.LineSegments(geometry, material);
+    wireframe.setRotationFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+    wireframe.position.z = -0.5;
+    pathScene.add(wireframe);
+}
+
 function renderLoop(instance: ClientInstance, gui: Gui) {
     scene.clear();
     pathScene.clear();
+    pathScene.rotation.set(0, 0, 0);
+    pathScene.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(0, 0, 1),
+        gui.yawAngle,
+    ));
+    pathScene.applyQuaternion(new THREE.Quaternion().setFromAxisAngle(
+        new THREE.Vector3(1, 0, 0),
+        gui.pitchAngle,
+    ));
+    pathScene.applyQuaternion(swapYZ);
+
+    pathRendererCamera.zoom = gui.zoom;
+    pathRendererCamera.updateProjectionMatrix();
 
     renderPlayers(instance);
     renderGui(instance, gui);
     renderPaths(instance);
+    renderCones();
 
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);

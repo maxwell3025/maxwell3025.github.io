@@ -4,6 +4,10 @@ import ClientInstance from "./ClientInstance";
 export default class Gui{
     mousePos = {x: 0, y: 0};
 
+    pitchAngle = 0;
+    yawAngle = 0;
+    zoom = 1;
+
     currentActionIndex = 0;
     currentAction: ActionType = 'thrust';
     actionList: ActionType[] = ['thrust', 'laser', 'nuke'];
@@ -42,6 +46,15 @@ export default class Gui{
         this.timeSlider.addEventListener("input", () => {
             clientInstance.clientProperTime = parseFloat(this.timeSlider.value);
             console.log(this.timeSlider.value);
+        });
+
+        window.addEventListener('keypress', event => {
+            if(event.key === "w") this.pitchAngle -= 0.1;
+            if(event.key === "s") this.pitchAngle += 0.1;
+            if(event.key === "a") this.yawAngle += 0.1;
+            if(event.key === "d") this.yawAngle -= 0.1;
+            if(event.key === "z") this.zoom /= 1.1;
+            if(event.key === "c") this.zoom *= 1.1;
         });
     }
 }
