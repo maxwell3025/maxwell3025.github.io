@@ -23,9 +23,12 @@ while(true) {
     const packet = await awaitWebSocketMessage("newTurn");
     console.log("Applying new turn data");
     instance.loadState(packet.newState);
+    instance.maxProperTime++;
+    gui.timeSlider.max = instance.maxProperTime + "";
     for(let i = 0; i < 100; i++){
         console.log(instance.clientProperTime);
         instance.clientProperTime += 0.01;
+        gui.timeSlider.value = instance.clientProperTime + "";
         await new Promise(resolve => setTimeout(resolve, 10));
     }
     instance.clientProperTime = Math.round(instance.clientProperTime);

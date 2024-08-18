@@ -5,6 +5,7 @@ export default class ClientInstance {
     state: GameState = { players: [] };
     currentPlayerId: string = "";
     clientProperTime: number = 0;
+    maxProperTime: number = 0;
 
     setAction(action: Action) {
         this.getCurrentPlayer().currentAction = action;
