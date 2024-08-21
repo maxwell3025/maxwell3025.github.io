@@ -20,8 +20,8 @@ labelRenderer.setSize(window.innerWidth, window.innerHeight);
 const pathRendererDom = document.getElementById("pathRenderer") as HTMLCanvasElement;
 const pathRenderer = new THREE.WebGLRenderer({ canvas: pathRendererDom, alpha: true });
 pathRenderer.setSize(400, 400);
-const pathRendererCamera = new THREE.OrthographicCamera();
-pathRendererCamera.position.z = 100;
+const pathRendererCamera = new THREE.PerspectiveCamera(90);
+pathRendererCamera.position.z = 1;
 const pathScene = new THREE.Scene();
 
 const swapYZ = new THREE.Quaternion().setFromAxisAngle(
@@ -126,7 +126,7 @@ function renderGui(instance: ClientInstance, gui: Gui){
         dir.normalize();
 
         const origin = new THREE.Vector3( 0, 0, 0 );
-        const length = Math.sqrt(gui.mousePos.x * gui.mousePos.x + gui.mousePos.y * gui.mousePos.y);
+        const length = Math.sqrt(gui.mousePos.x * gui.mousePos.x + gui.mousePos.y * gui.mousePos.y) * gui.mainZoom;
         const hex = 0xff0000;
 
         const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, 0.02, 0.03);
@@ -196,8 +196,11 @@ function renderLoop(instance: ClientInstance, gui: Gui) {
     ));
     pathScene.applyQuaternion(swapYZ);
 
-    pathRendererCamera.zoom = gui.zoom;
+    pathRendererCamera.position.z = gui.minimapZoom;
+    pathRendererCamera.near = gui.minimapZoom * 0.001;
     pathRendererCamera.updateProjectionMatrix();
+
+    camera.position.z = gui.mainZoom;
 
     renderPlayers(instance);
     renderGui(instance, gui);

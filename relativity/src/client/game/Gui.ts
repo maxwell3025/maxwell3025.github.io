@@ -6,7 +6,8 @@ export default class Gui{
 
     pitchAngle = 0;
     yawAngle = 0;
-    zoom = 1;
+    minimapZoom = 1;
+    mainZoom = 1;
 
     currentActionIndex = 0;
     currentAction: ActionType = 'thrust';
@@ -37,8 +38,8 @@ export default class Gui{
             if(this.currentAction === 'thrust'){
                 clientInstance.setAction({
                     actionType: 'thrust',
-                    x: this.mousePos.x,
-                    y: this.mousePos.y,
+                    x: this.mousePos.x * this.mainZoom,
+                    y: this.mousePos.y * this.mainZoom,
                 });
             }
         });
@@ -53,8 +54,10 @@ export default class Gui{
             if(event.key === "s") this.pitchAngle += 0.1;
             if(event.key === "a") this.yawAngle += 0.1;
             if(event.key === "d") this.yawAngle -= 0.1;
-            if(event.key === "z") this.zoom /= 1.1;
-            if(event.key === "c") this.zoom *= 1.1;
+            if(event.key === "z") this.minimapZoom /= 1.1;
+            if(event.key === "c") this.minimapZoom *= 1.1;
+            if(event.key === "r") this.mainZoom /= 1.1;
+            if(event.key === "v") this.mainZoom *= 1.1;
         });
     }
 }
