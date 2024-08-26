@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import ClientInstance from './ClientInstance';
 import { getPlayerPosition, getPlayerTransform, Player } from '../../common/common';
 import { CSS2DObject, CSS2DRenderer } from 'three/examples/jsm/Addons.js';
-import { getOrigin, invert, Matrix, mul, Vector } from '../../common/geometry';
+import { getOrigin, intersectMeshMesh, invert, Matrix, mul, TriangleMesh, Vector } from '../../common/geometry';
 import Gui from './Gui';
 
 
@@ -190,6 +190,47 @@ function renderSelectedAction(instance: ClientInstance) {
 }
 
 /**
+ * Renders the lasers in the 2-D view
+ * @param instance 
+ */
+function renderLasers(instance: ClientInstance) {
+    const currentTransform = instance.getCurrentTransform();
+    if(!currentTransform) return;
+    const inverseCurrentTransform = invert(currentTransform);
+
+    const pastCone: TriangleMesh = {
+        points: [],
+        triangles: [],
+    };
+    // generate past cone
+    const pastDistance = 100;
+    const dTheta = 0.01;
+    pastCone.points.push(mul(currentTransform, getOrigin()));
+    for(let theta = 0; theta < 2 * Math.PI; theta += dTheta) {
+        pastCone.points.push(mul(currentTransform, {
+            t: -pastDistance,
+            x: pastDistance * Math.cos(theta),
+            y: pastDistance * Math.sin(theta),
+        }));
+        if(theta !== 0)
+        pastCone.triangles.push([0, pastCone.points.length - 2, pastCone.points.length - 1]);
+    }
+    pastCone.triangles.push([0, pastCone.points.length - 1, 1]);
+
+    instance.state.lasers.forEach(laserMesh => {
+        const intersection = intersectMeshMesh(laserMesh, pastCone);
+        const laserGeometry = new THREE.BufferGeometry();
+        laserGeometry.setFromPoints(intersection.points
+            .map(vector => mul(inverseCurrentTransform, vector))
+            .map(({t, x, y}) => new THREE.Vector3(x, y, 0)),
+        );
+        laserGeometry.setIndex(intersection.edges.flat());
+        const laserMaterial = new THREE.LineBasicMaterial({color: 0xff8000});
+        flatScene.add(new THREE.LineSegments(laserGeometry, laserMaterial));
+    });
+}
+
+/**
  * This renders the current action being selected in the GUI(i.e. not the one stored in the server) onto the main scene
  * @param instance 
  * @param gui 
@@ -304,6 +345,7 @@ function renderLoop(instance: ClientInstance, gui: Gui) {
     
     renderPlayers(instance);
     renderSelectedAction(instance);
+    renderLasers(instance);
     renderGui(gui);
 
     renderPaths(instance);

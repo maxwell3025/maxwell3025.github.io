@@ -32,6 +32,18 @@ export default class ClientInstance {
     }
 
     /**
+     * This gets the current transform.\
+     * This transform converts the current frame-of-reference to global coords.
+     * @returns 
+     */
+    getCurrentTransform(): Matrix | undefined {
+        const currentPlayer = this.getCurrentPlayer();
+        const transform = getPlayerTransform(currentPlayer, this.clientProperTime);
+        if(!transform) return undefined;
+        return transform;
+    }
+
+    /**
      * This gets the current inverse transform.\
      * This is a useful function for rendering etc where you need to convert things into your own frame-of-reference.\
      * This transform converts absolute coords to the current frame-of-reference.

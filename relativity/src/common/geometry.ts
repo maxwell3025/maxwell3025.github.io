@@ -306,6 +306,9 @@ function intersectLineSegmentPlane(lhs: LineSegment, rhs: Plane): Vector | undef
     // No intersection is possible if both points are on the same side
     if(distA * distB > 0) return undefined;
 
+    // Warn if it is somewhat likely for division to end badly
+    if(Math.abs(distA - distB) < 0.00001) console.warn("Risk of FPE");
+
     /**
      * This represents how far along the line segment the intersection point will be(if it exists)
      * @example 1 means that the intersection is B
@@ -423,7 +426,7 @@ function intersectTriangleTriangle(lhs: Triangle, rhs: Triangle): LineSegment | 
     lhsSideCuts.splice(1, lhsSideCuts.length - 2);
     rhsSideCuts.splice(1, rhsSideCuts.length - 2);
 
-    const backLimit = dot(lineDirection, lhsSideCuts[0]) < dot(lineDirection, rhsSideCuts[1]) ?
+    const backLimit = dot(lineDirection, lhsSideCuts[0]) < dot(lineDirection, rhsSideCuts[0]) ?
         rhsSideCuts[0] : lhsSideCuts[0];
 
     const frontLimit = dot(lineDirection, lhsSideCuts[1]) < dot(lineDirection, rhsSideCuts[1]) ?
