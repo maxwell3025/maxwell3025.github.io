@@ -1,4 +1,4 @@
-import { getNextEntry, getPlayerPosition, getPlayerTransform, type GameState, type HistoryEntry, type Player } from "../common/common";
+import { getNextEntry, getPlayerTransform, type GameState, type HistoryEntry, type Player } from "../common/common";
 import { TriangleMesh, mul, Vector } from "../common/geometry";
 
 export default class ServerInstance {
@@ -28,7 +28,7 @@ export default class ServerInstance {
             if(currentEntry.action.actionType === "laser"){
                 const theta = currentEntry.action.theta;
                 const originalTime = player.history.length - 1;
-                const dt = 0.1;
+                const divisions = 10;
                 const laserLength = 10;
                 /** This is the surface in spacetime that the laser sweep forms */
                 const laserMesh: TriangleMesh = {
@@ -44,7 +44,9 @@ export default class ServerInstance {
                 let C: Vector | undefined = undefined;
                 /** Past, close to player*/
                 let D: Vector | undefined = undefined;
-                for(let time = originalTime; time <= originalTime + 1; time += dt){
+
+                for(let slice = 0; slice <= divisions; slice++){
+                    const time = originalTime + slice / divisions;
                     const currentTransform = getPlayerTransform(player, time);
                     if(!currentTransform) break;
 
