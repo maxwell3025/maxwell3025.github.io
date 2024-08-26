@@ -1,4 +1,4 @@
-import { Vector, Matrix, getIdentity, getExponential, mul, getOrigin, Mesh } from "./geometry";
+import { Vector, Matrix, getIdentity, getExponential, mul, getOrigin, TriangleMesh } from "./geometry";
 
 // TODO add exponential function caching
 /**
@@ -152,5 +152,5 @@ export function getPlayerPosition(player: Player, time: number): Vector | undefi
 
 export type GameState = {
     players: Player[]
-    lasers: Mesh[]
+    lasers: TriangleMesh[]
 };

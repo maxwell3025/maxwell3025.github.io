@@ -1,5 +1,5 @@
 import { edgeTable } from "three/examples/jsm/Addons.js";
-
+//#region Basic geometry
 /**
  * This follows the right-hand rule
  */
@@ -232,7 +232,9 @@ export function sub(lhs: Matrix | Vector, rhs: Matrix | Vector) : Matrix | Vecto
     }
     throw new Error('Invalid type signature');
 }
+//#endregion
 
+//#region Mesh rendering
 /**
  * Represents an oriented line segment in spacetime
  */
@@ -246,6 +248,11 @@ export type LineSegment = [Vector, Vector];
  */
 export type Triangle = [Vector, Vector, Vector];
 
+type Plane = {
+    normal: Vector,
+    threshold: number,
+};
+
 /**
  * This returns the(un-normalized) normal vector for a triangle
  * @param triangle 
@@ -255,41 +262,46 @@ export function getNormal(triangle: Triangle): Vector {
     return cross(sub(triangle[1], triangle[0]), sub(triangle[2], triangle[0]));
 }
 
+function getTrianglePlane(triangle: Triangle): Plane {
+    /**
+     * This is the normal vector for `rhs`
+     */
+    const normal = cross(sub(triangle[1], triangle[0]), sub(triangle[2], triangle[0]));
+    /**
+     * This is the cutoff value where any vector whose dot product with
+     * `normal` is greater than `planeValue` is on the front of the triangle
+     */
+    const planeValue = dot(normal, triangle[0]);
+    return {
+        normal,
+        threshold: planeValue,
+    };
+}
+
 /**
- * Finds the intersection of a line segment and a triangle.
- * The implementation technically includes boundary points(e.x. line segment crosses through a vertex of the triangle), but don't rely on it.
+ * Finds the intersection of a line segment and a plane.
+ * The implementation technically includes boundary points(e.x. endpoint of line segment), but don't rely on it.
+ * Vaguely based on
+ * [A Simple and Robust Approach to Computation of Meshes Intersection](https://pdfs.semanticscholar.org/736f/ad6341ce547ed4c6a1ffd91a35bcc26400dc.pdf).
  * @param lhs 
  * @param rhs 
  * @returns 
  */
-function intersectLineSegmentTriangle(lhs: LineSegment, rhs: Triangle): Vector | undefined{
+function intersectLineSegmentPlane(lhs: LineSegment, rhs: Plane): Vector | undefined{
     /**
      * Let `lhs` be segment AB
      */
     const [A, B] = lhs;
     /**
-     * Let `rhs` be triangle CDE
+     * This is *proportional* to the signed perpendicular distance from `A` to the plane.
+     * This is positive iff `A` is in front
      */
-    const [C, D, E] = rhs;
+    const distA = dot(A, rhs.normal) - rhs.threshold;
     /**
-     * This is the normal vector for `rhs`
+     * This is *proportional* to the signed perpendicular distance from `B` to the plane.
+     * This is positive iff `B` is in front
      */
-    const normal = cross(sub(rhs[1], rhs[0]), sub(rhs[2], rhs[0]));
-    /**
-     * This is the cutoff value where any vector whose dot product with
-     * `normal` is greater than `planeValue` is on the front of the triangle
-     */
-    const planeValue = dot(normal, rhs[0]);
-    /**
-     * This is *proportional* to the signed perpendicular distance from pointA the plane of `rhs`.
-     * This is positive iff `pointA` is in front
-     */
-    const distA = dot(A, normal) - planeValue;
-    /**
-     * This is *proportional* to the signed perpendicular distance from pointB to the plane of `rhs`.
-     * This is positive iff `pointB` is in front
-     */
-    const distB = dot(B, normal) - planeValue;
+    const distB = dot(B, rhs.normal) - rhs.threshold;
 
     // No intersection is possible if both points are on the same side
     if(distA * distB > 0) return undefined;
@@ -306,21 +318,53 @@ function intersectLineSegmentTriangle(lhs: LineSegment, rhs: Triangle): Vector |
      * The point where `lhs` intersects the plane of `rhs`
      */
     const intersection = add(mul(B, interpValue), mul(A, 1 - interpValue));
+    return intersection;
+}
+
+/**
+ * Finds the intersection of a line segment and a triangle.
+ * The implementation technically includes boundary points(e.x. line segment crosses through a vertex of the triangle), but don't rely on it.
+ * @param lhs 
+ * @param rhs 
+ * @returns 
+ */
+function intersectLineSegmentTriangle(lhs: LineSegment, rhs: Triangle): Vector | undefined{
+    /**
+     * This is the intersection point if it fits in the triangle
+     */
+    const intersection = intersectLineSegmentPlane(lhs, getTrianglePlane(rhs));
+    if(!intersection) return undefined;
+
+    // Now, we want to make sure that the intersection point is actually in the triangle
+
+    /**
+     * Let `lhs` be segment AB
+     */
+    const [A, B] = lhs;
+    /**
+     * Let `rhs` be triangle CDE
+     */
+    const [C, D, E] = rhs;
+
+    /**
+     * This is the normal vector for `rhs`
+     */
+    const normal = cross(sub(rhs[1], rhs[0]), sub(rhs[2], rhs[0]));
 
     const CD = sub(D, C);
     const DE = sub(E, D);
     const EC = sub(C, E);
 
     /**
-     * Perpendicular to CD in plane of triangle and points to interior
+     * Perpendicular to CD, in plane of triangle, and points to interior
      */
     const perpCD = cross(normal, CD);
     /**
-     * Perpendicular to DE in plane of triangle and points to interior
+     * Perpendicular to DE, in plane of triangle, and points to interior
      */
     const perpDE = cross(normal, DE);
     /**
-     * Perpendicular to EC in plane of triangle and points to interior
+     * Perpendicular to EC, in plane of triangle, and points to interior
      */
     const perpEC = cross(normal, EC);
 
@@ -340,15 +384,61 @@ function intersectLineSegmentTriangle(lhs: LineSegment, rhs: Triangle): Vector |
     const satEC = dot(intersection, perpEC) >= dot(E, perpEC);
 
     if(satCD && satDE && satEC) return intersection;
+}
 
-    return undefined;
+function intersectTriangleTriangle(lhs: Triangle, rhs: Triangle): LineSegment | undefined {
+    /** This is an un-normalized vector representing the direction of the line segment */
+    const lineDirection = cross(getNormal(lhs), getNormal(rhs));
+
+    /** These are the points where the sides of `lhs` intersect with the plane of `rhs` */
+    const lhsSideCuts: Vector[] = [];
+    /** These are the points where the sides of `rhs` intersect with the plane of `lhs` */
+    const rhsSideCuts: Vector[] = [];
+    //#region Populate the cut vectors
+    let currentPoint: Vector | undefined = undefined;
+
+    currentPoint = intersectLineSegmentPlane([lhs[0], lhs[1]], getTrianglePlane(rhs));
+    if (currentPoint) lhsSideCuts.push(currentPoint);
+    currentPoint = intersectLineSegmentPlane([lhs[1], lhs[2]], getTrianglePlane(rhs));
+    if (currentPoint) lhsSideCuts.push(currentPoint);
+    currentPoint = intersectLineSegmentPlane([lhs[2], lhs[0]], getTrianglePlane(rhs));
+    if (currentPoint) lhsSideCuts.push(currentPoint);
+
+    currentPoint = intersectLineSegmentPlane([rhs[0], rhs[1]], getTrianglePlane(lhs));
+    if (currentPoint) rhsSideCuts.push(currentPoint);
+    currentPoint = intersectLineSegmentPlane([rhs[1], rhs[2]], getTrianglePlane(lhs));
+    if (currentPoint) rhsSideCuts.push(currentPoint);
+    currentPoint = intersectLineSegmentPlane([rhs[2], rhs[0]], getTrianglePlane(lhs));
+    if (currentPoint) rhsSideCuts.push(currentPoint);
+    //#endregion
+
+    if(lhsSideCuts.length < 2 || rhsSideCuts.length < 2) return;
+
+    // From here, I will refer to "forward" as the direction of `lineDirection` and "backward" as the opposite
+
+    // Sort both cut lists from back to front.
+    lhsSideCuts.sort((a, b) => dot(a, lineDirection) - dot(b, lineDirection));
+    rhsSideCuts.sort((a, b) => dot(a, lineDirection) - dot(b, lineDirection));
+    // To deal with edge cases where there are multiple hits and such, toss any middle values.
+    lhsSideCuts.splice(1, lhsSideCuts.length - 2);
+    rhsSideCuts.splice(1, rhsSideCuts.length - 2);
+
+    const backLimit = dot(lineDirection, lhsSideCuts[0]) < dot(lineDirection, rhsSideCuts[1]) ?
+        rhsSideCuts[0] : lhsSideCuts[0];
+
+    const frontLimit = dot(lineDirection, lhsSideCuts[1]) < dot(lineDirection, rhsSideCuts[1]) ?
+        lhsSideCuts[1] : rhsSideCuts[1];
+
+    if(dot(lineDirection, frontLimit) <= dot(lineDirection, backLimit)) return undefined;
+
+    return [backLimit, frontLimit];
 }
 
 /**
  * A mesh.\
  * This includes enough metadata to determine connections between triangles without FPE.
  */
-export type Mesh = {
+export type TriangleMesh = {
     points: Vector[]
     /**
      * List of triangles.
@@ -369,7 +459,7 @@ export type LineMesh = {
     edges: [number, number][]
 };
 
-export function intersectCurveMesh(curve: LineMesh, mesh: Mesh): boolean{
+export function intersectCurveMesh(curve: LineMesh, mesh: TriangleMesh): boolean {
     for(let edgeIndex = 0; edgeIndex < curve.edges.length; edgeIndex++){
         for(let triangleIndex = 0; triangleIndex < mesh.triangles.length; triangleIndex++){
             const edgeIndices = curve.edges[edgeIndex];
@@ -381,3 +471,39 @@ export function intersectCurveMesh(curve: LineMesh, mesh: Mesh): boolean{
     }
     return false;
 }
+
+/**
+ * This finds the intersection of 2 mesh surfaces.
+ * @param lhs 
+ * @param rhs 
+ * @returns 
+ */
+export function intersectMeshMesh(lhs: TriangleMesh, rhs: TriangleMesh): LineMesh {
+    const intersection: LineMesh = {
+        points: [],
+        edges: [],
+    };
+    lhs.triangles.forEach(lhsTriangleIndices => {
+        rhs.triangles.forEach(rhsTriangleIndices => {
+            const lhsTriangle: Triangle = [
+                lhs.points[lhsTriangleIndices[0]],
+                lhs.points[lhsTriangleIndices[1]],
+                lhs.points[lhsTriangleIndices[2]],
+            ];
+            const rhsTriangle: Triangle = [
+                rhs.points[rhsTriangleIndices[0]],
+                rhs.points[rhsTriangleIndices[1]],
+                rhs.points[rhsTriangleIndices[2]],
+            ];
+            const intersectionSegment = intersectTriangleTriangle(lhsTriangle, rhsTriangle);
+            if(!intersectionSegment) return;
+            intersection.points.push(...intersectionSegment);
+            intersection.edges.push([
+                intersection.points.length - 2,
+                intersection.points.length - 1,
+            ]);
+        });
+    });
+    return intersection;
+}
+//#endregion

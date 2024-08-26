@@ -1,5 +1,5 @@
 import { getNextEntry, getPlayerPosition, getPlayerTransform, type GameState, type HistoryEntry, type Player } from "../common/common";
-import { Mesh, mul, Vector } from "../common/geometry";
+import { TriangleMesh, mul, Vector } from "../common/geometry";
 
 export default class ServerInstance {
     state: GameState = {
@@ -31,7 +31,7 @@ export default class ServerInstance {
                 const dt = 0.1;
                 const laserLength = 10;
                 /** This is the surface in spacetime that the laser sweep forms */
-                const laserMesh: Mesh = {
+                const laserMesh: TriangleMesh = {
                     points: [],
                     triangles: [],
                 };

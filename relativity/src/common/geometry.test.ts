@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { getExponential, intersectCurveMesh, invert, LineMesh, Matrix, Mesh } from './geometry';
+import { getExponential, intersectCurveMesh, intersectMeshMesh, invert, LineMesh, Matrix, TriangleMesh } from './geometry';
 
 function expectMatricesToBeClose(lhs: Matrix, rhs: Matrix) {
     for(let i = 0; i < 16; i++){
@@ -95,7 +95,7 @@ test("intersectCurveMesh basic true", () => {
             [0, 1],
         ],
     };
-    const mesh: Mesh = {
+    const mesh: TriangleMesh = {
         points: [
             {
                 x: 0,
@@ -139,7 +139,7 @@ test("intersectCurveMesh basic false", () => {
             [0, 1],
         ],
     };
-    const mesh: Mesh = {
+    const mesh: TriangleMesh = {
         points: [
             {
                 x: 0,
@@ -183,7 +183,7 @@ test("intersectCurveMesh basic edge", () => {
             [0, 1],
         ],
     };
-    const mesh: Mesh = {
+    const mesh: TriangleMesh = {
         points: [
             {
                 x: 0,
@@ -207,4 +207,62 @@ test("intersectCurveMesh basic edge", () => {
     };
 
     expect(intersectCurveMesh(curve, mesh)).toBeTrue();
+});
+
+test("intersectMeshMesh basic", () => {
+    const lhs: TriangleMesh = {
+        points: [
+            {
+                x: 0,
+                y: 1,
+                t: 0,
+            },
+            {
+                x: 0,
+                y: 0,
+                t: 1,
+            },
+            {
+                x: 0,
+                y: 0,
+                t: -1,
+            },
+        ],
+        triangles: [
+            [0, 1, 2],
+        ],
+    };
+    const rhs: TriangleMesh = {
+        points: [
+            {
+                x: 0,
+                y: 1,
+                t: 0,
+            },
+            {
+                x: -1,
+                y: 0,
+                t: 0,
+            },
+            {
+                x: 1,
+                y: 1,
+                t: 0,
+            },
+        ],
+        triangles: [
+            [0, 1, 2],
+        ],
+    };
+    const intersection = intersectMeshMesh(lhs, rhs);
+    expect(intersection.points).toContainEqual({
+        t: 0,
+        x: 0,
+        y: 1,
+    });
+    expect(intersection.points).toContainEqual({
+        t: 0,
+        x: 0,
+        y: 0.5,
+    });
 });
