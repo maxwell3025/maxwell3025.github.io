@@ -42,6 +42,13 @@ export default class Gui{
                     y: this.mousePos.y * this.mainZoom,
                 });
             }
+            if(this.currentAction === 'laser'){
+                const theta = Math.atan2(this.mousePos.y, this.mousePos.x);
+                clientInstance.setAction({
+                    actionType: 'laser',
+                    theta,
+                });
+            }
         });
 
         this.timeSlider.addEventListener("input", () => {

@@ -120,7 +120,7 @@ y=${absolutePosition.y.toFixed(3)}`;
     }
 }
 
-function renderGui(instance: ClientInstance, gui: Gui){
+function renderCurrentAction(instance: ClientInstance, gui: Gui) {
     if(gui.currentAction === 'thrust'){
         const dir = new THREE.Vector3( gui.mousePos.x, gui.mousePos.y, 0 );
         dir.normalize();
@@ -132,6 +132,22 @@ function renderGui(instance: ClientInstance, gui: Gui){
         const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, 0.02, 0.03);
         scene.add( arrowHelper );
     }
+    if(gui.currentAction === 'laser'){
+        const dir = new THREE.Vector3( gui.mousePos.x, gui.mousePos.y, 0 );
+        dir.normalize();
+
+        const laserGeometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(gui.mousePos.x, gui.mousePos.y, 0),
+        ]);
+        const laserMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+        const laserObject = new THREE.Line(laserGeometry, laserMaterial);
+
+        scene.add(laserObject);
+    }
+}
+
+function renderSelectedAction(instance: ClientInstance, gui: Gui) {
     const action = instance.getCurrentPlayer().currentAction;
     if(action.actionType === 'thrust'){
         const dir = new THREE.Vector3( action.x, action.y, 0 );
@@ -144,6 +160,25 @@ function renderGui(instance: ClientInstance, gui: Gui){
         const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex, 0.02, 0.03);
         scene.add( arrowHelper );
     }
+    if(action.actionType === 'laser'){
+        const dir = new THREE.Vector3( gui.mousePos.x, gui.mousePos.y, 0 );
+        dir.normalize();
+
+        const laserGeometry = new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(Math.cos(action.theta), Math.sin(action.theta), 0),
+        ]);
+        const laserMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+        const laserObject = new THREE.Line(laserGeometry, laserMaterial);
+
+        scene.add(laserObject);
+
+    }
+}
+
+function renderGui(instance: ClientInstance, gui: Gui){
+    renderCurrentAction(instance, gui);
+    renderSelectedAction(instance, gui);
 }
 
 function renderPaths(instance: ClientInstance){
@@ -171,6 +206,25 @@ function renderPaths(instance: ClientInstance){
         const line = new THREE.Line(geometry, material);
         pathScene.add(line);
     }
+}
+
+function renderLasers(instance: ClientInstance){
+    const currentPlayer = instance.getCurrentPlayer();
+    const currentTransform = getPlayerTransform(currentPlayer, instance.clientProperTime);
+    if(!currentTransform) return;
+    const inverseTransform = invert(currentTransform);
+    const laserMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
+    instance.state.lasers.forEach(laserMesh => {
+        console.log('Rendering a laser');
+        const laserGeometry = new THREE.BufferGeometry();
+        const vertexData = laserMesh.points.map(vector => mul(inverseTransform, vector)).flatMap(vector => [vector.x, vector.y, vector.t]);
+        laserGeometry.setIndex(laserMesh.triangles.flat());
+        laserGeometry.setAttribute( 'position', new THREE.BufferAttribute( new Float32Array(vertexData), 3 ) );
+        pathScene.add(new THREE.LineSegments(
+            new THREE.WireframeGeometry(laserGeometry),
+            laserMaterial,
+        ));
+    });
 }
 
 function renderCones(){
@@ -205,6 +259,7 @@ function renderLoop(instance: ClientInstance, gui: Gui) {
     renderPlayers(instance);
     renderGui(instance, gui);
     renderPaths(instance);
+    renderLasers(instance);
     renderCones();
 
     renderer.render(scene, camera);

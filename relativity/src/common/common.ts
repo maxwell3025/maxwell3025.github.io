@@ -1,4 +1,4 @@
-import { Vector, Matrix, getIdentity, getExponential, mul, getOrigin } from "./geometry";
+import { Vector, Matrix, getIdentity, getExponential, mul, getOrigin, Mesh } from "./geometry";
 
 // TODO add exponential function caching
 /**
@@ -52,6 +52,8 @@ export type NukeAction = {
 
 export type LaserAction = {
     actionType: "laser"
+    /** angle of laser(CCW from positive X) in player FOR */
+    theta: number,
 };
 
 export type Action =
@@ -87,6 +89,12 @@ export type Player = {
     antimatter: number
 };
 
+/**
+ * Returns the transform from player's frame of reference at a given player proper time to the server's frame of reference.
+ * @param player 
+ * @param time 
+ * @returns 
+ */
 export function getPlayerTransform(player: Player, time: number): Matrix | undefined {
     const index = Math.floor(time);
     const fracTime = time - index;
@@ -144,4 +152,5 @@ export function getPlayerPosition(player: Player, time: number): Vector | undefi
 
 export type GameState = {
     players: Player[]
+    lasers: Mesh[]
 };

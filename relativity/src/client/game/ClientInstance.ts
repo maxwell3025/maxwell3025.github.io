@@ -2,7 +2,10 @@ import { Action, GameState, Player } from "../../common/common";
 import { sendWebSocketMessage } from "./net";
 
 export default class ClientInstance {
-    state: GameState = { players: [] };
+    state: GameState = {
+        players: [],
+        lasers: [],
+    };
     currentPlayerId: string = "";
     clientProperTime: number = 0;
     maxProperTime: number = 0;
