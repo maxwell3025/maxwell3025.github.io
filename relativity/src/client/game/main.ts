@@ -13,11 +13,21 @@ console.log('initialized');
 render(instance, gui);
 
 async function init() {
-    const {id, initialState} = await awaitWebSocketMessage("newPlayer");
+    const {id, initialState} = await awaitWebSocketMessage("clientConnection");
     instance.loadState(initialState);
     instance.currentPlayerId = id;
     console.log(initialState);
 }
+
+(async () => {
+    while(true){
+        const packet = await awaitWebSocketMessage('newPlayer');
+        console.log('New player joined');
+        console.log(packet.player);
+        if(packet.player.id !== instance.currentPlayerId)
+        instance.state.players.push(packet.player);
+    }
+})();
 
 while(true) {
     const packet = await awaitWebSocketMessage("newTurn");

@@ -3,7 +3,7 @@ import ServerInstance from "./ServerInstance";
 import path from 'path';
 import { getDefaultAction } from "../common/common";
 import { Server } from "bun";
-import { NewPlayerPacket, NewTurnPacket } from "../common/api";
+import { ClientConnectionPacket, NewPlayerPacket, NewTurnPacket } from "../common/api";
 import { getIdentity, Matrix, Vector } from "../common/geometry";
 import { awaitWebSocketMessage, processMessage } from "./net";
 
@@ -45,7 +45,7 @@ const server = Bun.serve({
     websocket: {
         async open(ws){
             ws.subscribe("newTurn");
-            ws.subscribe("mapUpdate");
+            ws.subscribe("newPlayer");
 
             const initialTransform: Matrix = [
                 1, 0, 0, 0,
@@ -54,7 +54,7 @@ const server = Bun.serve({
                 0, 0, 0, 1,
             ];
             const username = getUsername();
-            instance.addPlayer({
+            const newPlayer = {
                 id: username,
                 antimatter: 1,
                 matter: 1,
@@ -62,13 +62,20 @@ const server = Bun.serve({
                 clientTransform: initialTransform,
                 finalTransform: initialTransform,
                 currentAction: getDefaultAction(),
-            });
-            const newPlayerPacket: NewPlayerPacket = {
-                messageType: 'newPlayer',
+            };
+            instance.addPlayer(newPlayer);
+            const clientConnectionPacket: ClientConnectionPacket = {
+                messageType: 'clientConnection',
                 id: username,
                 initialState: instance.state,
             };
-            ws.send(JSON.stringify(newPlayerPacket));
+            ws.send(JSON.stringify(clientConnectionPacket));
+
+            const newPlayerPacket: NewPlayerPacket = {
+                messageType: 'newPlayer',
+                player: newPlayer,
+            };
+            server.publish('newPlayer', JSON.stringify(newPlayerPacket));
         },
         async message(ws, message){
             processMessage(message as string);
