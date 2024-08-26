@@ -1,4 +1,5 @@
-import { Action, GameState, Player } from "../../common/common";
+import { Action, GameState, getPlayerTransform, Player } from "../../common/common";
+import { invert, Matrix } from "../../common/geometry";
 import { sendWebSocketMessage } from "./net";
 
 export default class ClientInstance {
@@ -28,6 +29,19 @@ export default class ClientInstance {
         const currentPlayer = this.state.players.find(player => this.currentPlayerId === player.id);
         if(!currentPlayer) throw new Error(`Could not find player with id ${this.currentPlayerId}`);
         return currentPlayer;
+    }
+
+    /**
+     * This gets the current inverse transform.\
+     * This is a useful function for rendering etc where you need to convert things into your own frame-of-reference.\
+     * This transform converts absolute coords to the current frame-of-reference.
+     * @returns 
+     */
+    getCurrentInverseTransform(): Matrix | undefined {
+        const currentPlayer = this.getCurrentPlayer();
+        const transform = getPlayerTransform(currentPlayer, this.clientProperTime);
+        if(!transform) return undefined;
+        return invert(transform);
     }
 
     async step(){

@@ -163,7 +163,7 @@ y=${absolutePosition.y.toFixed(3)}`;
  * @param instance 
  * @param gui 
  */
-function renderCurrentAction(instance: ClientInstance, gui: Gui) {
+function renderCurrentAction(gui: Gui) {
     if(gui.currentAction === 'thrust'){
         const dir = new THREE.Vector3( gui.mousePos.x, gui.mousePos.y, 0 );
         dir.normalize();
@@ -195,7 +195,7 @@ function renderCurrentAction(instance: ClientInstance, gui: Gui) {
  * @param instance 
  * @param gui 
  */
-function renderSelectedAction(instance: ClientInstance, gui: Gui) {
+function renderSelectedAction(instance: ClientInstance) {
     const action = instance.getCurrentPlayer().currentAction;
     if(action.actionType === 'thrust'){
         const dir = new THREE.Vector3( action.x, action.y, 0 );
@@ -226,9 +226,8 @@ function renderSelectedAction(instance: ClientInstance, gui: Gui) {
  * @param instance 
  * @param gui 
  */
-function renderGui(instance: ClientInstance, gui: Gui){
-    renderCurrentAction(instance, gui);
-    renderSelectedAction(instance, gui);
+function renderGui(gui: Gui){
+    renderCurrentAction(gui);
 }
 
 /**
@@ -237,16 +236,15 @@ function renderGui(instance: ClientInstance, gui: Gui){
  * @returns 
  */
 function renderPaths(instance: ClientInstance){
-    const currentPlayer = instance.getCurrentPlayer();
-    const currentTransform = getPlayerTransform(currentPlayer, instance.clientProperTime);
-    if(!currentTransform) return;
+    const inverseTransform = instance.getCurrentInverseTransform();
+    if(!inverseTransform) return;
     for(const player of instance.state.players){
         const material = new THREE.LineBasicMaterial( { color: 0xffffff } );
         const points = [];
         let currentCoords: Vector | undefined;
         let currentProperTime = 0;
         while(currentCoords = getPlayerPosition(player, currentProperTime)){
-            const currentCoordsRelative = mul(invert(currentTransform), currentCoords);
+            const currentCoordsRelative = mul(inverseTransform, currentCoords);
             points.push(new THREE.Vector3(
                 currentCoordsRelative.x,
                 currentCoordsRelative.y,
@@ -266,10 +264,8 @@ function renderPaths(instance: ClientInstance){
  * @returns 
  */
 function renderLasers(instance: ClientInstance){
-    const currentPlayer = instance.getCurrentPlayer();
-    const currentTransform = getPlayerTransform(currentPlayer, instance.clientProperTime);
-    if(!currentTransform) return;
-    const inverseTransform = invert(currentTransform);
+    const inverseTransform = instance.getCurrentInverseTransform();
+    if(!inverseTransform) return;
     const laserMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
     instance.state.lasers.forEach(laserMesh => {
         console.log('Rendering a laser');
@@ -306,9 +302,11 @@ function renderLoop(instance: ClientInstance, gui: Gui) {
     fullScene.clear();
 
     applyTransformations(gui);
-
+    
     renderPlayers(instance);
-    renderGui(instance, gui);
+    renderSelectedAction(instance);
+    renderGui(gui);
+
     renderPaths(instance);
     renderLasers(instance);
     renderCones();
