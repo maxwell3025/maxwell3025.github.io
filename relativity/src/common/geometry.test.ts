@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test';
-import { getExponential, invert, Matrix } from './geometry';
+import { getExponential, intersectCurveMesh, invert, LineMesh, Matrix, Mesh } from './geometry';
 
 function expectMatricesToBeClose(lhs: Matrix, rhs: Matrix) {
     for(let i = 0; i < 16; i++){
@@ -75,4 +75,136 @@ test("getGenerator large negatives", () => {
         0, 0, 1, 0,
         0, 0, 0, 1,
     ]);
+});
+
+test("intersectCurveMesh basic true", () => {
+    const curve: LineMesh = {
+        points: [
+            {
+                x: 0.25,
+                y: 0.25,
+                t: -1,
+            },
+            {
+                x: 0.25,
+                y: 0.25,
+                t: 1,
+            },
+        ],
+        edges: [
+            [0, 1],
+        ],
+    };
+    const mesh: Mesh = {
+        points: [
+            {
+                x: 0,
+                y: 0,
+                t: 0,
+            },
+            {
+                x: 1,
+                y: 0,
+                t: 0,
+            },
+            {
+                x: 0,
+                y: 1,
+                t: 0,
+            },
+        ],
+        triangles: [
+            [0, 1, 2],
+        ],
+    };
+
+    expect(intersectCurveMesh(curve, mesh)).toBeTrue();
+});
+
+test("intersectCurveMesh basic false", () => {
+    const curve: LineMesh = {
+        points: [
+            {
+                x: 1,
+                y: 1,
+                t: -1,
+            },
+            {
+                x: 1,
+                y: 1,
+                t: 1,
+            },
+        ],
+        edges: [
+            [0, 1],
+        ],
+    };
+    const mesh: Mesh = {
+        points: [
+            {
+                x: 0,
+                y: 0,
+                t: 0,
+            },
+            {
+                x: 1,
+                y: 0,
+                t: 0,
+            },
+            {
+                x: 0,
+                y: 1,
+                t: 0,
+            },
+        ],
+        triangles: [
+            [0, 1, 2],
+        ],
+    };
+
+    expect(intersectCurveMesh(curve, mesh)).toBeFalse();
+});
+
+test("intersectCurveMesh basic edge", () => {
+    const curve: LineMesh = {
+        points: [
+            {
+                x: 0.5,
+                y: 0.5,
+                t: -1,
+            },
+            {
+                x: 0.5,
+                y: 0.5,
+                t: 1,
+            },
+        ],
+        edges: [
+            [0, 1],
+        ],
+    };
+    const mesh: Mesh = {
+        points: [
+            {
+                x: 0,
+                y: 0,
+                t: 0,
+            },
+            {
+                x: 1,
+                y: 0,
+                t: 0,
+            },
+            {
+                x: 0,
+                y: 1,
+                t: 0,
+            },
+        ],
+        triangles: [
+            [0, 1, 2],
+        ],
+    };
+
+    expect(intersectCurveMesh(curve, mesh)).toBeTrue();
 });

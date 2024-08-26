@@ -1,8 +1,183 @@
+import { edgeTable } from "three/examples/jsm/Addons.js";
+
+/**
+ * This follows the right-hand rule
+ */
 export type Vector = {
     t: number
     x: number
     y: number
 };
+
+function getVector(t: number, x: number, y: number): Vector{
+    return {
+        t,
+        x,
+        y,
+    };
+}
+
+/**
+ * This follows the right hand rule
+ */
+export function cross(lhs: Vector, rhs: Vector): Vector {
+    return {
+        t: lhs.x * rhs.y - lhs.y * rhs.x,
+        x: lhs.y * rhs.t - lhs.t * rhs.y,
+        y: lhs.t * rhs.x - lhs.x * rhs.t,
+    };
+}
+
+export function dot(lhs: Vector, rhs: Vector): number {
+    return lhs.x * rhs.x +
+    lhs.y * rhs.y +
+    lhs.t * rhs.t;
+}
+
+export type LineSegment = [Vector, Vector];
+
+/**
+ * Triangles are oriented, and I will refer the sides as the "front" and "back" sides.
+ * The "front" face is the side where the vectors are counter-clockwise.
+ * In other words, if you are looking at the front face, then vertices will be listed in ccl order.
+ */
+export type Triangle = [Vector, Vector, Vector];
+
+/**
+ * This returns the(un-normalized) normal vector for a triangle
+ * @param triangle 
+ * @returns 
+ */
+export function getNormal(triangle: Triangle): Vector {
+    return cross(sub(triangle[1], triangle[0]), sub(triangle[2], triangle[0]));
+}
+
+/**
+ * Finds the intersection of a line segment and a triangle.
+ * The implementation technically includes boundary points(e.x. line segment crosses through a vertex of the triangle), but don't rely on it.
+ * @param lhs 
+ * @param rhs 
+ * @returns 
+ */
+function intersectLineSegmentTriangle(lhs: LineSegment, rhs: Triangle): Vector | undefined{
+    /**
+     * Let `lhs` be segment AB
+     */
+    const [A, B] = lhs;
+    /**
+     * Let `rhs` be triangle CDE
+     */
+    const [C, D, E] = rhs;
+    /**
+     * This is the normal vector for `rhs`
+     */
+    const normal = cross(sub(rhs[1], rhs[0]), sub(rhs[2], rhs[0]));
+    /**
+     * This is the cutoff value where any vector whose dot product with
+     * `normal` is greater than `planeValue` is on the front of the triangle
+     */
+    const planeValue = dot(normal, rhs[0]);
+    /**
+     * This is *proportional* to the signed perpendicular distance from pointA the plane of `rhs`.
+     * This is positive iff `pointA` is in front
+     */
+    const distA = dot(A, normal) - planeValue;
+    /**
+     * This is *proportional* to the signed perpendicular distance from pointB to the plane of `rhs`.
+     * This is positive iff `pointB` is in front
+     */
+    const distB = dot(B, normal) - planeValue;
+
+    // No intersection is possible if both points are on the same side
+    if(distA * distB > 0) return undefined;
+
+    /**
+     * This represents how far along the line segment the intersection point will be(if it exists)
+     * @example 1 means that the intersection is B
+     * 0 means that the intersection point is A
+     * 0.5 means that the intersection point is exactly halfway between A and B
+     */
+    const interpValue = distA / (distA - distB);
+
+    /**
+     * The point where `lhs` intersects the plane of `rhs`
+     */
+    const intersection = add(mul(B, interpValue), mul(A, 1 - interpValue));
+
+    const CD = sub(D, C);
+    const DE = sub(E, D);
+    const EC = sub(C, E);
+
+    /**
+     * Perpendicular to CD in plane of triangle and points to interior
+     */
+    const perpCD = cross(normal, CD);
+    /**
+     * Perpendicular to DE in plane of triangle and points to interior
+     */
+    const perpDE = cross(normal, DE);
+    /**
+     * Perpendicular to EC in plane of triangle and points to interior
+     */
+    const perpEC = cross(normal, EC);
+
+    /*
+    Consider a line segment S on the triangle.
+    Let N be the normal vector for the triangle.
+    Let K be a vector perpendicular to S and N and suppose K also points to the interior of the triangle.
+
+    Let's consider the value V.K, where V is an arbitrary vector in the plane of the triangle.
+    Notice that V.K increases as V moves from S into the triangle(and vice-versa as we move out).
+    We also notice that V.K is constant for all V in S, since K is perpendicular to S.
+    Let's call this constant V.S.
+    Thus, V.K > V.S if V is on the interior side, and vice-versa.
+    */
+    const satCD = dot(intersection, perpCD) >= dot(C, perpCD);
+    const satDE = dot(intersection, perpDE) >= dot(D, perpDE);
+    const satEC = dot(intersection, perpEC) >= dot(E, perpEC);
+
+    if(satCD && satDE && satEC) return intersection;
+
+    return undefined;
+}
+
+/**
+ * A mesh.\
+ * This includes enough metadata to determine connections between triangles without FPE.
+ */
+export type Mesh = {
+    points: Vector[]
+    /**
+     * List of triangles.
+     * This is stored as a triplet of indexes.
+     */
+    triangles: [number, number, number][]
+};
+
+/**
+ * A graph of line segments.
+ */
+export type LineMesh = {
+    points: Vector[]
+    /**
+     * List of line segments.
+     * This is stored as a triplet of indexes.
+     */
+    edges: [number, number][]
+};
+
+export function intersectCurveMesh(curve: LineMesh, mesh: Mesh): boolean{
+    for(let edgeIndex = 0; edgeIndex < curve.edges.length; edgeIndex++){
+        for(let triangleIndex = 0; triangleIndex < mesh.triangles.length; triangleIndex++){
+            const edgeIndices = curve.edges[edgeIndex];
+            const triangleIndices = mesh.triangles[triangleIndex];
+            const lineSegment: LineSegment = [curve.points[edgeIndices[0]], curve.points[edgeIndices[1]]];
+            const triangle: Triangle = [mesh.points[triangleIndices[0]], mesh.points[triangleIndices[1]], mesh.points[triangleIndices[2]]];
+            if(intersectLineSegmentTriangle(lineSegment, triangle)) return true;
+        }
+    }
+    return false;
+}
 
 export type Matrix = [
     number, number, number, number,
@@ -191,6 +366,21 @@ export function add(lhs: Matrix | Vector, rhs: Matrix | Vector) : Matrix | Vecto
             t: lhs.t + rhs.t,
             x: lhs.x + rhs.x,
             y: lhs.y + rhs.y,
+        };
+    }
+    throw new Error('Invalid type signature');
+}
+
+export function sub(lhs: Matrix, rhs: Matrix): Matrix;
+export function sub(lhs: Vector, rhs: Vector): Vector;
+export function sub(lhs: Matrix | Vector, rhs: Matrix | Vector) : Matrix | Vector{
+    if(isMatrix(lhs) && isMatrix(rhs)){
+        return lhs.map((value, index) => value - rhs[index]) as Matrix;
+    } else if(isCoord(lhs) && isCoord(rhs)){
+        return {
+            t: lhs.t - rhs.t,
+            x: lhs.x - rhs.x,
+            y: lhs.y - rhs.y,
         };
     }
     throw new Error('Invalid type signature');
