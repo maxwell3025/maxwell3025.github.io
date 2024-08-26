@@ -268,7 +268,6 @@ function renderLasers(instance: ClientInstance){
     if(!inverseTransform) return;
     const laserMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
     instance.state.lasers.forEach(laserMesh => {
-        console.log('Rendering a laser');
         const laserGeometry = new THREE.BufferGeometry();
         const vertexData = laserMesh.points.map(vector => mul(inverseTransform, vector)).flatMap(vector => [vector.x, vector.y, vector.t]);
         laserGeometry.setIndex(laserMesh.triangles.flat());
