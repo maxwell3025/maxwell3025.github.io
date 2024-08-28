@@ -28,7 +28,7 @@ export default class ServerInstance {
             if(currentEntry.action.actionType === "laser"){
                 const theta = currentEntry.action.theta;
                 const originalTime = player.history.length - 1;
-                const divisions = 10;
+                const divisions = 1;
                 const laserLength = 10;
                 /** This is the surface in spacetime that the laser sweep forms */
                 const laserMesh: TriangleMesh = {
