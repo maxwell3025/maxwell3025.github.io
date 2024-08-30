@@ -1,6 +1,10 @@
 import { WsClientToServer, WsServerToClient } from "../../common/api";
 
-const socket = new WebSocket("ws://localhost:8080");
+console.log(import.meta.env.VITE_WS_URL);
+if(!import.meta.env.VITE_WS_URL) {
+    throw new Error('VITE_WS_URL is undefined');
+}
+const socket = new WebSocket(import.meta.env.VITE_WS_URL);
 const wsMessageQueues: Record<string, WsServerToClient[]> = { };
 const wsMessageListeners: (() => boolean)[] = [];
 export async function awaitWebSocketMessage<T extends WsServerToClient['messageType']>(messageType: T): Promise<Extract<WsServerToClient, {messageType: T}>>{

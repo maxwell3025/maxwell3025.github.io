@@ -1,4 +1,3 @@
-import { build } from "vite";
 import ServerInstance from "./ServerInstance";
 import path from 'path';
 import { getDefaultAction } from "../common/common";
@@ -8,8 +7,6 @@ import { getIdentity, Matrix, Vector } from "../common/geometry";
 import { awaitWebSocketMessage, processMessage } from "./net";
 
 const rootURI = path.resolve(__dirname, '..', '..');
-
-await build();
 
 const instance = new ServerInstance();
 
@@ -24,8 +21,15 @@ function getUsername(){
     return currentUser++ + "";
 }
 
+console.log(`Running on port ${process.env.VITE_PORT}`);
+if(!process.env.VITE_PORT) {
+    throw new Error("VITE_PORT is not defined");
+}
+
+const port = parseInt(process.env.VITE_PORT);
+
 const server = Bun.serve({
-    port: 8080,
+    port,
     async fetch(req, server) {
         if(server.upgrade(req)){
             return;
@@ -99,6 +103,11 @@ const server = Bun.serve({
 
 process.stdout.write('> ');
 for await (const line of console){
+    if(line === "quit") {
+        console.log("Stopping");
+        server.stop();
+        process.exit(0);
+    }
     console.log("Initiating new turn in 3 seconds...");
     await new Promise(resolve => setTimeout(resolve, 3000));
     instance.evaluateTurn();

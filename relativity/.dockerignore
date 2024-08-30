@@ -1,0 +1,5 @@
+.prettier
+eslint.config.js
+README.md
+dist
+node_modules
