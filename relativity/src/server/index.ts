@@ -1,8 +1,8 @@
 import ServerInstance from "./ServerInstance";
 import path from 'path';
-import { getDefaultAction } from "../common/common";
+import { getDefaultAction, Player } from "../common/common";
 import { Server } from "bun";
-import { ClientConnectionPacket, NewPlayerPacket, NewTurnPacket } from "../common/api";
+import { ClientConnectionPacket, GameStartPacket, NewPlayerPacket, NewTurnPacket } from "../common/api";
 import { getIdentity, Matrix, Vector } from "../common/geometry";
 import { awaitWebSocketMessage, processMessage } from "./net";
 
@@ -50,6 +50,7 @@ const server = Bun.serve({
         async open(ws){
             ws.subscribe("newTurn");
             ws.subscribe("newPlayer");
+            ws.subscribe("gameStart");
 
             const initialTransform: Matrix = [
                 1, 0, 0, 0,
@@ -58,7 +59,8 @@ const server = Bun.serve({
                 0, 0, 0, 1,
             ];
             const username = getUsername();
-            const newPlayer = {
+            const newPlayer: Player = {
+                ready: false,
                 id: username,
                 antimatter: 1,
                 matter: 1,
@@ -71,7 +73,7 @@ const server = Bun.serve({
             const clientConnectionPacket: ClientConnectionPacket = {
                 messageType: 'clientConnection',
                 id: username,
-                initialState: instance.state,
+                initialState: instance.data,
             };
             ws.send(JSON.stringify(clientConnectionPacket));
 
@@ -87,12 +89,33 @@ const server = Bun.serve({
     },
 });
 
+// TODO make listeners
+(async () => {
+    while(true){
+        const packet = await awaitWebSocketMessage('playerReady');
+        console.log("Received playerReady packet");
+        const player = instance.data.players.find(p => p.id === packet.playerId);
+        if(!player){
+            console.warn(`No player with id ${packet.playerId} found`);
+            continue;
+        }
+        player.ready = packet.ready;
+        if(instance.data.players.every(player => player.ready)){
+            instance.data.state = 'active';
+            const packet: GameStartPacket = {
+                messageType: 'gameStart',
+                newState: instance.data,
+            };
+            server.publish('gameStart', JSON.stringify(packet));
+        }
+    }
+})();
 // Handle change action packets
 (async () => {
     while(true){
         const packet = await awaitWebSocketMessage("changeAction");
         console.log("Received changeAction packet");
-        const player = instance.state.players.find(p => p.id === packet.playerId);
+        const player = instance.data.players.find(p => p.id === packet.playerId);
         if(!player){
             console.warn(`No player with id ${packet.playerId} found`);
             continue;
@@ -114,7 +137,7 @@ for await (const line of console){
 
     const packet: NewTurnPacket = {
         messageType: "newTurn",
-        newState: instance.state,
+        newState: instance.data,
     };
     server.publish("newTurn", JSON.stringify(packet));
     process.stdout.write('> ');

@@ -129,7 +129,7 @@ function renderPlayers(instance: ClientInstance){
         return;
     }
     let numRenderedPlayers = 0;
-    for(const player of instance.state.players){
+    for(const player of instance.data.players){
         const renderPosition = getRenderPosition(currentTransform, player);
         if(!renderPosition){
             console.warn(`Client received player data for non-visible player with id = ${player.id}`);
@@ -217,7 +217,7 @@ function renderLasers(instance: ClientInstance) {
     }
     pastCone.triangles.push([0, pastCone.points.length - 1, 1]);
 
-    instance.state.lasers.forEach(laserMesh => {
+    instance.data.lasers.forEach(laserMesh => {
         const intersection = intersectMeshMesh(laserMesh, pastCone);
         const laserGeometry = new THREE.BufferGeometry();
         laserGeometry.setFromPoints(intersection.points
@@ -279,7 +279,7 @@ function renderGui(gui: Gui){
 function renderPaths(instance: ClientInstance){
     const inverseTransform = instance.getCurrentInverseTransform();
     if(!inverseTransform) return;
-    for(const player of instance.state.players){
+    for(const player of instance.data.players){
         const material = new THREE.LineBasicMaterial( { color: 0xffffff } );
         const points = [];
         let currentCoords: Vector | undefined;
@@ -308,7 +308,7 @@ function renderLasersFull(instance: ClientInstance){
     const inverseTransform = instance.getCurrentInverseTransform();
     if(!inverseTransform) return;
     const laserMaterial = new THREE.LineBasicMaterial( { color: 0xff0000 } );
-    instance.state.lasers.forEach(laserMesh => {
+    instance.data.lasers.forEach(laserMesh => {
         const laserGeometry = new THREE.BufferGeometry();
         const vertexData = laserMesh.points.map(vector => mul(inverseTransform, vector)).flatMap(vector => [vector.x, vector.y, vector.t]);
         laserGeometry.setIndex(laserMesh.triangles.flat());

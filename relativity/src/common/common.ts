@@ -87,6 +87,8 @@ export type Player = {
     currentAction: Action
     matter: number
     antimatter: number
+    /** Is the player ready to start/currently playing */
+    ready: boolean
 };
 
 /**
@@ -150,7 +152,12 @@ export function getPlayerPosition(player: Player, time: number): Vector | undefi
     if(transform) return mul(transform, getOrigin());
 }
 
-export type GameState = {
+export type GameState =
+    "lobby" |
+    "active";
+
+export type GameData = {
     players: Player[]
     lasers: TriangleMesh[]
+    state: GameState
 };

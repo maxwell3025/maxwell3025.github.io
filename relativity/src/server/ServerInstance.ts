@@ -1,20 +1,21 @@
-import { getNextEntry, getPlayerTransform, type GameState, type HistoryEntry, type Player } from "../common/common";
+import { getNextEntry, getPlayerTransform, type GameData, type HistoryEntry, type Player } from "../common/common";
 import { TriangleMesh, mul, Vector } from "../common/geometry";
 
 export default class ServerInstance {
-    state: GameState = {
+    data: GameData = {
         players: [],
         lasers: [],
+        state: "lobby",
     };
-    censor(position: Vector): GameState {
-        return structuredClone(this.state);
+    censor(position: Vector): GameData {
+        return structuredClone(this.data);
     }
     addPlayer(player: Player) {
-        this.state.players.push(player);
+        this.data.players.push(player);
     }
     evaluateTurn() {
         // TODO filter to only apply rules to players that can move ahead
-        this.state.players.forEach(player => {
+        this.data.players.forEach(player => {
             const currentEntry: HistoryEntry = {
                 transform: player.finalTransform,
                 action: player.currentAction,
@@ -73,7 +74,7 @@ export default class ServerInstance {
                         laserMesh.triangles.push([indexD, indexA, indexC]);
                     }
                 }
-                this.state.lasers.push(laserMesh);
+                this.data.lasers.push(laserMesh);
             }
         });
         console.log("Evaluating new turn");

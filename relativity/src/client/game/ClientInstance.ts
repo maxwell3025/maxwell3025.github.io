@@ -1,11 +1,12 @@
-import { Action, GameState, getPlayerTransform, Player } from "../../common/common";
+import { Action, GameData, getPlayerTransform, Player } from "../../common/common";
 import { invert, Matrix } from "../../common/geometry";
 import { sendWebSocketMessage } from "./net";
 
 export default class ClientInstance {
-    state: GameState = {
+    data: GameData = {
         players: [],
         lasers: [],
+        state: "lobby",
     };
     currentPlayerId: string = "";
     clientProperTime: number = 0;
@@ -20,13 +21,22 @@ export default class ClientInstance {
         });
     }
 
-    loadState(newState: GameState) {
-        Object.assign(this.state, newState);
-        console.log(this.state);
+    setReady(ready: boolean) {
+        this.getCurrentPlayer().ready = ready;
+        sendWebSocketMessage({
+            messageType: "playerReady",
+            playerId: this.currentPlayerId,
+            ready,
+        });
+    }
+
+    loadState(newState: GameData) {
+        Object.assign(this.data, newState);
+        console.log(this.data);
     }
 
     getCurrentPlayer(): Player {
-        const currentPlayer = this.state.players.find(player => this.currentPlayerId === player.id);
+        const currentPlayer = this.data.players.find(player => this.currentPlayerId === player.id);
         if(!currentPlayer) throw new Error(`Could not find player with id ${this.currentPlayerId}`);
         return currentPlayer;
     }

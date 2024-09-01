@@ -13,6 +13,9 @@ export default class Gui{
     currentAction: ActionType = 'thrust';
     actionList: ActionType[] = ['thrust', 'laser', 'nuke'];
 
+    statusBanner: HTMLDivElement;
+    ready: boolean = false;
+
     timeSlider = document.getElementById("timeSlider") as HTMLInputElement;
 
     selectAction(index: number){
@@ -57,14 +60,37 @@ export default class Gui{
         });
 
         window.addEventListener('keypress', event => {
-            if(event.key === "w") this.pitchAngle -= 0.1;
-            if(event.key === "s") this.pitchAngle += 0.1;
-            if(event.key === "a") this.yawAngle += 0.1;
-            if(event.key === "d") this.yawAngle -= 0.1;
-            if(event.key === "z") this.minimapZoom /= 1.1;
-            if(event.key === "c") this.minimapZoom *= 1.1;
-            if(event.key === "r") this.mainZoom /= 1.1;
-            if(event.key === "v") this.mainZoom *= 1.1;
+            if(clientInstance.data.state === 'active'){
+                if(event.key === "w") this.pitchAngle -= 0.1;
+                if(event.key === "s") this.pitchAngle += 0.1;
+                if(event.key === "a") this.yawAngle += 0.1;
+                if(event.key === "d") this.yawAngle -= 0.1;
+                if(event.key === "z") this.minimapZoom /= 1.1;
+                if(event.key === "c") this.minimapZoom *= 1.1;
+                if(event.key === "r") this.mainZoom /= 1.1;
+                if(event.key === "v") this.mainZoom *= 1.1;
+            }
+            if(clientInstance.data.state === 'lobby'){
+                if(event.key === "Enter") {
+                    this.ready = !this.ready;
+                    clientInstance.setReady(this.ready);
+                    if(this.ready){
+                        this.setStatusText('Ready');
+                    } else {
+                        this.setStatusText('Not Ready');
+                    }
+                }
+            }
         });
+
+        this.statusBanner = document.getElementById("statusBanner") as HTMLDivElement;
+        if(!this.statusBanner) {
+            throw new Error("#statusBanner not found");
+        }
+        this.setStatusText('Not Ready');
+    }
+
+    setStatusText(statusText: string){
+        this.statusBanner.textContent = statusText;
     }
 }

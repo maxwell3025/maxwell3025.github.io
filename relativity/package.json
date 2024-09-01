@@ -7,7 +7,7 @@
   "scripts": {
     "build": "vite build",
     "build:docker": "bun run build && docker build . --tag maxwell3025/relativity",
-    "dev": "bun src/server/watchServer.ts --env-file .env.development",
+    "dev": "bun --env-file .env.development src/server/watchServer.ts",
     "start": "bun --env-file .env.production src/server/index.ts",
     "start:docker": "docker run --rm -p 443:443/tcp maxwell3025/relativity:latest",
     "push:docker": "docker push maxwell3025/relativity",

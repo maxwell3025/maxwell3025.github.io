@@ -1,10 +1,10 @@
-import { Action, GameState, Player } from "./common";
+import { Action, GameData, Player } from "./common";
 
 /** Sent as part of the connection handshake */
 export type ClientConnectionPacket = {
     messageType: "clientConnection"
     id: string
-    initialState: GameState
+    initialState: GameData
 };
 
 export type NewPlayerPacket = {
@@ -14,7 +14,12 @@ export type NewPlayerPacket = {
 
 export type NewTurnPacket = {
     messageType: "newTurn"
-    newState: GameState
+    newState: GameData
+};
+
+export type GameStartPacket = {
+    messageType: "gameStart"
+    newState: GameData
 };
 
 export type TestPacket = {
@@ -23,7 +28,7 @@ export type TestPacket = {
 
 /** Client to server WS packet */
 export type WsServerToClient =
-    ClientConnectionPacket | NewPlayerPacket | NewTurnPacket | TestPacket;
+    ClientConnectionPacket | NewPlayerPacket | NewTurnPacket | GameStartPacket | TestPacket;
 
 export type ChangeActionPacket = {
     messageType: "changeAction"
@@ -31,5 +36,11 @@ export type ChangeActionPacket = {
     newAction: Action
 };
 
+export type PlayerReadyPacket = {
+    messageType: "playerReady"
+    playerId: string
+    ready: boolean
+};
+
 export type WsClientToServer =
-    ChangeActionPacket;
+    ChangeActionPacket | PlayerReadyPacket;

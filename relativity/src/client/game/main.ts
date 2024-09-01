@@ -25,7 +25,15 @@ async function init() {
         console.log('New player joined');
         console.log(packet.player);
         if(packet.player.id !== instance.currentPlayerId)
-        instance.state.players.push(packet.player);
+        instance.data.players.push(packet.player);
+    }
+})();
+
+(async () => {
+    while(true){
+        const packet = await awaitWebSocketMessage('gameStart');
+        console.log('Game Started!');
+        instance.data = packet.newState;
     }
 })();
 
