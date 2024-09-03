@@ -1,5 +1,6 @@
 import { getNextEntry, getPlayerTransform, type GameData, type HistoryEntry, type Player } from "../common/common";
 import { TriangleMesh, mul, Vector } from "../common/geometry";
+import NetworkHandler from "./NetworkHandler";
 
 export default class ServerInstance {
     data: GameData = {
@@ -7,12 +8,50 @@ export default class ServerInstance {
         lasers: [],
         state: "lobby",
     };
+    networkHandler: NetworkHandler;
+    currentId = 0;
+
+    constructor(networkHandler: NetworkHandler) {
+        this.networkHandler = networkHandler;
+    }
+
+    /**
+     * Returns a new id that is unique within this server.
+     */
+    getPlayerUid(){
+        this.currentId++;
+        return `${this.currentId}`;
+    }
+
     censor(position: Vector): GameData {
         return structuredClone(this.data);
     }
     addPlayer(player: Player) {
         this.data.players.push(player);
     }
+    async queuePlayers(){
+        return new Promise<void>(resolve => {
+            const readyListener = this.networkHandler.addPacketListener('playerReady', (packet) => {
+                console.log("Received playerReady packet");
+                const player = this.data.players.find(p => p.id === packet.playerId);
+                if(!player){
+                    console.warn(`No player with id ${packet.playerId} found`);
+                    return;
+                }
+                player.ready = packet.ready;
+                if(this.data.players.every(player => player.ready)){
+                    this.data.state = 'active';
+                    this.networkHandler.publish('gameStart', {
+                        messageType: 'gameStart',
+                        newState: this.data,
+                    });
+                    readyListener.close();
+                    resolve();
+                }
+            });
+        });
+    }
+
     evaluateTurn() {
         // TODO filter to only apply rules to players that can move ahead
         this.data.players.forEach(player => {
@@ -78,5 +117,31 @@ export default class ServerInstance {
             }
         });
         console.log("Evaluating new turn");
+    }
+
+    async play() {
+        // Wait for players
+        await this.queuePlayers();
+        console.log("Finished queuing!");
+
+        this.networkHandler.addPacketListener('changeAction', packet => {
+            console.log("Received changeAction packet");
+            const player = this.data.players.find(p => p.id === packet.playerId);
+            if(!player){
+                console.warn(`No player with id ${packet.playerId} found`);
+                return;
+            }
+            player.currentAction = packet.newAction;
+        });
+
+        while(true){
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            this.evaluateTurn();
+
+            this.networkHandler.publish("newTurn", {
+                messageType: "newTurn",
+                newState: this.data,
+            });
+        }
     }
 }
