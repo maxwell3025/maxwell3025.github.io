@@ -23,17 +23,7 @@ export default class Gui{
     constructor(element: HTMLDivElement, clientInstance: ClientInstance){
         this.instance = clientInstance;
 
-        this.instance.addNewTurnListener(async () => {
-            this.timeSlider.max = clientInstance.maxProperTime + "";
-            this.instance.clientProperTime = this.instance.maxProperTime - 1;
-            for(let i = 0; i < 100; i++){
-                console.log(this.instance.clientProperTime);
-                this.instance.clientProperTime += 0.01;
-                this.timeSlider.value = this.instance.clientProperTime + "";
-                await new Promise(resolve => setTimeout(resolve, 10));
-            }
-            this.instance.clientProperTime = this.instance.maxProperTime;
-        });
+        this.instance.addNewTurnListener(() => this.handleNewTurn());
 
         this.instance.addPlayerReadyListener(() => this.updateStatusBanner());
 
@@ -100,6 +90,20 @@ export default class Gui{
         }
 
         this.updateStatusBanner();
+    }
+
+    async handleNewTurn(){
+        this.timeSlider.max = this.instance.maxProperTime + "";
+        this.instance.clientProperTime = this.instance.maxProperTime - 1;
+        for(let i = 0; i < 99; i++){
+            this.instance.clientProperTime += 0.01;
+            this.timeSlider.value = this.instance.clientProperTime + "";
+            console.log(this.instance.clientProperTime);
+            await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        this.instance.clientProperTime = this.instance.maxProperTime;
+        this.timeSlider.value = this.instance.clientProperTime + "";
+        console.log(this.instance.clientProperTime);
     }
 
     updateStatusBanner(){
