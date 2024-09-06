@@ -14,6 +14,8 @@ export default class Gui{
     actionList: ActionType[] = ['thrust', 'laser', 'nuke'];
 
     statusBanner: HTMLDivElement;
+    weaponHotbar: HTMLDivElement;
+
     ready: boolean = false;
 
     timeSlider = document.getElementById("timeSlider") as HTMLInputElement;
@@ -39,6 +41,7 @@ export default class Gui{
 
         element.addEventListener('wheel', event => {
             this.selectAction(this.currentActionIndex + event.deltaY / Math.abs(event.deltaY));
+            this.updateWeaponHotbar();
         });
 
         element.addEventListener('click', event => {
@@ -88,7 +91,20 @@ export default class Gui{
         if(!this.statusBanner) {
             throw new Error("#statusBanner not found");
         }
+        this.weaponHotbar = document.getElementById("weaponHotbar") as HTMLDivElement;
+        if(!this.weaponHotbar) {
+            throw new Error("#weaponHotbar not found");
+        }
 
+        for(const child of this.weaponHotbar.children){
+            (child as HTMLElement).addEventListener('click', () => {
+                this.currentAction = child.id as ActionType;
+                this.currentActionIndex = this.actionList.indexOf(this.currentAction);
+                this.updateWeaponHotbar();
+            });
+        }
+
+        this.updateWeaponHotbar();
         this.updateStatusBanner();
     }
 
@@ -119,6 +135,16 @@ export default class Gui{
             }
             this.statusBanner.appendChild(playerStatus);
         });
+    }
+
+    updateWeaponHotbar(){
+        for(const child of this.weaponHotbar.children){
+            if(this.currentAction === child.id){
+                (child as HTMLElement).style.border = "4px solid red";
+            } else {
+                (child as HTMLElement).style.border = "none";
+            }
+        }
     }
 
     selectAction(index: number){
