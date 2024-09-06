@@ -37,6 +37,8 @@ export default class Gui{
 
         this.instance.addPlayerReadyListener(() => this.updateStatusBanner());
 
+        this.instance.addNewPlayerListener(() => this.updateStatusBanner());
+
         element.addEventListener('mousemove', event => {
             const guiWidth = element.clientWidth;
             const guiHeight = element.clientHeight;

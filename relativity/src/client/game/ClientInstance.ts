@@ -15,6 +15,7 @@ export default class ClientInstance {
     networkHandler: NetworkHandler;
     newTurnListeners: ((packet: NewTurnPacket) => void)[] = [];
     playerReadyListeners: ((packet: PlayerReadyPacket) => void)[] = [];
+    newPlayerListeners: ((packet: NewPlayerPacket) => void)[] = [];
 
     constructor(networkHandler: NetworkHandler){
         this.networkHandler = networkHandler;
@@ -24,6 +25,7 @@ export default class ClientInstance {
             console.log(packet.player);
             if(packet.player.id !== this.currentPlayerId)
             this.data.players.push(packet.player);
+            this.newPlayerListeners.forEach(handler => handler(packet));
         });
 
         this.networkHandler.addPacketListener('gameStart', packet => {
@@ -135,6 +137,13 @@ export default class ClientInstance {
      */
     addPlayerReadyListener(listener: (packet: PlayerReadyPacket) => void) {
         this.playerReadyListeners.push(listener);
+    }
+
+    /**
+     * Adds a new listener that fires after a player changes their "ready" state
+     */
+    addNewPlayerListener(listener: (packet: NewPlayerPacket) => void) {
+        this.newPlayerListeners.push(listener);
     }
 
     async step(){
