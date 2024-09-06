@@ -25,6 +25,19 @@ export default class Gui{
     }
 
     constructor(element: HTMLDivElement, clientInstance: ClientInstance){
+
+        clientInstance.addNewTurnListener(async () => {
+            this.timeSlider.max = clientInstance.maxProperTime + "";
+            clientInstance.clientProperTime = clientInstance.maxProperTime - 1;
+            for(let i = 0; i < 100; i++){
+                console.log(clientInstance.clientProperTime);
+                clientInstance.clientProperTime += 0.01;
+                this.timeSlider.value = clientInstance.clientProperTime + "";
+                await new Promise(resolve => setTimeout(resolve, 10));
+            }
+            clientInstance.clientProperTime = clientInstance.maxProperTime;
+        });
+
         element.addEventListener('mousemove', event => {
             const guiWidth = element.clientWidth;
             const guiHeight = element.clientHeight;
@@ -38,19 +51,21 @@ export default class Gui{
         });
 
         element.addEventListener('click', event => {
-            if(this.currentAction === 'thrust'){
-                clientInstance.setAction({
-                    actionType: 'thrust',
-                    x: this.mousePos.x * this.mainZoom,
-                    y: this.mousePos.y * this.mainZoom,
-                });
-            }
-            if(this.currentAction === 'laser'){
-                const theta = Math.atan2(this.mousePos.y, this.mousePos.x);
-                clientInstance.setAction({
-                    actionType: 'laser',
-                    theta,
-                });
+            if(clientInstance.data.state === 'active'){
+                if(this.currentAction === 'thrust'){
+                    clientInstance.setAction({
+                        actionType: 'thrust',
+                        x: this.mousePos.x * this.mainZoom,
+                        y: this.mousePos.y * this.mainZoom,
+                    });
+                }
+                if(this.currentAction === 'laser'){
+                    const theta = Math.atan2(this.mousePos.y, this.mousePos.x);
+                    clientInstance.setAction({
+                        actionType: 'laser',
+                        theta,
+                    });
+                }
             }
         });
 

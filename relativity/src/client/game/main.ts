@@ -1,53 +1,23 @@
 import ClientInstance from './ClientInstance';
 import Gui from './Gui';
-import { awaitWebSocketMessage } from './net';
+import NetworkHandler from './NetworkHandler';
 import { render } from './renderer';
 
-const instance = new ClientInstance();
+console.log(import.meta.env.VITE_WS_URL);
+if(!import.meta.env.VITE_WS_URL) {
+    throw new Error('VITE_WS_URL is undefined');
+}
+
+const socket = new WebSocket(import.meta.env.VITE_WS_URL);
+
+const networkHandler = new NetworkHandler(socket);
+
+const instance = new ClientInstance(networkHandler);
+
 const gui = new Gui(document.getElementById('gui') as HTMLDivElement, instance);
 
-await init();
+await instance.init();
 
 console.log('initialized');
 
 render(instance, gui);
-
-async function init() {
-    const {id, initialState} = await awaitWebSocketMessage("clientConnection");
-    instance.loadState(initialState);
-    instance.currentPlayerId = id;
-    console.log(initialState);
-}
-
-(async () => {
-    while(true){
-        const packet = await awaitWebSocketMessage('newPlayer');
-        console.log('New player joined');
-        console.log(packet.player);
-        if(packet.player.id !== instance.currentPlayerId)
-        instance.data.players.push(packet.player);
-    }
-})();
-
-(async () => {
-    while(true){
-        const packet = await awaitWebSocketMessage('gameStart');
-        console.log('Game Started!');
-        instance.data = packet.newState;
-    }
-})();
-
-while(true) {
-    const packet = await awaitWebSocketMessage("newTurn");
-    console.log("Applying new turn data");
-    instance.loadState(packet.newState);
-    instance.maxProperTime++;
-    gui.timeSlider.max = instance.maxProperTime + "";
-    for(let i = 0; i < 100; i++){
-        console.log(instance.clientProperTime);
-        instance.clientProperTime += 0.01;
-        gui.timeSlider.value = instance.clientProperTime + "";
-        await new Promise(resolve => setTimeout(resolve, 10));
-    }
-    instance.clientProperTime = Math.round(instance.clientProperTime);
-}
