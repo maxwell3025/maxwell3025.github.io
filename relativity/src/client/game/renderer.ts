@@ -135,17 +135,14 @@ function renderPlayers(instance: ClientInstance){
             console.warn(`Client received player data for non-visible player with id = ${player.id}`);
             continue;
         }
-        const absolutePosition = mul(currentTransform, renderPosition);
 
-        const positionDiv = document.createElement('div');
-        positionDiv.className = 'label';
-        positionDiv.innerText = `t=${absolutePosition.t.toFixed(3)}
-x=${absolutePosition.x.toFixed(3)}
-y=${absolutePosition.y.toFixed(3)}`;
-        const positionLabel = new CSS2DObject(positionDiv);
-        positionLabel.position.x = renderPosition.x;
-        positionLabel.position.y = renderPosition.y + 0.05;
-        flatScene.add(positionLabel);
+        const nametagDiv = document.createElement('div');
+        nametagDiv.className = 'label';
+        nametagDiv.innerText = player.id;
+        const nametagObject = new CSS2DObject(nametagDiv);
+        nametagObject.position.x = renderPosition.x;
+        nametagObject.position.y = renderPosition.y + 0.05;
+        flatScene.add(nametagObject);
 
         const playerGeometry = new THREE.CircleGeometry(0.01);
         const playerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
