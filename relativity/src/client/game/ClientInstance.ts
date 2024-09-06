@@ -21,15 +21,12 @@ export default class ClientInstance {
         this.networkHandler = networkHandler;
 
         this.networkHandler.addPacketListener('newPlayer', packet => {
-            console.log('New player joined');
-            console.log(packet.player);
             if(packet.player.id !== this.currentPlayerId)
             this.data.players.push(packet.player);
             this.newPlayerListeners.forEach(handler => handler(packet));
         });
 
         this.networkHandler.addPacketListener('gameStart', packet => {
-            console.log('Game Started!');
             this.data = packet.newState;
         });
 
@@ -56,7 +53,6 @@ export default class ClientInstance {
         const {id, initialState} = await this.networkHandler.awaitWebSocketMessage("clientConnection");
         this.loadState(initialState);
         this.currentPlayerId = id;
-        console.log(initialState);
     }
 
     /**
@@ -88,7 +84,6 @@ export default class ClientInstance {
      */
     loadState(newState: GameData) {
         Object.assign(this.data, newState);
-        console.log(this.data);
     }
 
     /**
