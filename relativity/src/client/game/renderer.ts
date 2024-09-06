@@ -344,9 +344,11 @@ function renderLoop(instance: ClientInstance, gui: Gui) {
     applyTransformations(gui);
     
     renderPlayers(instance);
-    renderSelectedAction(instance);
     renderLasers(instance);
-    renderGui(gui);
+    if(instance.data.state === 'active'){
+        renderGui(gui);
+        renderSelectedAction(instance);
+    }
 
     renderPaths(instance);
     renderLasersFull(instance);
