@@ -1,4 +1,4 @@
-import { NewPlayerPacket, NewTurnPacket } from "../../common/api";
+import { NewPlayerPacket, NewTurnPacket, PlayerReadyPacket } from "../../common/api";
 import { Action, GameData, getPlayerTransform, Player } from "../../common/common";
 import { invert, Matrix } from "../../common/geometry";
 import NetworkHandler from "./NetworkHandler";
@@ -14,6 +14,7 @@ export default class ClientInstance {
     maxProperTime: number = 0;
     networkHandler: NetworkHandler;
     newTurnListeners: ((packet: NewTurnPacket) => void)[] = [];
+    playerReadyListeners: ((packet: PlayerReadyPacket) => void)[] = [];
 
     constructor(networkHandler: NetworkHandler){
         this.networkHandler = networkHandler;
@@ -28,6 +29,16 @@ export default class ClientInstance {
         this.networkHandler.addPacketListener('gameStart', packet => {
             console.log('Game Started!');
             this.data = packet.newState;
+        });
+
+        this.networkHandler.addPacketListener('playerReady', packet => {
+            const player = this.data.players.find(player => player.id === packet.playerId);
+            if(!player){
+                console.warn(`Received playerReady packet for nonexistent player ${packet.playerId}!`);
+                return;
+            }
+            player.ready = packet.ready;
+            this.playerReadyListeners.forEach(handler => handler(packet));
         });
 
         this.networkHandler.addPacketListener('newTurn', async packet => {
@@ -117,6 +128,13 @@ export default class ClientInstance {
      */
     addNewTurnListener(listener: (packet: NewTurnPacket) => void) {
         this.newTurnListeners.push(listener);
+    }
+
+    /**
+     * Adds a new listener that fires after a player changes their "ready" state
+     */
+    addPlayerReadyListener(listener: (packet: PlayerReadyPacket) => void) {
+        this.playerReadyListeners.push(listener);
     }
 
     async step(){

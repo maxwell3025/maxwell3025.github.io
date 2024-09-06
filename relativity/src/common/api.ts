@@ -1,5 +1,14 @@
 import { Action, GameData, Player } from "./common";
 
+//#region common packets
+export type PlayerReadyPacket = {
+    messageType: "playerReady"
+    playerId: string
+    ready: boolean
+};
+//#endregion
+
+//#region server to client packets
 /** Sent as part of the connection handshake */
 export type ClientConnectionPacket = {
     messageType: "clientConnection"
@@ -28,19 +37,16 @@ export type TestPacket = {
 
 /** Client to server WS packet */
 export type WsServerToClient =
-    ClientConnectionPacket | NewPlayerPacket | NewTurnPacket | GameStartPacket | TestPacket;
+    ClientConnectionPacket | NewPlayerPacket | NewTurnPacket | GameStartPacket | TestPacket | PlayerReadyPacket;
+//#endregion
 
+//#region client to server packets
 export type ChangeActionPacket = {
     messageType: "changeAction"
     playerId: string
     newAction: Action
 };
 
-export type PlayerReadyPacket = {
-    messageType: "playerReady"
-    playerId: string
-    ready: boolean
-};
-
 export type WsClientToServer =
     ChangeActionPacket | PlayerReadyPacket;
+//#endregion

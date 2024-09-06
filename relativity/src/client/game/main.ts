@@ -14,9 +14,10 @@ const networkHandler = new NetworkHandler(socket);
 
 const instance = new ClientInstance(networkHandler);
 
+await instance.init();
+
 const gui = new Gui(document.getElementById('gui') as HTMLDivElement, instance);
 
-await instance.init();
 
 console.log('initialized');
 

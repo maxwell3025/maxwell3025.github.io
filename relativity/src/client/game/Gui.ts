@@ -18,25 +18,24 @@ export default class Gui{
 
     timeSlider = document.getElementById("timeSlider") as HTMLInputElement;
 
-    selectAction(index: number){
-        this.currentActionIndex = (index % this.actionList.length + this.actionList.length) % this.actionList.length;
-        this.currentAction = this.actionList[this.currentActionIndex];
-        console.log(this.currentAction);
-    }
+    instance: ClientInstance;
 
     constructor(element: HTMLDivElement, clientInstance: ClientInstance){
+        this.instance = clientInstance;
 
-        clientInstance.addNewTurnListener(async () => {
+        this.instance.addNewTurnListener(async () => {
             this.timeSlider.max = clientInstance.maxProperTime + "";
-            clientInstance.clientProperTime = clientInstance.maxProperTime - 1;
+            this.instance.clientProperTime = this.instance.maxProperTime - 1;
             for(let i = 0; i < 100; i++){
-                console.log(clientInstance.clientProperTime);
-                clientInstance.clientProperTime += 0.01;
-                this.timeSlider.value = clientInstance.clientProperTime + "";
+                console.log(this.instance.clientProperTime);
+                this.instance.clientProperTime += 0.01;
+                this.timeSlider.value = this.instance.clientProperTime + "";
                 await new Promise(resolve => setTimeout(resolve, 10));
             }
-            clientInstance.clientProperTime = clientInstance.maxProperTime;
+            this.instance.clientProperTime = this.instance.maxProperTime;
         });
+
+        this.instance.addPlayerReadyListener(() => this.updateStatusBanner());
 
         element.addEventListener('mousemove', event => {
             const guiWidth = element.clientWidth;
@@ -51,9 +50,9 @@ export default class Gui{
         });
 
         element.addEventListener('click', event => {
-            if(clientInstance.data.state === 'active'){
+            if(this.instance.data.state === 'active'){
                 if(this.currentAction === 'thrust'){
-                    clientInstance.setAction({
+                    this.instance.setAction({
                         actionType: 'thrust',
                         x: this.mousePos.x * this.mainZoom,
                         y: this.mousePos.y * this.mainZoom,
@@ -61,7 +60,7 @@ export default class Gui{
                 }
                 if(this.currentAction === 'laser'){
                     const theta = Math.atan2(this.mousePos.y, this.mousePos.x);
-                    clientInstance.setAction({
+                    this.instance.setAction({
                         actionType: 'laser',
                         theta,
                     });
@@ -70,12 +69,12 @@ export default class Gui{
         });
 
         this.timeSlider.addEventListener("input", () => {
-            clientInstance.clientProperTime = parseFloat(this.timeSlider.value);
+            this.instance.clientProperTime = parseFloat(this.timeSlider.value);
             console.log(this.timeSlider.value);
         });
 
         window.addEventListener('keypress', event => {
-            if(clientInstance.data.state === 'active'){
+            if(this.instance.data.state === 'active'){
                 if(event.key === "w") this.pitchAngle -= 0.1;
                 if(event.key === "s") this.pitchAngle += 0.1;
                 if(event.key === "a") this.yawAngle += 0.1;
@@ -85,15 +84,10 @@ export default class Gui{
                 if(event.key === "r") this.mainZoom /= 1.1;
                 if(event.key === "v") this.mainZoom *= 1.1;
             }
-            if(clientInstance.data.state === 'lobby'){
+            if(this.instance.data.state === 'lobby'){
                 if(event.key === "Enter") {
                     this.ready = !this.ready;
-                    clientInstance.setReady(this.ready);
-                    if(this.ready){
-                        this.setStatusText('Ready');
-                    } else {
-                        this.setStatusText('Not Ready');
-                    }
+                    this.instance.setReady(this.ready);
                 }
             }
         });
@@ -102,10 +96,28 @@ export default class Gui{
         if(!this.statusBanner) {
             throw new Error("#statusBanner not found");
         }
-        this.setStatusText('Not Ready');
+
+        this.updateStatusBanner();
     }
 
-    setStatusText(statusText: string){
-        this.statusBanner.textContent = statusText;
+    updateStatusBanner(){
+        while(this.statusBanner.firstChild){
+            this.statusBanner.removeChild(this.statusBanner.firstChild);
+        }
+
+        this.instance.data.players.forEach(player => {
+            const playerStatus = document.createElement('div');
+            playerStatus.textContent = `${player.id}: ${player.ready}`;
+            if(player.id === this.instance.currentPlayerId){
+                playerStatus.style.color = "#ff0000";
+            }
+            this.statusBanner.appendChild(playerStatus);
+        });
+    }
+
+    selectAction(index: number){
+        this.currentActionIndex = (index % this.actionList.length + this.actionList.length) % this.actionList.length;
+        this.currentAction = this.actionList[this.currentActionIndex];
+        console.log(this.currentAction);
     }
 }

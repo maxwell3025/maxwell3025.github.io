@@ -26,19 +26,24 @@ export default class ServerInstance {
     censor(position: Vector): GameData {
         return structuredClone(this.data);
     }
+
     addPlayer(player: Player) {
         this.data.players.push(player);
     }
+
     async queuePlayers(){
         return new Promise<void>(resolve => {
             const readyListener = this.networkHandler.addPacketListener('playerReady', (packet) => {
                 console.log("Received playerReady packet");
+
                 const player = this.data.players.find(p => p.id === packet.playerId);
                 if(!player){
                     console.warn(`No player with id ${packet.playerId} found`);
                     return;
                 }
                 player.ready = packet.ready;
+                this.networkHandler.publish('playerReady', packet);
+
                 if(this.data.players.every(player => player.ready)){
                     this.data.state = 'active';
                     this.networkHandler.publish('gameStart', {

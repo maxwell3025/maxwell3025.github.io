@@ -41,6 +41,7 @@ const server = Bun.serve({
             ws.subscribe("newTurn");
             ws.subscribe("newPlayer");
             ws.subscribe("gameStart");
+            ws.subscribe("playerReady");
 
             const initialTransform: Matrix = [
                 1, 0, 0, 0,
