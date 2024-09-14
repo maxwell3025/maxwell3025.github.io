@@ -16,6 +16,8 @@ const instance = new ClientInstance(networkHandler);
 
 await instance.init();
 
+console.log('Iniitialized client');
+
 const gui = new Gui(document.getElementById('gui') as HTMLDivElement, instance);
 
 

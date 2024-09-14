@@ -1,4 +1,4 @@
-import { ActionType } from "../../common/common";
+import { ActionType, getPlayerState } from "../../common/common";
 import ClientInstance from "./ClientInstance";
 
 export default class Gui{
@@ -157,8 +157,14 @@ export default class Gui{
     }
 
     updateFuelMeters(){
-        this.matterMeter.textContent = `${this.instance.getCurrentPlayer().finalState.matter}`;
-        this.antimatterMeter.textContent = `${this.instance.getCurrentPlayer().finalState.antimatter}`;
+        const player = this.instance.getCurrentPlayer();
+        const currentState = getPlayerState(player, this.instance.clientProperTime);
+        if(!currentState){
+            console.warn('Failed to compute player state');
+            return;
+        }
+        this.matterMeter.textContent = `${currentState.matter}`;
+        this.antimatterMeter.textContent = `${currentState.antimatter}`;
     }
 
     selectAction(index: number){

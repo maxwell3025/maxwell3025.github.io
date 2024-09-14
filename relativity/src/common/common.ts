@@ -1,4 +1,4 @@
-import { Vector, Matrix, getExponential, mul, getOrigin, TriangleMesh } from "./geometry";
+import { Vector, Matrix, getExponential, mul, getOrigin, TriangleMesh, getIdentity } from "./geometry";
 
 //#region Action
 // Light-like thrust action
@@ -40,6 +40,7 @@ export function getDefaultAction(): Action {
 export type PlayerState = {
     matter: number
     antimatter: number
+    /** This is a forward transform. i.e. it transforms the default position column vector into the actual position*/
     transform: Matrix
 };
 //#endregion
@@ -117,6 +118,28 @@ export type Player = {
     /** Is the player ready to start/currently playing */
     ready: boolean
 };
+
+/**
+ * Returns the transform from player's frame of reference at a given player proper time to the server's frame of reference.
+ * @param player 
+ * @param time 
+ * @returns 
+ */
+export function getPlayerState(player: Player, time: number): PlayerState | undefined {
+    const index = Math.floor(time);
+    const fracTime = time - index;
+    const historyEntry = player.history[index];
+    if(time < 0){
+        const initialState = player.history.length === 0 ? player.finalState : player.history[0].state;
+        const goBackInTime = getIdentity();
+        goBackInTime[3] = time;
+        initialState.transform = mul(initialState.transform, goBackInTime);
+        return initialState;
+    }
+    if(time < player.history.length) return getInterpolatedState(historyEntry, fracTime);
+    if(time === player.history.length) return player.finalState;
+    return undefined;
+}
 
 /**
  * Returns the transform from player's frame of reference at a given player proper time to the server's frame of reference.
