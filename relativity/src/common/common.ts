@@ -120,7 +120,7 @@ export type Player = {
 };
 
 /**
- * Returns the transform from player's frame of reference at a given player proper time to the server's frame of reference.
+ * Gets the state of a player at a given proper time.
  * @param player 
  * @param time 
  * @returns 
