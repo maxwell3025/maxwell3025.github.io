@@ -13,6 +13,9 @@ export default class Gui{
     currentAction: ActionType = 'thrust';
     actionList: ActionType[] = ['thrust', 'laser', 'nuke'];
 
+
+    matterMeter: HTMLSpanElement;
+    antimatterMeter: HTMLSpanElement;
     statusBanner: HTMLDivElement;
     weaponHotbar: HTMLDivElement;
 
@@ -24,6 +27,18 @@ export default class Gui{
 
     constructor(element: HTMLDivElement, clientInstance: ClientInstance){
         this.instance = clientInstance;
+
+        this.matterMeter = document.getElementById("matterMeter") as HTMLSpanElement;
+        if(!this.matterMeter) throw new Error("#matterMeter not found");
+
+        this.antimatterMeter = document.getElementById("antimatterMeter") as HTMLSpanElement;
+        if(!this.antimatterMeter) throw new Error("#antimatterMeter not found");
+
+        this.statusBanner = document.getElementById("statusBanner") as HTMLDivElement;
+        if(!this.statusBanner) throw new Error("#statusBanner not found");
+
+        this.weaponHotbar = document.getElementById("weaponHotbar") as HTMLDivElement;
+        if(!this.weaponHotbar) throw new Error("#weaponHotbar not found");
 
         this.instance.addNewTurnListener(() => this.handleNewTurn());
 
@@ -65,6 +80,7 @@ export default class Gui{
 
         this.timeSlider.addEventListener("input", () => {
             this.instance.clientProperTime = parseFloat(this.timeSlider.value);
+            this.updateFuelMeters();
             console.log(this.timeSlider.value);
         });
 
@@ -87,15 +103,6 @@ export default class Gui{
             }
         });
 
-        this.statusBanner = document.getElementById("statusBanner") as HTMLDivElement;
-        if(!this.statusBanner) {
-            throw new Error("#statusBanner not found");
-        }
-        this.weaponHotbar = document.getElementById("weaponHotbar") as HTMLDivElement;
-        if(!this.weaponHotbar) {
-            throw new Error("#weaponHotbar not found");
-        }
-
         for(const child of this.weaponHotbar.children){
             (child as HTMLElement).addEventListener('click', () => {
                 this.currentAction = child.id as ActionType;
@@ -106,6 +113,7 @@ export default class Gui{
 
         this.updateWeaponHotbar();
         this.updateStatusBanner();
+        this.updateFuelMeters();
     }
 
     async handleNewTurn(){
@@ -114,6 +122,7 @@ export default class Gui{
         for(let i = 0; i < 99; i++){
             this.instance.clientProperTime += 0.01;
             this.timeSlider.value = this.instance.clientProperTime + "";
+            this.updateFuelMeters();
             console.log(this.instance.clientProperTime);
             await new Promise(resolve => setTimeout(resolve, 10));
         }
@@ -145,6 +154,11 @@ export default class Gui{
                 (child as HTMLElement).style.border = "none";
             }
         }
+    }
+
+    updateFuelMeters(){
+        this.matterMeter.textContent = `${this.instance.getCurrentPlayer().finalState.matter}`;
+        this.antimatterMeter.textContent = `${this.instance.getCurrentPlayer().finalState.antimatter}`;
     }
 
     selectAction(index: number){

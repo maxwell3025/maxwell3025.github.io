@@ -1,4 +1,4 @@
-import { getNextEntry, getPlayerTransform, type GameData, type HistoryEntry, type Player } from "../common/common";
+import { getDefaultAction, getInterpolatedState, getPlayerTransform, type GameData, type HistoryEntry, type Player } from "../common/common";
 import { TriangleMesh, mul, Vector } from "../common/geometry";
 import NetworkHandler from "./NetworkHandler";
 
@@ -34,7 +34,6 @@ export default class ServerInstance {
     async queuePlayers(){
         return new Promise<void>(resolve => {
             const readyListener = this.networkHandler.addPacketListener('playerReady', (packet) => {
-                console.log("Received playerReady packet");
 
                 const player = this.data.players.find(p => p.id === packet.playerId);
                 if(!player){
@@ -58,17 +57,19 @@ export default class ServerInstance {
     }
 
     evaluateTurn() {
+        console.log("Evaluating new turn");
         // TODO filter to only apply rules to players that can move ahead
         this.data.players.forEach(player => {
             const currentEntry: HistoryEntry = {
-                transform: player.finalTransform,
+                state: player.finalState,
                 action: player.currentAction,
             };
-            const dataNext = getNextEntry(currentEntry);
+            const nextPlayerState = getInterpolatedState(currentEntry, 1);
+
+            player.finalState = nextPlayerState;
+            player.currentAction = getDefaultAction();
+            
             player.history.push(currentEntry);
-            player.finalTransform = dataNext.transform;
-            player.clientTransform = dataNext.transform;
-            player.currentAction = dataNext.action;
 
             if(currentEntry.action.actionType === "laser"){
                 const theta = currentEntry.action.theta;
@@ -121,16 +122,14 @@ export default class ServerInstance {
                 this.data.lasers.push(laserMesh);
             }
         });
-        console.log("Evaluating new turn");
     }
 
     async play() {
         // Wait for players
         await this.queuePlayers();
-        console.log("Finished queuing!");
+        console.log("All players ready!");
 
         this.networkHandler.addPacketListener('changeAction', packet => {
-            console.log("Received changeAction packet");
             const player = this.data.players.find(p => p.id === packet.playerId);
             if(!player){
                 console.warn(`No player with id ${packet.playerId} found`);

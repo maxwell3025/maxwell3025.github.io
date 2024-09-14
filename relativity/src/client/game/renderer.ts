@@ -75,7 +75,7 @@ function getRenderPosition(currentTransform: Matrix, player: Player): Vector | u
         return inverted.t * inverted.t - PAST_EPSILON > inverted.x * inverted.x + inverted.y * inverted.y;
     }
 
-    const playerFinalPosition = mul(player.finalTransform, getOrigin());
+    const playerFinalPosition = mul(player.finalState.transform, getOrigin());
     if(isPast(playerFinalPosition)) return undefined;
 
     let minTime = -1;

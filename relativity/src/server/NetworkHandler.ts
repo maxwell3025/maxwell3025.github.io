@@ -82,7 +82,7 @@ export default class NetworkHandler {
         for(let i = this.wsMessageQueries.length - 1; i >= 0; i--){
             if(this.wsMessageQueries[i]()) this.wsMessageQueries.splice(i, 1);
         }
-        console.log("Received message");
+        console.log(`Packet: ${message.messageType}`);
     }
 
     publish<T extends WsServerToClient['messageType']>(messageType: T, message: Extract<WsServerToClient, {messageType: T}>){

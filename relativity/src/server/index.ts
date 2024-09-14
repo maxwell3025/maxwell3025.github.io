@@ -53,11 +53,13 @@ const server = Bun.serve({
             const newPlayer: Player = {
                 ready: false,
                 id: username,
-                antimatter: 1,
-                matter: 1,
                 history: [],
-                clientTransform: initialTransform,
-                finalTransform: initialTransform,
+                finalState: {
+                    transform: initialTransform,
+                    matter: 1,
+                    antimatter: 1,
+                },
+                minimumMatter: 0.5,
                 currentAction: getDefaultAction(),
             };
             instance.addPlayer(newPlayer);

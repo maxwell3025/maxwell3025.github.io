@@ -1,4 +1,3 @@
-import { edgeTable } from "three/examples/jsm/Addons.js";
 //#region Basic geometry
 /**
  * This follows the right-hand rule
