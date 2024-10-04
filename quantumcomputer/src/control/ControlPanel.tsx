@@ -57,12 +57,16 @@ export default function ControlPanel(properties: {
     properties.setBitCount(parseInt(bitWidthSlider.current.value));
     properties.setColumnCount(parseInt(columnCountSlider.current.value));
   };
+  React.useEffect(() => {
+    update();
+  }, []);
   return (
     <div>
       <textarea
         className="resize-none border-2 border-white bg-inherit"
         ref={scriptInput}
         onInput={update}
+        defaultValue={"0 NOT 0\n1 CNOT 0 1\n2 H 0\n3 SWAP 0 1"}
       ></textarea>
       <input
         type="range"

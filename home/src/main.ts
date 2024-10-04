@@ -212,7 +212,8 @@ window.onload = () => {
     }
   });
 
-  setInterval(() => {
+  async function animate(){
+    const timer = new Promise(resolve => setTimeout(resolve, frameDelay));
     let svgNode: Element = projectMenu.node()! as Element;
     let svgDimensions = svgNode.getBoundingClientRect();
     let aspectRatio = svgDimensions.width / svgDimensions.height;
@@ -232,5 +233,9 @@ window.onload = () => {
           data.x * 100
         }, ${data.y * 100}) scale(${data.r * 2}, ${data.r * 2}) rotate(${(data.a * 180) / Math.PI}, 0, 0)`;
       });
-  }, frameDelay);
+    await timer;
+    requestAnimationFrame(animate)
+  }
+  animate();
 };
+

@@ -6,7 +6,7 @@ body{
 .thumb{
     stroke-width: 1;
     --hover-time: 0;
-    transition: 0.5s;
+    transition: opacity 0.5s;
 }
 .thumb:hover{
     stroke-width: 5;
@@ -15,7 +15,7 @@ body{
 .appearOnHover{
     --hover-time: inherit;
     opacity: var(--hover-time);
-    transition: 0.5s;
+    transition: opacity 0.5s;
 }
 .label{
     fill: #eee;
