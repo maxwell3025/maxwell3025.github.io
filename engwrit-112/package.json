@@ -8,5 +8,16 @@
     "build": "npx webpack"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@babel/preset-react": "^7.24.1",
+    "@svgr/webpack": "^8.1.0",
+    "css-loader": "^7.1.1",
+    "html-webpack-plugin": "^5.6.0",
+    "postcss-loader": "^8.1.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "style-loader": "^4.0.0",
+    "tailwindcss": "^3.4.3"
+  }
 }

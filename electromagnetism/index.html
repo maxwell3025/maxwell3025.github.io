@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>maxwell3025's website</title>
+        <link rel="stylesheet" href="./style.css"/>
+        <script src="index.js" defer></script>
+    </head>
+    <body>
+        <div id="controlPanel">
+            <div class="subMenu">
+                <label for="viewTypeSelector">View</label>
+                <select id="viewTypeSelector">
+                    <option value="d">Electric Displacement Field</option>
+                    <option value="dx">Electric Displacement Field X</option>
+                    <option value="dy">Electric Displacement Field Y</option>
+                    <option value="dz">Electric Displacement Field Z</option>
+                    <option value="b">Magnetic Field</option>
+                    <option value="bx">Magnetic Field X</option>
+                    <option value="by">Magnetic Field Y</option>
+                    <option value="bz">Magnetic Field Z</option>
+                    <option value="charge">Charge Density</option> 
+                    <option value="source">Current Sources</option> 
+                    <option value="conductivity">Conductivity</option> 
+                    <option value="permeability">Magnetic Permeability</option> 
+                    <option value="permittivity">Electric Permittivity</option> 
+                </select>
+                <label for="minInput">Minimum</label>
+                <input type="text" value="-1" id="minInput">
+                <label for="maxInput">Maximum</label>
+                <input type="text" value="1" id="maxInput">
+            </div>
+            <div class="subMenu">
+                <label for="widthInput">Width:</label>
+                <input type="text" value="512" id="widthInput">
+                <label for="heightInput">Height:</label>
+                <input type="text" value="512" id="heightInput">
+                <button id="resetButton">Reset Simulation</button>
+            </div>
+            <div class="subMenu">
+                <label for="borderDissipationInput">Border Strength:</label>
+                <input type="text" value="5" id="borderDissipationInput">
+                <label for="borderDepthInput">Border Depth:</label>
+                <input type="text" value="2" id="borderDepthInput">
+                <label for="dtInput">Time Step:</label>
+                <input type="text" value="0.01" id="dtInput">
+                <label for="dsInput">Space Step:</label>
+                <input type="text" value="0.1" id="dsInput">
+            </div>
+            <div class="subMenu" id="brushMenu">
+                <label for="brushSelector">Select Brush Function</label>
+                <select id="brushSelector">
+                    <option value="none">None</option>
+                    <option value="currentSource">Current Source</option>
+                    <option value="linearSource">Linear Source</option>
+                    <option value="conductivity">Conductivity</option>
+                    <option value="permittivity">Electric Permittivity</option>
+                    <option value="permeability">Magnetic Permeability</option>
+                </select>
+                <label for="brushFrequencyInput">Frequency:</label>
+                <input type="text" value="0" id="brushFrequencyInput">
+                <label for="brushInternalResistanceInput">Internal Resistance:</label>
+                <input type="text" value="0" id="brushInternalResistanceInput">
+                <label for="brushValueInput">Value:</label>
+                <input type="text" value="0" id="brushValueInput">
+                <label for="brushXInput">X:</label>
+                <input type="text" value="0" id="brushXInput">
+                <label for="brushYInput">Y:</label>
+                <input type="text" value="0" id="brushYInput">
+                <label for="brushZInput">Z:</label>
+                <input type="text" value="0" id="brushZInput">
+            </div>
+        </div>
+        <div id="debugMenu">
+            Time = <span id="timeLabel"></span><br/>
+            Width = <span id="widthLabel"></span><br/>
+            Height = <span id="heightLabel"></span><br/>
+        </div>
+    </body>
+</html>
