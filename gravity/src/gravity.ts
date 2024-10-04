@@ -152,10 +152,10 @@ window.onload = () => {
       //toggle running
       if (running) {
         running = false;
-        d3.select('#run_indicator').attr('src', '../resources/run.png');
+        d3.select('#run_indicator').attr('src', './resources/run.png');
       } else {
         running = true;
-        d3.select('#run_indicator').attr('src', '../resources/pause.png');
+        d3.select('#run_indicator').attr('src', './resources/pause.png');
       }
     }
     if (event.code == 'ControlLeft' || event.code == 'ControlRight') {
