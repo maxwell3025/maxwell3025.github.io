@@ -31,6 +31,7 @@ uniform sampler2D conductivity_x_tex;
 uniform sampler2D conductivity_y_tex;
 uniform sampler2D conductivity_z_tex;
 uniform sampler2D material_tex;
+uniform sampler2D doping_tex;
 
 uniform float width;
 uniform float height;
@@ -120,21 +121,31 @@ float charge(vec2 coord){
   return 0.5 * read_texture(charge_tex, coord) + 0.5 * read_texture(charge_tex_soln, coord);
 }
 
+#define MATERIAL_NONE          0
+#define MATERIAL_METAL         1
+#define MATERIAL_SEMIMETAL     2
+#define MATERIAL_SEMICONDUCTOR 3
+
 // NOTE: high fl sensitivity with high conductivity leads to stiff equations which explode
 /**
-* In general, this should only be a function of charge density.
-* For conductors, this should be a constant or a linear function with a very small coefficient(on the order of inverse conductivity).
-* For semimetals, this should be a linear function with a coefficient corrsponding above.
-* For insulators, ditto above.
-* For semiconductors, TODO
-*/
+ * In general, this should only be a function of charge density.
+ * For conductors, this should be a constant or a linear function with a very small coefficient(on the order of inverse conductivity).
+ * For semimetals, this should be a linear function with a coefficient corrsponding above.
+ * For insulators, ditto above.
+ * For semiconductors, TODO
+ */
 float fermi_level_difference(vec2 coord){
   int material = int(read_texture(material_tex, coord));
   float charge_density = charge(coord);
   switch(material){
-    case 0:
+    case MATERIAL_NONE:
       return 0.0;
-    case 1:
+    case MATERIAL_METAL:
+      return 0.0;
+    case MATERIAL_SEMIMETAL:
+      return charge_density * 0.1;
+    case MATERIAL_SEMICONDUCTOR:
+      // TODO
       return charge_density * 0.1;
   }
   return 0.0;

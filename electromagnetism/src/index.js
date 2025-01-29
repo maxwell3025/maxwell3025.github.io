@@ -119,6 +119,9 @@ brushSelector.addEventListener("change", e => {
     case "material":
       showElement("brushValueInput");
       break;
+    case "doping":
+      showElement("brushValueInput");
+      break;
   }
 })
 

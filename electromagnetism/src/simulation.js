@@ -25,6 +25,7 @@ export class SimulationInstance {
   fieldConductivityY;
   fieldConductivityZ;
   fieldMaterial;
+  fieldDoping;
 
   /** @type {number} */
   width;
@@ -72,6 +73,7 @@ export class SimulationInstance {
     this.fieldConductivityY = new FloatTexture(this.width, this.height);
     this.fieldConductivityZ = new FloatTexture(this.width, this.height);
     this.fieldMaterial = new FloatTexture(this.width, this.height);
+    this.fieldDoping = new FloatTexture(this.width, this.height);
 
 
     // Populate textures
@@ -100,6 +102,7 @@ export class SimulationInstance {
     this.fieldConductivityY.setData(zeroesArray);
     this.fieldConductivityZ.setData(zeroesArray);
     this.fieldMaterial.setData(zeroesArray);
+    this.fieldDoping.setData(zeroesArray);
   }
 
   async init() {
@@ -228,6 +231,10 @@ export class SimulationInstance {
         this.fieldMaterial.display(1, 1, this.displayProgramPipeline);
         break;
 
+      case "doping":
+        this.fieldDoping.display(1, 1, this.displayProgramPipeline);
+        break;
+
       default:
         alert("ERROR unimplemented view type!");
     }
@@ -276,6 +283,10 @@ export class SimulationInstance {
         this.fieldMaterial.setSegment(x1, y1, x2, y2, radius, value);
         break;
 
+      case "doping":
+        this.fieldDoping.setSegment(x1, y1, x2, y2, radius, value);
+        break;
+
       default:
         alert("ERROR unimplemented brush type!");
         brushSelector.value = "none";
@@ -316,6 +327,7 @@ export class SimulationInstance {
       this.stepProgram.setSampler2D("conductivity_z_tex", this.fieldConductivityZ);
       this.stepProgram.setSampler2D("antenna_frequency", this.fieldFreq);
       this.stepProgram.setSampler2D("material_tex", this.fieldMaterial);
+      this.stepProgram.setSampler2D("doping_tex", this.fieldDoping);
 
       this.stepProgram.bindOutput("d_x_new", this.fieldDX.destTexture);
       this.stepProgram.bindOutput("d_y_new", this.fieldDY.destTexture);
@@ -381,5 +393,6 @@ export class SimulationInstance {
     this.fieldConductivityY.delete();
     this.fieldConductivityZ.delete();
     this.fieldMaterial.delete();
+    this.fieldDoping.delete();
   }
 }
