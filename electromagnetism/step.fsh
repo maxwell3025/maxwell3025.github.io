@@ -121,6 +121,108 @@ float charge(vec2 coord){
   return 0.5 * read_texture(charge_tex, coord) + 0.5 * read_texture(charge_tex_soln, coord);
 }
 
+// This is the absolute temperature.
+#define TEMPERATURE 1.0
+// This is Boltzmann's constant in temperature-energy.
+#define BOLTZMANN 1.0
+// This is the expponent associated with the boltmann distributioon in per energy
+#define BOLTZMANN_EXPONENT (1.0 / (TEMPERATURE * BOLTZMANN))
+// This is the density of electron states within the valence and conduction bands in states per volume energy
+#define STATE_DENSITY 1.0
+// This is the charge of a single electron in charge per electron
+#define CHARGE_ELECTRON -1.0
+
+float fermi_level_semiconductor(float gap_bottom, float gap_top, float charge_density){
+  // These 2 formulas differ from the ones in Desmos since we are using negative charge for electrons.
+
+  /*
+    This formula is numerically stable when charge is positive.
+
+    a +
+    \frac{1}{k}
+    \ln(
+      \sqrt{
+        \exp(
+          k(b - a) - \frac{kx}{C_{e}\rho}
+        ) +
+        \frac{1}{4} \exp(2k(b - a)) (1 - \exp(-\frac{kx}{C_{e}\rho}))^2
+      } -
+      \frac{1}{2} \exp(k(b - a)) (1 - \exp(-\frac{kx}{C_{e}\rho}))
+    )
+
+    This formula is numerically stable when charge is negative.
+
+    b -
+    \frac{1}{k}
+    \ln(
+      \sqrt{
+        \exp(
+          k(b - a) + \frac{kx}{C_{e}\rho}
+        ) +
+        \frac{1}{4} \exp(2k(b - a)) (1 - \exp(\frac{kx}{C_{e}\rho}))^2
+      } -
+      \frac{1}{2} \exp(k(b - a)) (1 - \exp(\frac{kx}{C_{e}\rho}))
+    )
+  */
+  if(charge_density > 0.0){
+    return gap_bottom +
+    1.0 / BOLTZMANN_EXPONENT *
+    log(
+      sqrt(
+        exp(
+          BOLTZMANN_EXPONENT *
+          (gap_top - gap_bottom) -
+          (BOLTZMANN_EXPONENT * charge_density) / (CHARGE_ELECTRON * STATE_DENSITY)
+        ) +
+        0.25 * exp(
+          2.0 *
+          BOLTZMANN_EXPONENT *
+          (gap_top - gap_bottom)
+        ) *
+        pow(
+          (1.0 - exp(-(BOLTZMANN_EXPONENT * charge_density)/(CHARGE_ELECTRON * STATE_DENSITY))),
+          2.0
+        )
+      ) -
+      0.5 *
+      exp(
+        BOLTZMANN_EXPONENT *
+        (gap_top - gap_bottom)
+      ) *
+      (1.0 - exp(-(BOLTZMANN_EXPONENT * charge_density)/(CHARGE_ELECTRON * STATE_DENSITY)))
+    );
+  }
+  else{
+    return gap_top -
+    1.0 / BOLTZMANN_EXPONENT *
+    log(
+      sqrt(
+        exp(
+          BOLTZMANN_EXPONENT *
+          (gap_top - gap_bottom) +
+          (BOLTZMANN_EXPONENT * charge_density) / (CHARGE_ELECTRON * STATE_DENSITY)
+        ) +
+        0.25 * exp(
+          2.0 *
+          BOLTZMANN_EXPONENT *
+          (gap_top - gap_bottom)
+        ) *
+        pow(
+          (1.0 - exp((BOLTZMANN_EXPONENT * charge_density)/(CHARGE_ELECTRON * STATE_DENSITY))),
+          2.0
+        )
+      ) -
+      0.5 *
+      exp(
+        BOLTZMANN_EXPONENT *
+        (gap_top - gap_bottom)
+      ) *
+      (1.0 - exp((BOLTZMANN_EXPONENT * charge_density)/(CHARGE_ELECTRON * STATE_DENSITY)))
+    );
+  }
+  return 0.0;
+}
+
 #define MATERIAL_NONE          0
 #define MATERIAL_METAL         1
 #define MATERIAL_SEMIMETAL     2
@@ -145,8 +247,8 @@ float fermi_level_difference(vec2 coord){
     case MATERIAL_SEMIMETAL:
       return charge_density * 0.1;
     case MATERIAL_SEMICONDUCTOR:
-      // TODO
-      return charge_density * 0.1;
+      float doping = read_texture(doping_tex, coord);
+      return fermi_level_semiconductor(-0.6, 0.6, charge_density - doping);
   }
   return 0.0;
 }
