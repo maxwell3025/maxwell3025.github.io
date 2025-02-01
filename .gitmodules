@@ -1,0 +1,3 @@
+[submodule "electromagnetism/lib/zip.js"]
+	path = electromagnetism/lib/zip.js
+	url = https://github.com/gildas-lormeau/zip.js.git

@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <title>maxwell3025's website</title>
         <link rel="stylesheet" href="./style.css"/>
-        <script src="index.js" defer></script>
+        <script src="./src/index.js" type="module"></script>
     </head>
     <body>
         <div id="controlPanel">
@@ -24,6 +24,8 @@
                     <option value="conductivity">Conductivity</option> 
                     <option value="permeability">Magnetic Permeability</option> 
                     <option value="permittivity">Electric Permittivity</option> 
+                    <option value="material">Material Type</option>
+                    <option value="doping">Dopant Concentration</option>
                 </select>
                 <label for="minInput">Minimum</label>
                 <input type="text" value="-1" id="minInput">
@@ -36,6 +38,8 @@
                 <label for="heightInput">Height:</label>
                 <input type="text" value="512" id="heightInput">
                 <button id="resetButton">Reset Simulation</button>
+                <button id="loadButton">Load Preset</button>
+                <button id="saveButton">Save Preset</button>
             </div>
             <div class="subMenu">
                 <label for="borderDissipationInput">Border Strength:</label>
@@ -46,6 +50,8 @@
                 <input type="text" value="0.01" id="dtInput">
                 <label for="dsInput">Space Step:</label>
                 <input type="text" value="0.1" id="dsInput">
+                <label for="fpsInput">Max FPS:</label>
+                <input type="text" value="20" id="fpsInput">
             </div>
             <div class="subMenu" id="brushMenu">
                 <label for="brushSelector">Select Brush Function</label>
@@ -56,7 +62,11 @@
                     <option value="conductivity">Conductivity</option>
                     <option value="permittivity">Electric Permittivity</option>
                     <option value="permeability">Magnetic Permeability</option>
+                    <option value="material">Material Type</option>
+                    <option value="doping">Dopant Concentration</option>
                 </select>
+                <label for="brushRadiusInput">Radius:</label>
+                <input type="text" value="1" id="brushRadiusInput">
                 <label for="brushFrequencyInput">Frequency:</label>
                 <input type="text" value="0" id="brushFrequencyInput">
                 <label for="brushInternalResistanceInput">Internal Resistance:</label>
@@ -75,6 +85,7 @@
             Time = <span id="timeLabel"></span><br/>
             Width = <span id="widthLabel"></span><br/>
             Height = <span id="heightLabel"></span><br/>
+            FPS = <span id="fpsLabel"></span><br/>
         </div>
     </body>
 </html>
